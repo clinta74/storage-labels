@@ -1,0 +1,37 @@
+{
+  "name": "What's in the box?",
+  "short_name": "What's in the box?",
+  "lang": "en-US",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "natural",
+  "icons": [
+    {
+      "src": "icons/storage-container-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/storage-container-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#1a1a1a",
+  "background_color": "#1a1a1a",
+  "screenshots": [
+    {
+      "src": "screenshots/wide.yourmealtracker.com.jpeg",
+      "form_factor": "wide",
+      "sizes": "1938x1562",
+      "label": "What's in the box?"
+    },
+    {
+      "src": "screenshots/narrow.yourmealtracker.com.jpeg",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "sizes": "702x1404",
+      "label": "What's in the box?"
+    }
+  ]
+}

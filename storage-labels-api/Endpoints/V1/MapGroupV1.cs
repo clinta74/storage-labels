@@ -1,5 +1,6 @@
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Boxes;
 using StorageLabelsApi.Models.DTO;
 

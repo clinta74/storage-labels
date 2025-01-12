@@ -6,7 +6,7 @@ using StorageLabelsApi.DataLayer.Models;
 namespace StorageLabelsApi.Handlers.Boxes;
 public record CreateBox(string Code, string Name, string UserId, long LocationId, string? Description = null, string? ImageUrl = null) : IRequest<Result<Box>>;
 
-public class CreateBoxHandler(StorageLabelsDbContext dbContext, ILogger<CreateBoxHandler> logger) : IRequestHandler<CreateBox, Result<Box>>
+public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, ILogger<CreateBoxHandler> logger) : IRequestHandler<CreateBox, Result<Box>>
 {
     public async Task<Result<Box>> Handle(CreateBox request, CancellationToken cancellationToken)
     {
@@ -39,7 +39,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, ILogger<CreateBo
             return Result.Forbidden([$"User ({request.UserId}) cannot add box to location ({request.LocationId})."]);
         }
 
-        var dateTime = DateTimeOffset.UtcNow;
+        var dateTime = timeProvider.GetUtcNow();
 
         var box = dbContext.Boxes
             .Add(new()

@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using StorageLabelsApi.Models;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.ComponentModel;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
@@ -50,10 +52,8 @@ builder.Services.AddDbContext<StorageLabelsDbContext>(options =>
     options.UseSqlServer(sqlBuilder.ConnectionString);
 }, ServiceLifetime.Transient);
 
-var domain = $"https://{builder.Configuration["Auth0:Domain"]}/";
-var audience = builder.Configuration["Auth0:Audience"];
-var clientSecret = builder.Configuration["Auth0:ClientSecret"];
-var apiClientId = builder.Configuration["Auth0:ApiClientId"];
+var auth0 = builder.Configuration.GetSection("Auth0").Get<StorageLabelsApi.Models.Settings.Auth0>() 
+    ?? throw new ArgumentException("Auth0 settings not found.");
 
 builder.Services.AddAuthentication(options =>
     {
@@ -62,8 +62,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(options =>
     {
-        options.Authority = domain;
-        options.Audience = audience;
+        options.Authority = auth0.DomainUrl;
+        options.Audience = auth0.Audience;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -78,11 +78,11 @@ builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in Authorization.Permissions)
     {
-        options.AddPolicy(permission, policy => policy.Requirements.Add(new HasScopeRequirement(permission, domain)));
+        options.AddPolicy(permission, policy => policy.Requirements.Add(new HasScopeRequirement(permission, auth0.DomainUrl)));
     }
 });
 
-builder.Services.AddTransient<IAuth0ManagementApiClient>(provider => new Auth0ManagementApiClient(apiClientId, clientSecret, domain));
+builder.Services.AddTransient<IAuth0ManagementApiClient>(provider => new Auth0ManagementApiClient(auth0.ClientId, auth0.ClientSecret, auth0.DomainUrl));
 
 builder.Services.AddScoped<UserExistsFilter>();
 

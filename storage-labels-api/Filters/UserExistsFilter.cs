@@ -1,27 +1,21 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Handlers.Users;
 
 namespace StorageLabelsApi.Filters;
 
-public class UserExistsFilter : ActionFilterAttribute
+public class UserExistsEndpointFilter(IMediator mediator, ILogger<UserExistsEndpointFilter> logger) 
+    : IEndpointFilter
 {
-    private readonly IMediator _mediator;
-    public UserExistsFilter(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-    public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         var userId = context.HttpContext.GetUserId();
 
-        if (userId is null && !await _mediator.Send(new UserExists(userId)))
+        if (!await mediator.Send(new UserExists(userId ?? string.Empty)))
         {
-            context.Result = new NotFoundObjectResult($"User not found.");
-            return;
+            logger.LogError("User id {userId} not found", userId);
+            return Results.Problem("User not found.");
         }
 
-        await base.OnActionExecutionAsync(context, next);
+        return await next(context);
     }
 }

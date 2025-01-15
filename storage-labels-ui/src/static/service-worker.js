@@ -30,7 +30,7 @@ self.addEventListener('fetch', event => {
     // Prevent the default, and handle the request ourselves.
     event.respondWith(async function() {
       // Try to get the response from a cache.
-      const cache = await caches.open('food-pwa-cache');
+      const cache = await caches.open('storage-labels-pwa-cache');
       const cachedResponse = await cache.match(event.request);
   
       if (cachedResponse) {

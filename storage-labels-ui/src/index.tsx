@@ -16,4 +16,4 @@ if (rootNode !== null) {
     );
 }
 
-registerBackgroundWorker();
+// registerBackgroundWorker();

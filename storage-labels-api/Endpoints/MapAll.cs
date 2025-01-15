@@ -1,8 +1,5 @@
-using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
-using StorageLabelsApi.Filters;
-using StorageLabelsApi.Handlers.Boxes;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Handlers.Users;
 
 namespace StorageLabelsApi.Endpoints;
 
@@ -10,11 +7,12 @@ internal static partial class EndpointsMapper
 {
     internal static IEndpointRouteBuilder MapAll(this IEndpointRouteBuilder routeBuilder)
     {
-        var api = routeBuilder.MapGroup("api");
-        api.MapBoxes();
-        api.MapUsers();
+        var api = routeBuilder.MapGroup("api")
+            .RequireAuthorization();
+        api.MapBox();
+        api.MapUser();
 
-        api.MapGet("test", () => Results.Ok("Hello world."));
+        routeBuilder.MapGet("health", () => Results.Ok("Hello world."));
 
         return routeBuilder;
     }

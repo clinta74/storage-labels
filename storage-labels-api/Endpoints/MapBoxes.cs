@@ -8,14 +8,14 @@ namespace StorageLabelsApi.Endpoints;
 
 internal static partial class EndpointsMapper
 {
-    private static IEndpointRouteBuilder MapBoxes(this IEndpointRouteBuilder routeBuilder)
+    private static IEndpointRouteBuilder MapBox(this IEndpointRouteBuilder routeBuilder)
     {
-        return routeBuilder.MapGroup("boxes")
+        return routeBuilder.MapGroup("box")
             .AddEndpointFilter<UserExistsEndpointFilter>()
-            .MapBoxesEndpoints();
+            .MapBoxEndpoints();
     }
 
-    private static IEndpointRouteBuilder MapBoxesEndpoints(this IEndpointRouteBuilder routeBuilder)
+    private static IEndpointRouteBuilder MapBoxEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
         routeBuilder.MapPost("/",
             async (
@@ -28,7 +28,7 @@ internal static partial class EndpointsMapper
                 var userId = context.GetUserId();
                 if (userId is null)
                 {
-                return Results.BadRequest("User id not found.");
+                    return Results.BadRequest("User id not found.");
                 }
 
                 var box = await mediator.Send(new CreateBox(

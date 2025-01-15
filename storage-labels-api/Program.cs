@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Scalar.AspNetCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.Endpoints;
 using Microsoft.AspNetCore.Authorization;
@@ -17,22 +16,30 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using StorageLabelsApi.Models;
+using StorageLabelsApi.Transformer;
+using Swashbuckle.AspNetCore.SwaggerUI;
+using StorageLabelsApi.Models.Settings;
 
+const string OpenApiDocumentName = "StorageLabelsApi";
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
+    .Configure<Auth0Settings>(builder.Configuration.GetSection(nameof(Auth0Settings)))
     .AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()))
     .AddLogging()
-    .AddOpenApi()
+    .AddOpenApi(OpenApiDocumentName, options =>
+    {
+        options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    })
     .AddCors()
     .ConfigureHttpJsonOptions(options =>
     {
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
-    builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 // Database configuration
 var dataSource = builder.Configuration["DATA_SOURCE"];
@@ -55,8 +62,10 @@ builder.Services.AddDbContext<StorageLabelsDbContext>(options =>
     options.UseSqlServer(sqlBuilder.ConnectionString);
 }, ServiceLifetime.Transient);
 
-var auth0 = builder.Configuration.GetSection("Auth0").Get<StorageLabelsApi.Models.Settings.Auth0>()
+var auth0 = builder.Configuration.GetSection(nameof(Auth0Settings)).Get<Auth0Settings>()
     ?? throw new ArgumentException("Auth0 settings not found.");
+
+auth0.Validate();
 
 builder.Services.AddAuthentication(options =>
     {
@@ -71,7 +80,7 @@ builder.Services.AddAuthentication(options =>
         {
             ValidateIssuer = true,
             ClockSkew = TimeSpan.FromSeconds(5),
-            NameClaimType = ClaimTypes.NameIdentifier
+            NameClaimType = ClaimTypes.NameIdentifier,
         };
     });
 
@@ -85,7 +94,7 @@ builder.Services.AddAuthorization(options =>
     }
 });
 
-builder.Services.AddTransient<IAuth0ManagementApiClient>(provider => new Auth0ManagementApiClient(auth0.ClientId, auth0.ClientSecret, auth0.DomainUrl));
+builder.Services.AddTransient<IAuth0ManagementApiClient>(provider => new Auth0ManagementApiClient(auth0.ApiClientId, auth0.ClientSecret, auth0.DomainUrl));
 
 builder.Services.AddScoped<UserExistsEndpointFilter>();
 
@@ -93,11 +102,11 @@ var app = builder.Build();
 
 app.UseCors(config => config
     .WithExposedHeaders("x-total-count")
-    .WithOrigins(new string[]
-    {
+    .WithOrigins(
+    [
         "http://localhost:4000",
         "https://storage-labels.pollyspeople.net",
-    })
+    ])
     .AllowAnyMethod()
     .AllowAnyHeader());
 
@@ -109,8 +118,13 @@ app.MapAll();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference();
-    // app.MapGet("/", () => Results.RedirectToRoute("scalar/v1"));
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint($"/openapi/{OpenApiDocumentName}.json", OpenApiDocumentName);
+        options.OAuthClientId(auth0.ClientId);
+        options.DefaultModelRendering(ModelRendering.Example);
+        options.DefaultModelExpandDepth(1);
+    });
 }
 
 app.UseExceptionHandler(exceptionHandlerApp

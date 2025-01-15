@@ -1,5 +1,6 @@
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Users;
 using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO;
@@ -11,6 +12,8 @@ internal static partial class EndpointsMapper
     private static IEndpointRouteBuilder MapUser(this IEndpointRouteBuilder routeBuilder)
     {
         return routeBuilder.MapGroup("user")
+            .WithTags("Users")
+            .AddEndpointFilter<UserExistsEndpointFilter>()
             .MapUsersEndpoints();
     }
 
@@ -72,7 +75,7 @@ internal static partial class EndpointsMapper
             {
                 var userid = context.GetUserId();
 
-                var userExists = userid is null ? false : await mediator.Send(new UserExists(userid), cancellationToken) ;
+                var userExists = userid is null ? false : await mediator.Send(new UserExists(userid), cancellationToken);
                 return Results.Ok(userExists);
             })
             .Produces<bool>(StatusCodes.Status200OK)

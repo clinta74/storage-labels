@@ -94,48 +94,50 @@ export const NewUser: React.FC = () => {
     return (
         <Grid container justifyContent="center">
             <Grid item xs={12} md={10} xl={8}>
-                <Paper>
-                    <Box mb={2}>
-                        <Typography variant="h4">Create User</Typography>
-                        <p>To be able to access your daily tracking you must first register.</p>
-                    </Box>
-                    <form noValidate autoComplete="off">
-                        <Grid container justifyContent="center" alignItems="stretch" spacing={2}>
-                            <Grid item xs={6}>
-                                <FormControl fullWidth>
-                                    <TextField error={showErrors && hasErrors('firstName')} label="First Name" id="firstName" name="firstName" value={newUser.firstName} onChange={onChangeStringField} disabled={postingNewUser} required />
-                                    <ErrorMessage isSubmitted={isSubmitted} inputName="firstName" results={results} />
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <FormControl fullWidth>
-                                    <TextField error={showErrors && hasErrors('lastName')} label="Last Name" id="lastName" name="lastName" value={newUser.lastName} onChange={onChangeStringField} disabled={postingNewUser} required />
-                                    <ErrorMessage isSubmitted={isSubmitted} inputName="lastName" results={results} />
-                                </FormControl>
-                            </Grid>
+                <Paper elevation={4}>
+                    <Box padding={2} mt={4}>
+                        <Box mb={2}>
+                            <Typography variant="h4">Create User</Typography>
+                            <p>To be able to access your daily tracking you must first register.</p>
+                        </Box>
+                        <form noValidate autoComplete="off">
+                            <Grid container justifyContent="center" alignItems="stretch" spacing={2}>
+                                <Grid item xs={6}>
+                                    <FormControl fullWidth>
+                                        <TextField error={showErrors && hasErrors('firstName')} label="First Name" id="firstName" name="firstName" value={newUser.firstName} onChange={onChangeStringField} disabled={postingNewUser} required />
+                                        <ErrorMessage isSubmitted={isSubmitted} inputName="firstName" results={results} />
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <FormControl fullWidth>
+                                        <TextField error={showErrors && hasErrors('lastName')} label="Last Name" id="lastName" name="lastName" value={newUser.lastName} onChange={onChangeStringField} disabled={postingNewUser} required />
+                                        <ErrorMessage isSubmitted={isSubmitted} inputName="lastName" results={results} />
+                                    </FormControl>
+                                </Grid>
 
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <TextField error={showErrors && hasErrors('emailAddress')} label="Last Name" id="emailAddress" name="emailAddress" value={newUser.emailAddress} disabled={postingNewUser} required />
-                                    <ErrorMessage isSubmitted={isSubmitted} inputName="emailAddress" results={results} />
-                                </FormControl>
-                            </Grid>
+                                <Grid item xs={12}>
+                                    <FormControl fullWidth>
+                                        <TextField error={showErrors && hasErrors('emailAddress')} label="Last Name" id="emailAddress" name="emailAddress" value={newUser.emailAddress} disabled={postingNewUser} required />
+                                        <ErrorMessage isSubmitted={isSubmitted} inputName="emailAddress" results={results} />
+                                    </FormControl>
+                                </Grid>
 
-                            <Grid item xs={12}>
-                                <em>* Required fields.</em>
+                                <Grid item xs={12}>
+                                    <em>* Required fields.</em>
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    </form>
+                        </form>
 
-                    <Box display="flex" justifyContent="flex-end" mt={2}>
-                        <Box display="flex" alignItems="center">
-                            <Box mr={1}>
-                                <Button color="primary" onClick={createNewUser} disabled={postingNewUser}>Create</Button>
-                                {postingNewUser && <CircularProgress size={24}></CircularProgress>}
+                        <Box display="flex" justifyContent="flex-end" mt={2}>
+                            <Box display="flex" alignItems="center">
+                                <Box mr={1}>
+                                    <Button color="primary" onClick={createNewUser} disabled={postingNewUser}>Create</Button>
+                                    {postingNewUser && <CircularProgress size={24}></CircularProgress>}
+                                </Box>
+                                <Link to="/locations">
+                                    <Button color="secondary" disabled={postingNewUser}>Cancel</Button>
+                                </Link>
                             </Box>
-                            <Link to="/locations">
-                                <Button color="secondary" disabled={postingNewUser}>Cancel</Button>
-                            </Link>
                         </Box>
                     </Box>
                 </Paper>

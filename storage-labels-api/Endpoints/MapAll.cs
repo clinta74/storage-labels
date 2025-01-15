@@ -11,6 +11,7 @@ internal static partial class EndpointsMapper
             .RequireAuthorization();
         api.MapBox();
         api.MapUser();
+        api.MapNewUser();
 
         routeBuilder.MapGet("health", () => Results.Ok("Hello world."));
 

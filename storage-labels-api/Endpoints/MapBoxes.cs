@@ -11,6 +11,7 @@ internal static partial class EndpointsMapper
     private static IEndpointRouteBuilder MapBox(this IEndpointRouteBuilder routeBuilder)
     {
         return routeBuilder.MapGroup("box")
+            .WithTags("Boxes")
             .AddEndpointFilter<UserExistsEndpointFilter>()
             .MapBoxEndpoints();
     }

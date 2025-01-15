@@ -19,8 +19,9 @@ using StorageLabelsApi.Models;
 using StorageLabelsApi.Transformer;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using StorageLabelsApi.Models.Settings;
+using Microsoft.Extensions.Options;
 
-const string OpenApiDocumentName = "StorageLabelsApi";
+const string OpenApiDocumentName = "storage-labels-api";
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
@@ -35,11 +36,11 @@ builder.Services
     .ConfigureHttpJsonOptions(options =>
     {
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    })
+    .Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
-builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
-{
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
 
 // Database configuration
 var dataSource = builder.Configuration["DATA_SOURCE"];
@@ -120,6 +121,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseSwaggerUI(options =>
     {
+        options.DocumentTitle = "Storage Lables API";
         options.SwaggerEndpoint($"/openapi/{OpenApiDocumentName}.json", OpenApiDocumentName);
         options.OAuthClientId(auth0.ClientId);
         options.DefaultModelRendering(ModelRendering.Example);

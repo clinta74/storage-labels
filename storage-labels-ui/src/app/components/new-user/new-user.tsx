@@ -38,7 +38,6 @@ export const NewUser: React.FC = () => {
     const { Api } = useApi();
 
     const [newUser, setNewUser] = useState<NewUser>({
-        userId: '',
         firstName: '',
         lastName: '',
         emailAddress: '',
@@ -73,7 +72,7 @@ export const NewUser: React.FC = () => {
         setIsSubmitted(true);
         if (!postingNewUser && valid) {
             setPostingNewUser(true);
-            Api.NewUser.addNewUser(newUser)
+            Api.User.createUser(newUser)
                 .then(() => {
                     navigate(`/`);
                 })

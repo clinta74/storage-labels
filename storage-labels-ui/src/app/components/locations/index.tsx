@@ -11,7 +11,13 @@ export const Locations: React.FC = () => {
     const alert = useAlertMessage();
     const navigate = useNavigate();
 
-    const [currentUser, setCurrentUser] = useState<CurrentUser>();
+    const [user, setUser] = useState<User>({
+        userId: '',
+        firstName: '',
+        lastName: '',
+        emailAddress: '',
+        created: '',
+    });
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -20,7 +26,7 @@ export const Locations: React.FC = () => {
                     if (data) {
                         Api.User.getUser()
                             .then(({ data }) => {
-                                setCurrentUser(data);
+                                setUser(data);
                             })
                             .catch(error => alert.addMessage(error));
                     }
@@ -33,6 +39,6 @@ export const Locations: React.FC = () => {
     }, [isAuthenticated]);
 
     return (
-        <Box>Showing Locations for {currentUser?.firstName}</Box>
+        <Box>Showing Locations for {user?.firstName}</Box>
     );
 }

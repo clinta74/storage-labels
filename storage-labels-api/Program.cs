@@ -95,7 +95,7 @@ builder.Services.AddAuthorization(options =>
     }
 });
 
-builder.Services.AddTransient<IAuth0ManagementApiClient>(provider => new Auth0ManagementApiClient(auth0.ApiClientId, auth0.ClientSecret, auth0.DomainUrl));
+builder.Services.AddTransient<IAuth0ManagementApiClient>(provider => new Auth0ManagementApiClient(auth0.ApiClientId, auth0.ClientSecret, auth0.Domain));
 
 builder.Services.AddScoped<UserExistsEndpointFilter>();
 

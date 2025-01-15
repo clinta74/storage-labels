@@ -1,8 +1,9 @@
 namespace StorageLabelsApi.Models.DTO;
 
-public record NewUserResponse(
+public record CreateUserResponse(
     string UserId,
     string FirstName,
     string LastName,
-    string EmailAddress
+    string EmailAddress,
+    DateTimeOffset CreatedDate
 );

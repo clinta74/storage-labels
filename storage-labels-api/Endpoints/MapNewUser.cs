@@ -1,7 +1,7 @@
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Handlers.NewUsers;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.NewUser;
 
 namespace StorageLabelsApi.Endpoints;
 
@@ -30,8 +30,7 @@ internal static partial class EndpointsMapper
                 var user = await mediator.Send(new GetNewUser(userId), cancellationToken);
 
                 return user
-                    .Map(user => new NewUserResponse(
-                        user.UserId,
+                    .Map(user => new GetNewUserResponse(
                         user.FirstName,
                         user.LastName,
                         user.Email)
@@ -39,7 +38,7 @@ internal static partial class EndpointsMapper
                     .ToMinimalApiResult();
 
             })
-            .Produces<NewUserResponse>(StatusCodes.Status200OK)
+            .Produces<GetNewUserResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
             .WithName("Get New Auth0 User");
 

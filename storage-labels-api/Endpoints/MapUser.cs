@@ -13,7 +13,6 @@ internal static partial class EndpointsMapper
     {
         return routeBuilder.MapGroup("user")
             .WithTags("Users")
-            .AddEndpointFilter<UserExistsEndpointFilter>()
             .MapUsersEndpoints();
     }
 
@@ -80,6 +79,32 @@ internal static partial class EndpointsMapper
             })
             .Produces<bool>(StatusCodes.Status200OK)
             .WithName("Get User Exists");
+
+
+        routeBuilder.MapPost("/",
+            async (HttpContext context, CreateUserRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken) =>
+            {
+                var userId = context.GetUserId();
+                if (userId is null)
+                {
+                    return Results.BadRequest("UserId not found.");
+                }
+                var user = await mediator.Send(new CreateNewUser(userId, request.FirstName, request.LastName, request.EmailAddress));
+
+                return user
+                    .Map(user => new CreateUserResponse(
+                        user.UserId,
+                        user.FirstName,
+                        user.LastName,
+                        user.EmailAddress,
+                        user.Created)
+                    )
+                    .ToMinimalApiResult();;
+
+            })
+            .Produces<CreateUserResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithName("Add User");
 
         return routeBuilder;
     }

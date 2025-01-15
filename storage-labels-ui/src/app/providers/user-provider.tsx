@@ -5,14 +5,14 @@ import { useApi } from '../../api';
 import { useAlertMessage } from './alert-provider';
 
 interface UserContext {
-    user: CurrentUser,
+    user: User,
     updateUser: () => void;
 }
 
 export const UserContext = createContext<UserContext | null>(null);
 
 export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
-    const [user, setUser] = useState<CurrentUser>();
+    const [user, setUser] = useState<User>();
     const alert = useAlertMessage();
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth0();

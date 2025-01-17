@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StorageLabelsApi.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -43,7 +43,7 @@ namespace StorageLabelsApi.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EmailAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -83,7 +83,7 @@ namespace StorageLabelsApi.Migrations
                 name: "UserLocations",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(250)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     LocationId = table.Column<long>(type: "bigint", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AccessLevel = table.Column<int>(type: "int", nullable: false),

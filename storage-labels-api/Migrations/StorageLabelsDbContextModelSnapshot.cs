@@ -139,8 +139,7 @@ namespace StorageLabelsApi.Migrations
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.User", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");
@@ -165,7 +164,7 @@ namespace StorageLabelsApi.Migrations
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.UserLocation", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<long>("LocationId")
                         .HasColumnType("bigint");

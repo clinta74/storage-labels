@@ -34,7 +34,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
             .Where(userLocation => userLocation.AccessLevel == AccessLevels.Edit || userLocation.AccessLevel == AccessLevels.Owner)
             .AnyAsync(cancellationToken);
 
-         if (hasBoxCode)
+        if (hasBoxCode)
         {
             return Result.Forbidden([$"User ({request.UserId}) cannot add box to location ({request.LocationId})."]);
         }
@@ -42,18 +42,17 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
         var dateTime = timeProvider.GetUtcNow();
 
         var box = dbContext.Boxes
-            .Add(new()
-            {
-                BoxId = Guid.CreateVersion7(),
-                Code = request.Code,
-                Name = request.Name,
-                Description = request.Description,
-                ImageUrl = request.ImageUrl,
-                LocationId = request.LocationId,
-                Created = dateTime,
-                Updated = dateTime,
-                Access = dateTime,
-            });
+            .Add(new(
+                BoxId: Guid.CreateVersion7(),
+                Code: request.Code,
+                Name: request.Name,
+                Description: request.Description,
+                ImageUrl: request.ImageUrl,
+                LocationId: request.LocationId,
+                Created: dateTime,
+                Updated: dateTime,
+                Access: dateTime)
+            );
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -2,7 +2,7 @@ using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Models.DTO;
 
-public record BoxReponse(
+public record BoxResponse(
     Guid BoxId,
     string Code,
     string Name,
@@ -13,7 +13,7 @@ public record BoxReponse(
     DateTimeOffset Updated,
     DateTimeOffset LastAccessed)
 {
-    public BoxReponse(Box box) : this(
+    public BoxResponse(Box box) : this(
         box.BoxId,
         box.Code,
         box.Name,

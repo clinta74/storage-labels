@@ -1,4 +1,7 @@
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Ardalis.Result.AspNetCore;
+using Microsoft.AspNetCore.Components.Web.Virtualization;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Boxes;
@@ -18,20 +21,19 @@ internal static partial class EndpointsMapper
             .MapItemEndpoints();
     }
 
-
     private static IEndpointRouteBuilder MapItemEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
         routeBuilder.MapPost("/", CreateItem)
-            .Produces<BoxReponse>(StatusCodes.Status201Created)
+            .Produces<ItemResponse>(StatusCodes.Status201Created)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status409Conflict)
             .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest);
 
-        routeBuilder.MapGet("/box/{boxid}", GetItemsByBoxId)
-            .Produces<BoxReponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+        routeBuilder.MapGet("/box/{boxid}/", GetItemsByBoxId)
+            .Produces<IAsyncEnumerable<ItemResponse>>(StatusCodes.Status200OK);
 
         return routeBuilder;
     }
+
     private static async Task<IResult> CreateItem(HttpContext context, ItemRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
@@ -48,8 +50,15 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static Task<IResult> GetItemsByBoxId(HttpContext context, Guid boxId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async IAsyncEnumerable<ItemResponse> GetItemsByBoxId(HttpContext context, Guid boxId, [FromServices] IMediator mediator, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var userId = context.GetUserId();
+        var items = mediator.CreateStream(new GetItemsByBoxId(boxId, userId), cancellationToken);
+
+        await foreach (var item in items)
+        {
+            if (cancellationToken.IsCancellationRequested) break;
+            yield return new ItemResponse(item);
+        }
     }
 }

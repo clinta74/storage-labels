@@ -5,8 +5,8 @@ using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Handlers.Items;
 
-public record CreateItem(  
-    string? UserId,  
+public record CreateItem(
+    string? UserId,
     Guid BoxId,
     string Name,
     string? Description,
@@ -25,20 +25,19 @@ public class CreateItemHandler(StorageLabelsDbContext dbContext, TimeProvider ti
 
         if (!userCanEditBox)
         {
-            logger.LogWarning("User attempted to add an item {request} to box without access", request);
-            return Result<Item>.NotFound("Box not found or invalid permission.");
+            logger.LogWarning("User ({userId}) attempted to add an item to box ({boxId}).", request.UserId, request.BoxId);
+            return Result.Invalid(new ValidationError(nameof(Box), $"Cannot add item to box ({request.BoxId}).", "Access", ValidationSeverity.Error));
         }
 
         var validation = await new ItemValidator().ValidateAsync(request);
         if (!validation.IsValid)
         {
-            logger.LogWarning("Create Box failed validation: {validation}", validation);
             return Result<Item>.Invalid(validation.AsErrors());
         }
 
         var dateTime = timeProvider.GetUtcNow();
         var item = dbContext.Items.Add(
-            new (
+            new(
                 ItemId: Guid.CreateVersion7(),
                 BoxId: request.BoxId,
                 Name: request.Name,

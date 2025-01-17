@@ -13,7 +13,6 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
         var validation = await new BoxValidator().ValidateAsync(request);
         if (!validation.IsValid)
         {
-            logger.LogWarning("Create Box failed validation: {validation}", validation);
             return Result<Box>.Invalid(validation.AsErrors());
         }
 
@@ -34,9 +33,10 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
             .Where(userLocation => userLocation.AccessLevel >= AccessLevels.Edit)
             .AnyAsync(cancellationToken);
 
-        if (hasBoxCode)
+        if (!userCanAccessLocation)
         {
-            return Result.Forbidden([$"User ({request.UserId}) cannot add box to location ({request.LocationId})."]);
+            logger.LogWarning("User ({userId}) cannot add box to location id ({locationId}).", request.UserId, request.LocationId);
+            return Result.Invalid(new ValidationError(nameof(Location), $"User cannot add box to location ({request.LocationId}).", "Access", ValidationSeverity.Error));
         }
 
         var dateTime = timeProvider.GetUtcNow();

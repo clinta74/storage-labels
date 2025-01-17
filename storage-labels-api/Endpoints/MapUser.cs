@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Filters;
@@ -73,7 +74,7 @@ internal static partial class EndpointsMapper
     private static async Task<IResult> CreateUser(HttpContext context, CreateUserRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        var user = await mediator.Send(new CreateNewUser(userId, request.FirstName, request.LastName, request.EmailAddress));
+        var user = await mediator.Send(new CreateNewUser(userId, request.FirstName, request.LastName, request.EmailAddress), cancellationToken);
 
         return user
             .Map(user => new UserResponse(user))

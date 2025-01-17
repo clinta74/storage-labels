@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Filters;
@@ -20,13 +21,16 @@ internal static partial class EndpointsMapper
     private static IEndpointRouteBuilder MapBoxEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
         routeBuilder.MapPost("/", CreateBox)
-            .Produces<BoxReponse>(StatusCodes.Status201Created)
+            .Produces<BoxResponse>(StatusCodes.Status201Created)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status409Conflict)
             .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest);
 
         routeBuilder.MapGet("{boxid}", GetBoxById)
-            .Produces<BoxReponse>(StatusCodes.Status200OK)
+            .Produces<BoxResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
+
+        routeBuilder.MapGet("/location/{locationid}/", GetBoxesByLocationId)
+            .Produces<IAsyncEnumerable<BoxResponse>>(StatusCodes.Status200OK);
 
         return routeBuilder;
     }
@@ -36,9 +40,9 @@ internal static partial class EndpointsMapper
         var userId = context.GetUserId();
 
         var box = await mediator.Send(new GetBoxById(boxId, userId));
-        
+
         return box
-            .Map(box => new BoxReponse(box))
+            .Map(box => new BoxResponse(box))
             .ToMinimalApiResult();
     }
 
@@ -56,7 +60,19 @@ internal static partial class EndpointsMapper
         ), cancellationToken);
 
         return box
-            .Map(box => new BoxReponse(box))
+            .Map(box => new BoxResponse(box))
             .ToMinimalApiResult();
+    }
+
+    private static async IAsyncEnumerable<BoxResponse> GetBoxesByLocationId(HttpContext context, long locationId, [FromServices] IMediator mediator, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var boxes = mediator.CreateStream(new GetBoxesByLocationId(locationId, userId), cancellationToken);
+
+        await foreach (var box in boxes)
+        {
+            if (cancellationToken.IsCancellationRequested) break;
+            yield return new BoxResponse(box);
+        }
     }
 }

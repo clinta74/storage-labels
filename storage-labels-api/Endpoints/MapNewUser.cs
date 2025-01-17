@@ -27,7 +27,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<IResult> CreateNewUser(HttpContext context, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
-        var userId = context.GetUserId();
+        var userId = context.TryGetUserId();
         if (userId is null)
         {
             return Results.NotFound("Current user could not be found.");

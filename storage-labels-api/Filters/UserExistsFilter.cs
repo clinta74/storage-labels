@@ -8,7 +8,7 @@ public class UserExistsEndpointFilter(IMediator mediator, ILogger<UserExistsEndp
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        var userId = context.HttpContext.GetUserId();
+        var userId = context.HttpContext.TryGetUserId();
 
         if (!await mediator.Send(new UserExists(userId ?? string.Empty)))
         {

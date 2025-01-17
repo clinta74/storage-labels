@@ -1,6 +1,6 @@
 namespace StorageLabelsApi.Models.DTO;
 
-public record CreateItemRequest(
+public record ItemRequest(
     Guid BoxId,
     string Name,
     string? Description,

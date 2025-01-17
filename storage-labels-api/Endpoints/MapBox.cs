@@ -34,7 +34,6 @@ internal static partial class EndpointsMapper
     private static async Task<IResult> GetBoxById(HttpContext context, Guid boxId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        if (userId is null) return Results.BadRequest("User id not found.");
 
         var box = await mediator.Send(new GetBoxById(boxId, userId));
         
@@ -46,7 +45,6 @@ internal static partial class EndpointsMapper
     private static async Task<IResult> CreateBox(HttpContext context, CreateBoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        if (userId is null) return Results.BadRequest("User id not found.");
 
         var box = await mediator.Send(new CreateBox(
             Code: request.Code,

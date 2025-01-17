@@ -1,5 +1,6 @@
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Users;
 using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO;
@@ -21,6 +22,7 @@ internal static partial class EndpointsMapper
         routeBuilder.MapGet("/", GetCurrentUser)
             .Produces<UserResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
+            .AddEndpointFilter<UserExistsEndpointFilter>()
             .WithName("Get Current User");
 
         routeBuilder.MapGet("/{userid}", GetUserById)
@@ -45,10 +47,6 @@ internal static partial class EndpointsMapper
     private static async Task<IResult> GetCurrentUser(HttpContext context, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userid = context.GetUserId();
-        if (userid is null)
-        {
-            return Results.NotFound("Current user could not be found.");
-        }
 
         var user = await mediator.Send(new GetUserById(userid), cancellationToken);
         return user
@@ -66,7 +64,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<IResult> GetUserExists(HttpContext context, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
-        var userId = context.GetUserId();
+        var userId = context.TryGetUserId();
 
         var userExists = userId is null ? false : await mediator.Send(new UserExists(userId), cancellationToken);
         return Results.Ok(userExists);
@@ -75,10 +73,6 @@ internal static partial class EndpointsMapper
     private static async Task<IResult> CreateUser(HttpContext context, CreateUserRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        if (userId is null)
-        {
-            return Results.BadRequest("UserId not found.");
-        }
         var user = await mediator.Send(new CreateNewUser(userId, request.FirstName, request.LastName, request.EmailAddress));
 
         return user

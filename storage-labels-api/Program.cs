@@ -134,4 +134,6 @@ app.UseExceptionHandler(exceptionHandlerApp
         => await Results.Problem()
                      .ExecuteAsync(context)));
 
+app.UseHttpsRedirection();
+
 app.Run();

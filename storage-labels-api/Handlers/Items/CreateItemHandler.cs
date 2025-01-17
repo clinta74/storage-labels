@@ -6,7 +6,7 @@ using StorageLabelsApi.DataLayer.Models;
 namespace StorageLabelsApi.Handlers.Items;
 
 public record CreateItem(  
-    string UserId,  
+    string? UserId,  
     Guid BoxId,
     string Name,
     string? Description,

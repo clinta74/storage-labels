@@ -1,5 +1,6 @@
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Locations;
 using StorageLabelsApi.Models.DTO;
 using IResult = Microsoft.AspNetCore.Http.IResult;
@@ -12,6 +13,7 @@ internal static partial class EndpointsMapper
     {
         return routeBuilder.MapGroup("location")
             .WithTags("Location")
+            .AddEndpointFilter<UserExistsEndpointFilter>()
             .MapLocationEndpoints();
     }
 
@@ -32,10 +34,6 @@ internal static partial class EndpointsMapper
     private static async Task<IResult> GetLocationsByUserId(HttpContext context, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userid = context.GetUserId();
-        if (userid is null)
-        {
-            return Results.BadRequest("Current user could not be found.");
-        }
         var locations = await mediator.Send(new GetLocationsByUserId(userid), cancellationToken);
 
         return locations
@@ -46,10 +44,6 @@ internal static partial class EndpointsMapper
     private static async Task<IResult> CreateLocation(HttpContext context, LocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userid = context.GetUserId();
-        if (userid is null)
-        {
-            return Results.BadRequest("Current user could not be found.");
-        }
 
         var location = await mediator.Send(new CreateLocation(userid, request.Name), cancellationToken);
         return location

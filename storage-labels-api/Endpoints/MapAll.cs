@@ -13,6 +13,7 @@ internal static partial class EndpointsMapper
         api.MapUser();
         api.MapNewUser();
         api.MapLocation();
+        api.MapItem();
 
         routeBuilder.MapGet("health", () => Results.Ok("Hello world."));
 

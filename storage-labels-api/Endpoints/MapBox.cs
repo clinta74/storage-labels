@@ -58,17 +58,7 @@ internal static partial class EndpointsMapper
         ), cancellationToken);
 
         return box
-            .Map(box => new BoxReponse(
-                box.BoxId,
-                box.Code,
-                box.Name,
-                box.Description,
-                box.ImageUrl,
-                box.LocationId,
-                box.Created,
-                box.Updated,
-                box.LastAccessed)
-            )
+            .Map(box => new BoxReponse(box))
             .ToMinimalApiResult();
     }
 }

@@ -19,13 +19,13 @@ internal static partial class EndpointsMapper
     private static IEndpointRouteBuilder MapUsersEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
         routeBuilder.MapGet("/", GetCurrentUser)
-            .Produces<GetUserResponse>(StatusCodes.Status200OK)
+            .Produces<UserResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
             .WithName("Get Current User");
 
         routeBuilder.MapGet("/{userid}", GetUserById)
             .RequireAuthorization(Policies.Read_User)
-            .Produces<GetUserResponse>(StatusCodes.Status200OK)
+            .Produces<UserResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
             .WithName("Get User By UserId");
 
@@ -35,7 +35,7 @@ internal static partial class EndpointsMapper
 
 
         routeBuilder.MapPost("/", CreateUser)
-            .Produces<CreateUserResponse>(StatusCodes.Status200OK)
+            .Produces<UserResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .WithName("Add User");
 
@@ -52,13 +52,7 @@ internal static partial class EndpointsMapper
 
         var user = await mediator.Send(new GetUserById(userid), cancellationToken);
         return user
-            .Map(user => new GetUserResponse(
-                user.UserId,
-                user.FirstName,
-                user.LastName,
-                user.EmailAddress,
-                user.Created)
-            )
+            .Map(user => new UserResponse(user))
             .ToMinimalApiResult();
     }
 
@@ -66,13 +60,7 @@ internal static partial class EndpointsMapper
     {
         var user = await mediator.Send(new GetUserById(userid), cancellationToken);
         return user
-            .Map(user => new GetUserResponse(
-                user.UserId,
-                user.FirstName,
-                user.LastName,
-                user.EmailAddress,
-                user.Created)
-            )
+            .Map(user => new UserResponse(user))
             .ToMinimalApiResult();
     }
 
@@ -94,13 +82,7 @@ internal static partial class EndpointsMapper
         var user = await mediator.Send(new CreateNewUser(userId, request.FirstName, request.LastName, request.EmailAddress));
 
         return user
-            .Map(user => new CreateUserResponse(
-                user.UserId,
-                user.FirstName,
-                user.LastName,
-                user.EmailAddress,
-                user.Created)
-            )
+            .Map(user => new UserResponse(user))
             .ToMinimalApiResult(); ;
     }
 }

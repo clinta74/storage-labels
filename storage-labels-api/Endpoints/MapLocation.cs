@@ -53,7 +53,7 @@ internal static partial class EndpointsMapper
 
         var location = await mediator.Send(new CreateLocation(userid, request.Name), cancellationToken);
         return location
-            .Map(l => new LocationResponse(l))
+            .Map(loc => new LocationResponse(loc))
             .ToMinimalApiResult();
     }
 }

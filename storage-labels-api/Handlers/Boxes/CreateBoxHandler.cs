@@ -31,7 +31,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
             .AsNoTracking()
             .Where(userLocation => userLocation.LocationId == request.LocationId)
             .Where(userLocation => userLocation.UserId == request.UserId)
-            .Where(userLocation => userLocation.AccessLevel == AccessLevels.Edit || userLocation.AccessLevel == AccessLevels.Owner)
+            .Where(userLocation => userLocation.AccessLevel >= AccessLevels.Edit)
             .AnyAsync(cancellationToken);
 
         if (hasBoxCode)

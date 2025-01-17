@@ -11,7 +11,7 @@ public record BoxReponse(
     long LocationId,
     DateTimeOffset Created,
     DateTimeOffset Updated,
-    DateTimeOffset Access)
+    DateTimeOffset LastAccessed)
 {
     public BoxReponse(Box box) : this(
         box.BoxId,
@@ -22,5 +22,6 @@ public record BoxReponse(
         box.LocationId,
         box.Created,
         box.Updated,
-        box.LastAccessed) {}
+        box.LastAccessed)
+    { }
 };

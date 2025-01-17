@@ -16,6 +16,9 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Box>()
+            .HasKey(box => box.BoxId);
+        
+        modelBuilder.Entity<Box>()
             .HasIndex(box => new { box.Code, box.BoxId })
             .IsUnique();
 
@@ -23,6 +26,15 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
             .HasMany(box => box.Items)
             .WithOne(item => item.Box)
             .HasForeignKey(item => item.BoxId);
+
+        modelBuilder.Entity<CommonLocation>()
+            .HasKey(commonLocation => commonLocation.CommonLocationId);
+
+        modelBuilder.Entity<Item>()
+            .HasKey(item => item.ItemId);
+
+        modelBuilder.Entity<Location>()
+            .HasKey(location => location.LocationId);
 
         modelBuilder.Entity<Location>()
             .HasMany(location => location.Boxes)
@@ -33,6 +45,9 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
             .HasMany(location => location.UserLocations)
             .WithOne(userLocation => userLocation.Location)
             .HasForeignKey(userLocation => userLocation.LocationId);
+
+        modelBuilder.Entity<User>()
+            .HasKey(user => user.UserId);
 
         modelBuilder.Entity<User>()
             .HasMany(user => user.UserLocations)

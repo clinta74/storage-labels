@@ -4,17 +4,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace StorageLabelsApi.DataLayer.Models;
 
 [Table("Users")]
-public record User
+public record User(
+    [MaxLength(250)] string UserId,
+    string FirstName, 
+    string LastName, 
+    [EmailAddress] string EmailAddress,
+    DateTimeOffset Created)
 {
-    [Key]
-    [MaxLength(250)]
-    public required string UserId { get; init; }
-    [Required]
-    public required string FirstName { get; init; }
-    [Required]
-    public required string LastName { get; init; }
-    [EmailAddress]
-    public required string EmailAddress { get; init; }
-    public required DateTimeOffset Created { get; init; }
     public ICollection<UserLocation> UserLocations { get; } = [];
 }

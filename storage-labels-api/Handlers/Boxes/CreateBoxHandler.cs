@@ -10,7 +10,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
 {
     public async Task<Result<Box>> Handle(CreateBox request, CancellationToken cancellationToken)
     {
-        var validation = await new CreateBoxValidator().ValidateAsync(request);
+        var validation = await new BoxValidator().ValidateAsync(request);
         if (!validation.IsValid)
         {
             logger.LogWarning("Create Box failed validation: {validation}", validation);
@@ -51,7 +51,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
                 LocationId: request.LocationId,
                 Created: dateTime,
                 Updated: dateTime,
-                Access: dateTime)
+                LastAccessed: dateTime)
             );
 
         await dbContext.SaveChangesAsync(cancellationToken);

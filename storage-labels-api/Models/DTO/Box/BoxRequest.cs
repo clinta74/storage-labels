@@ -5,7 +5,7 @@ namespace StorageLabelsApi.Models.DTO;
 public record CreateBoxRequest(
     [Required] string Code, 
     [Required] string Name, 
-    long LocationId,
+    [Required] long LocationId,
     string? Description,
     string? ImageUrl
 );

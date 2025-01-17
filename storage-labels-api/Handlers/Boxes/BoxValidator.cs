@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace StorageLabelsApi.Handlers.Boxes;
 
-public class CreateBoxValidator : AbstractValidator<CreateBox>
+public class BoxValidator : AbstractValidator<CreateBox>
 {
-    public CreateBoxValidator()
+    public BoxValidator()
     {
         RuleFor(x => x.Code).NotEmpty();
         RuleFor(x => x.Name).NotEmpty();

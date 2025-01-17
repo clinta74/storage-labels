@@ -6,7 +6,6 @@ namespace StorageLabelsApi.DataLayer.Models;
 public record UserLocation(
     string UserId,
     long LocationId,
-    string Name,
     AccessLevels AccessLevel,
     DateTimeOffset Created,
     DateTimeOffset Updated)

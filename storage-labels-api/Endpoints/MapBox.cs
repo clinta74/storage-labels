@@ -20,20 +20,33 @@ internal static partial class EndpointsMapper
     private static IEndpointRouteBuilder MapBoxEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
         routeBuilder.MapPost("/", CreateBox)
-            .Produces<CreateBoxReponse>(StatusCodes.Status201Created)
+            .Produces<BoxReponse>(StatusCodes.Status201Created)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status409Conflict)
             .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest);
 
+        routeBuilder.MapGet("{boxid}", GetBoxById)
+            .Produces<BoxReponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
+
         return routeBuilder;
+    }
+
+    private static async Task<IResult> GetBoxById(HttpContext context, Guid boxId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        if (userId is null) return Results.BadRequest("User id not found.");
+
+        var box = await mediator.Send(new GetBoxById(boxId, userId));
+        
+        return box
+            .Map(box => new BoxReponse(box))
+            .ToMinimalApiResult();
     }
 
     private static async Task<IResult> CreateBox(HttpContext context, CreateBoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        if (userId is null)
-        {
-            return Results.BadRequest("User id not found.");
-        }
+        if (userId is null) return Results.BadRequest("User id not found.");
 
         var box = await mediator.Send(new CreateBox(
             Code: request.Code,
@@ -45,7 +58,17 @@ internal static partial class EndpointsMapper
         ), cancellationToken);
 
         return box
-            .Map(box => new CreateBoxReponse(box.BoxId))
+            .Map(box => new BoxReponse(
+                box.BoxId,
+                box.Code,
+                box.Name,
+                box.Description,
+                box.ImageUrl,
+                box.LocationId,
+                box.Created,
+                box.Updated,
+                box.LastAccessed)
+            )
             .ToMinimalApiResult();
     }
 }

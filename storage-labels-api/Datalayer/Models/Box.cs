@@ -13,7 +13,7 @@ public record Box(
     long LocationId,
     DateTimeOffset Created,
     DateTimeOffset Updated,
-    DateTimeOffset Access)
+    DateTimeOffset LastAccessed)
 {
     public Location Location { get; } = null!;
     public ICollection<Item> Items { get; } = [];

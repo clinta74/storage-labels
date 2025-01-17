@@ -28,9 +28,6 @@ namespace StorageLabelsApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("Access")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -43,6 +40,9 @@ namespace StorageLabelsApi.Migrations
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("LastAccessed")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<long>("LocationId")
                         .HasColumnType("bigint");
@@ -174,10 +174,6 @@ namespace StorageLabelsApi.Migrations
 
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("Updated")
                         .HasColumnType("datetimeoffset");

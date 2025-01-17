@@ -66,7 +66,7 @@ namespace StorageLabelsApi.Migrations
                     LocationId = table.Column<long>(type: "bigint", nullable: false),
                     Created = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     Updated = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    Access = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    LastAccessed = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -85,7 +85,6 @@ namespace StorageLabelsApi.Migrations
                 {
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     LocationId = table.Column<long>(type: "bigint", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AccessLevel = table.Column<int>(type: "int", nullable: false),
                     Created = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     Updated = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)

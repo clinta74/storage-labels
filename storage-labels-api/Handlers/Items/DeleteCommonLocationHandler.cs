@@ -20,6 +20,10 @@ public class DeleteCommonLocationHandler(StorageLabelsDbContext dbContext) : IRe
             return Result.NotFound($"Common location id {request.CommonLocationId} not found.");
         }
 
+        dbContext.CommonLocations.Remove(commonLocation);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         return Result.Success();
     }
 }

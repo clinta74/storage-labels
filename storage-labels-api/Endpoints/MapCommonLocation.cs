@@ -1,11 +1,9 @@
-using System.Runtime.CompilerServices;
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.DataLayer.Models;
-using StorageLabelsApi.Filters;
-using StorageLabelsApi.Handlers.Boxes;
 using StorageLabelsApi.Handlers.CommonLocations;
 using StorageLabelsApi.Handlers.Items;
+using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
@@ -16,14 +14,15 @@ internal static partial class EndpointsMapper
     private static IEndpointRouteBuilder MapCommonLocation(this IEndpointRouteBuilder routeBuilder)
     {
         return routeBuilder.MapGroup("common-location")
-            .WithTags("Common Location")
-            .RequireAuthorization("write:common-location")
+            .WithTags("Common Locations")
+            .RequireAuthorization(Policies.Read_CommonLocations)
             .MapCommonLocationEndpoints();
     }
 
     private static IEndpointRouteBuilder MapCommonLocationEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
         routeBuilder.MapPost("/", CreateCommonLocation)
+            .RequireAuthorization(Policies.Write_CommonLocations)
             .Produces<CommonLocation>(StatusCodes.Status201Created)
             .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest);
 
@@ -31,6 +30,7 @@ internal static partial class EndpointsMapper
             .Produces<CommonLocation>(StatusCodes.Status200OK);
 
         routeBuilder.MapDelete("{commonlocationid}", DeleteCommonLocation)
+            .RequireAuthorization(Policies.Write_CommonLocations)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 

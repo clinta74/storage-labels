@@ -1,4 +1,3 @@
-using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Handlers.Users;
 
 namespace StorageLabelsApi.Filters;
@@ -12,7 +11,7 @@ public class UserExistsEndpointFilter(IMediator mediator, ILogger<UserExistsEndp
 
         if (!await mediator.Send(new UserExists(userId ?? string.Empty)))
         {
-            logger.LogError("User id {userId} not found", userId);
+            logger.LogUserNotFound(userId ?? "null");
             return Results.Problem("User not found.");
         }
 

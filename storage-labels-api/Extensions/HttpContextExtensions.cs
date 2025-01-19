@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace StorageLabelsApi.Extensions;
 
 public static class HttpContextExtensions

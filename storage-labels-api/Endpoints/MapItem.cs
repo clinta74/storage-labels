@@ -1,10 +1,7 @@
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Ardalis.Result.AspNetCore;
-using Microsoft.AspNetCore.Components.Web.Virtualization;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Filters;
-using StorageLabelsApi.Handlers.Boxes;
 using StorageLabelsApi.Handlers.Items;
 using StorageLabelsApi.Models.DTO;
 using IResult = Microsoft.AspNetCore.Http.IResult;

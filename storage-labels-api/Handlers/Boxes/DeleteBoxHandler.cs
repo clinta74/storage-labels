@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
@@ -16,9 +15,11 @@ public class DeleteBoxHandler(StorageLabelsDbContext dbContext, ILogger<DeleteBo
             .Where(b => b.BoxId == request.BoxId)
             .Where(b => b.Location.UserLocations.Any(ul => ul.UserId == request.UserId && ul.AccessLevel == AccessLevels.Owner))
             .FirstOrDefaultAsync(cancellationToken);
+            
         if (box is null)
         {
-            return Result.NotFound($"Box with id ({request.BoxId}) ");
+            logger.LogDeleteBox(request.BoxId);
+            return Result.NotFound($"Box with id ({request.BoxId})");
         }
 
         dbContext.Boxes.Remove(box);
@@ -27,4 +28,6 @@ public class DeleteBoxHandler(StorageLabelsDbContext dbContext, ILogger<DeleteBo
 
         return Result.Success();
     }
+
+    
 }

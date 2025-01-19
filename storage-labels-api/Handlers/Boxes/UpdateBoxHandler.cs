@@ -9,7 +9,7 @@ public record UpdateBox(
     Guid BoxId,
     string Code,
     string Name, 
-    string? UserId,
+    string UserId,
     long LocationId,
     string? Description = null,
     string? ImageUrl = null) : IRequest<Result<Box>>;
@@ -48,7 +48,7 @@ public class UpdateBoxHandler(
 
         if (!userCanAccessLocation)
         {
-            logger.LogWarning("User ({userId}) cannot add box to location id ({locationId}).", request.UserId, request.LocationId);
+            logger.LogNoAccessToLocation(request.UserId, request.LocationId);
             return Result.Invalid(new ValidationError(nameof(Location), $"User cannot add box to location ({request.LocationId}).", "Access", ValidationSeverity.Error));
         }
 

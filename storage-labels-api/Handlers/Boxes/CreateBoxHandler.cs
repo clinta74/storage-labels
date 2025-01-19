@@ -1,13 +1,10 @@
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using Ardalis.Result.FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Handlers.Boxes;
-public record CreateBox(string Code, string Name, string? UserId, long LocationId, string? Description = null, string? ImageUrl = null) : IRequest<Result<Box>>;
+public record CreateBox(string Code, string Name, string UserId, long LocationId, string? Description = null, string? ImageUrl = null) : IRequest<Result<Box>>;
 
 public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, ILogger<CreateBoxHandler> logger) : IRequestHandler<CreateBox, Result<Box>>
 {
@@ -38,7 +35,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
 
         if (!userCanAccessLocation)
         {
-            logger.LogWarning("User ({userId}) cannot add box to location id ({locationId}).", request.UserId, request.LocationId);
+            logger.LogNoAccessToLocation(request.UserId, request.LocationId);
             return Result.Invalid(new ValidationError(nameof(Location), $"User cannot add box to location ({request.LocationId}).", "Access", ValidationSeverity.Error));
         }
 

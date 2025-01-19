@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 
-namespace StorageLabelsApi.Handlers.Items;
+namespace StorageLabelsApi.Handlers.CommonLocations;
 
 public record DeleteCommonLocation(int CommonLocationId) : IRequest<Result>;
 

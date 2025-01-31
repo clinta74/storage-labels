@@ -4,13 +4,26 @@ using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Handlers.Boxes;
-public record CreateBox(string Code, string Name, string UserId, long LocationId, string? Description = null, string? ImageUrl = null) : IRequest<Result<Box>>;
 
-public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, ILogger<CreateBoxHandler> logger) : IRequestHandler<CreateBox, Result<Box>>
+public record UpdateBox(
+    Guid BoxId,
+    string Code,
+    string Name, 
+    string UserId,
+    long LocationId,
+    string? Description = null,
+    string? ImageUrl = null) : IRequest<Result<Box>>;
+
+
+public class UpdateBoxHandler(
+    StorageLabelsDbContext dbContext,
+    TimeProvider timeProvider,
+    ILogger<UpdateBoxHandler> logger) : IRequestHandler<UpdateBox, Result<Box>>
 {
-    public async Task<Result<Box>> Handle(CreateBox request, CancellationToken cancellationToken)
+    public async Task<Result<Box>> Handle(UpdateBox request, CancellationToken cancellationToken)
     {
-        var validation = await new CreateBoxValidator().ValidateAsync(request);
+        var validation = await new UpdateBoxValidator()
+            .ValidateAsync(request);
         if (!validation.IsValid)
         {
             return Result<Box>.Invalid(validation.AsErrors());
@@ -39,23 +52,31 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
             return Result.Invalid(new ValidationError(nameof(Location), $"User cannot add box to location ({request.LocationId}).", "Access", ValidationSeverity.Error));
         }
 
+        var box = await  dbContext.Boxes
+            .AsNoTracking()
+            .Where(b => b.BoxId == request.BoxId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (box is null)
+        {
+            return Result.NotFound($"Box with id {request.BoxId} not found.");
+        }
+
         var dateTime = timeProvider.GetUtcNow();
 
-        var box = dbContext.Boxes
-            .Add(new(
-                BoxId: Guid.CreateVersion7(),
-                Code: request.Code,
-                Name: request.Name,
-                Description: request.Description,
-                ImageUrl: request.ImageUrl,
-                LocationId: request.LocationId,
-                Created: dateTime,
-                Updated: dateTime,
-                LastAccessed: dateTime)
-            );
+        var result = dbContext.Boxes
+            .Update(box with 
+            {
+                Code = request.Code,
+                Name = request.Name,
+                Description = request.Description,
+                ImageUrl = request.ImageUrl,
+                LocationId = request.LocationId,
+                Updated = dateTime
+            });
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Created(box.Entity);
-    }
+        return Result.Success(box);
+    }   
 }

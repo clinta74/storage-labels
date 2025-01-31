@@ -2,7 +2,6 @@ using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Handlers.CommonLocations;
-using StorageLabelsApi.Handlers.Items;
 using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO;
 using IResult = Microsoft.AspNetCore.Http.IResult;

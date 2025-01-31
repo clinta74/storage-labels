@@ -19,7 +19,6 @@ using StorageLabelsApi.Models;
 using StorageLabelsApi.Transformer;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using StorageLabelsApi.Models.Settings;
-using Microsoft.Extensions.Options;
 
 const string OpenApiDocumentName = "storage-labels-api";
 

@@ -6,12 +6,11 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import { Welcome } from './components/welcome';
 import { ApiProvider } from '../api';
 import { LegalRoutes } from './components/legal/legal-routes';
-import { Locations } from './components/locations';
 import { NewUserRoutes } from './components/new-user/new-user-routes';
+import { LocationRoutes } from './components/locations/locations-routes';
 
 export const AppRoutes: React.FunctionComponent = () => {
     const { isAuthenticated, isLoading } = useAuth0();
-
 
     if (isLoading) {
         return (
@@ -30,7 +29,7 @@ export const AppRoutes: React.FunctionComponent = () => {
                     <Routes>
                         <Route path="/legal/*" element={<LegalRoutes />} />
                         <Route path="/new-user/*" element={<NewUserRoutes />} />
-                        <Route path="*" element={<Locations />} />
+                        <Route path="/*" element={<LocationRoutes />} />
                     </Routes>
                 </ApiProvider>
             </Box>

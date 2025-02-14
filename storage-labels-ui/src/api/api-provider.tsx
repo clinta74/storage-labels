@@ -4,6 +4,7 @@ import React, { PropsWithChildren } from 'react';
 import { CONFIG } from '../config';
 import { UserEndpoints, getUserEndpoints } from './endpoints/user';
 import { getNewUserEndpoints, NewUserEndpoints } from './endpoints/new-user';
+import { getLocationEndpoints, LocationEndpoints } from './endpoints/location';
 
 const createAxiosInstance = (): AxiosInstance => {
     return axios.create({
@@ -18,6 +19,7 @@ const createAxiosInstance = (): AxiosInstance => {
 };
 
 interface IApiContext {
+    Location: LocationEndpoints;
     NewUser: NewUserEndpoints;
     User: UserEndpoints;
 }
@@ -39,6 +41,7 @@ export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
             });
 
         const api: IApiContext = {
+            Location: getLocationEndpoints(client),
             NewUser: getNewUserEndpoints(client),
             User: getUserEndpoints(client),
         }

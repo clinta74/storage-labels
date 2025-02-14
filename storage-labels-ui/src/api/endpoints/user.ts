@@ -4,14 +4,14 @@ export type UserEndpoints = ReturnType<typeof getUserEndpoints>;
 
 export const getUserEndpoints = (client: AxiosInstance) => ({
     getUser: () =>
-        client.get<User>(`user`),
+        client.get<UserResponse>(`user`),
 
     getUserExists: () =>
         client.get<boolean>(`user/exists`),
 
-    updateUser: (user: User) =>
+    updateUser: (user: UserResponse) =>
         client.patch(`user`, user),
 
     createUser: (user: NewUser) =>
-        client.post<User>(`user`, user),
+        client.post<UserResponse>(`user`, user),
 });

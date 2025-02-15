@@ -1,4 +1,5 @@
 type UserId = string;
+type AccessLevels = "None" | "View" | "Edit" | "Owner";
 interface UserResponse {
     userId: UserId;
     firstName: string;
@@ -21,4 +22,5 @@ interface Location {
     name: string;
     created: string;
     updated: string;
+    accessLevel: AccessLevels; 
 }

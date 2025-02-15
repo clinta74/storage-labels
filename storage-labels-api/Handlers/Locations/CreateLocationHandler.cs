@@ -3,10 +3,10 @@ using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Handlers.Locations;
 
-public record CreateLocation(string UserId, string Name) : IRequest<Result<Location>>;
-public class CreateLocationHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider) : IRequestHandler<CreateLocation, Result<Location>>
+public record CreateLocation(string UserId, string Name) : IRequest<Result<LocationWithAccess>>;
+public class CreateLocationHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider) : IRequestHandler<CreateLocation, Result<LocationWithAccess>>
 {
-    public async Task<Result<Location>> Handle(CreateLocation request, CancellationToken cancellationToken)
+    public async Task<Result<LocationWithAccess>> Handle(CreateLocation request, CancellationToken cancellationToken)
     {
         var dateTime = timeProvider.GetUtcNow();
 
@@ -23,12 +23,13 @@ public class CreateLocationHandler(StorageLabelsDbContext dbContext, TimeProvide
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var locationId = location.Entity.LocationId;
+        var defaultAccessLevel = AccessLevels.Owner;
         
         dbContext.UserLocations
             .Add(new(
                 UserId: request.UserId,
                 LocationId: locationId,
-                AccessLevel: AccessLevels.Owner,
+                AccessLevel: defaultAccessLevel,
                 Created: dateTime,
                 Updated: dateTime)
             );
@@ -37,6 +38,6 @@ public class CreateLocationHandler(StorageLabelsDbContext dbContext, TimeProvide
 
         await transaction.CommitAsync(cancellationToken);
 
-        return Result.Created(location.Entity);
+        return Result.Created(new LocationWithAccess(location.Entity, defaultAccessLevel));
     }
 }

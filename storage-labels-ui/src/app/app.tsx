@@ -13,14 +13,14 @@ export const App: React.FC = () => {
         <React.Fragment>
             <CssBaseline />
             <ConfirmProvider>
-                <Box position="relative" minHeight="100vh" zIndex={1}>
+                <Box position="relative" minHeight="calc(100vh - 8px)" zIndex={1}>
                     <Box position="relative" zIndex={2}>
                         <AlertProvider>
                             <AlertMessage />
                             <Router>
                                 <Auth0ProviderWithHistory>
                                     <UserPermissionProvider>
-                                        <Container maxWidth="lg">
+                                        <Container maxWidth="lg" style={{ paddingBottom: 8 }}>
                                             <AppRoutes />
                                         </Container>
                                     </UserPermissionProvider>

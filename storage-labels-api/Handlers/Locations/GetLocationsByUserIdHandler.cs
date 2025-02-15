@@ -4,16 +4,16 @@ using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Handlers.Locations;
 
-public record GetLocationsByUserId(string UserId) : IRequest<Result<List<Location>>>;
-public class GetLocationsByUserIdHandler(StorageLabelsDbContext dbContext) : IRequestHandler<GetLocationsByUserId, Result<List<Location>>>
+public record GetLocationsByUserId(string UserId) : IRequest<Result<List<LocationWithAccess>>>;
+public class GetLocationsByUserIdHandler(StorageLabelsDbContext dbContext) : IRequestHandler<GetLocationsByUserId, Result<List<LocationWithAccess>>>
 {
-    public async Task<Result<List<Location>>> Handle(GetLocationsByUserId request, CancellationToken cancellationToken)
+    public async Task<Result<List<LocationWithAccess>>> Handle(GetLocationsByUserId request, CancellationToken cancellationToken)
     {
         var locations = await dbContext.UserLocations
             .AsNoTracking()
-            .Where(l => l.UserId == request.UserId)
+            .Where(ul => ul.UserId == request.UserId)
             .Where(ul => ul.AccessLevel > AccessLevels.None)
-            .Select(ul => ul.Location)
+            .Select(ul => new LocationWithAccess(ul.Location, ul.AccessLevel))
             .ToListAsync(cancellationToken);
 
         return Result.Success(locations);

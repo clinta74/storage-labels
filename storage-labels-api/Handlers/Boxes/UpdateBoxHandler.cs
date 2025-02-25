@@ -48,7 +48,7 @@ public class UpdateBoxHandler(
 
         if (!userCanAccessLocation)
         {
-            logger.LogNoAccessToLocation(request.UserId, request.LocationId);
+            logger.NoAccessToLocation(request.UserId, request.LocationId);
             return Result.Invalid(new ValidationError(nameof(Location), $"User cannot add box to location ({request.LocationId}).", "Access", ValidationSeverity.Error));
         }
 
@@ -77,6 +77,6 @@ public class UpdateBoxHandler(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Success(box);
+        return Result.Success(result.Entity);
     }   
 }

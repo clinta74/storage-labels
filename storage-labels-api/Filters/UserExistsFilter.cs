@@ -11,7 +11,7 @@ public class UserExistsEndpointFilter(IMediator mediator, ILogger<UserExistsEndp
 
         if (!await mediator.Send(new UserExists(userId ?? string.Empty)))
         {
-            logger.LogUserNotFound(userId ?? "null");
+            logger.UserNotFound(userId ?? "null");
             return Results.Problem("User not found.");
         }
 

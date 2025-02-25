@@ -32,6 +32,12 @@ internal static partial class EndpointsMapper
         routeBuilder.MapGet("/location/{locationid}/", GetBoxesByLocationId)
             .Produces<IAsyncEnumerable<BoxResponse>>(StatusCodes.Status200OK);
 
+        routeBuilder.MapDelete("{boxId}", DeleteLocation)
+            .Produces(StatusCodes.Status200OK)
+            .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Delete Box");
+
         return routeBuilder;
     }
 
@@ -74,5 +80,14 @@ internal static partial class EndpointsMapper
             if (cancellationToken.IsCancellationRequested) break;
             yield return new BoxResponse(box);
         }
+    }
+
+    private static async Task<IResult> DeleteBox(HttpContext context, Guid BoxId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+
+        var box = await mediator.Send(new DeleteBox(BoxId, userId), cancellationToken);
+
+        return box.ToMinimalApiResult();
     }
 }

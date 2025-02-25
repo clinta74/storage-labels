@@ -35,7 +35,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
 
         if (!userCanAccessLocation)
         {
-            logger.LogNoAccessToLocation(request.UserId, request.LocationId);
+            logger.NoAccessToLocation(request.UserId, request.LocationId);
             return Result.Invalid(new ValidationError(nameof(Location), $"User cannot add box to location ({request.LocationId}).", "Access", ValidationSeverity.Error));
         }
 

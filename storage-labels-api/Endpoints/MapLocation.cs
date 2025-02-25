@@ -29,6 +29,17 @@ internal static partial class EndpointsMapper
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
             .WithName("Create Location");
 
+        routeBuilder.MapPut("{locationId}", UpdateLocation)
+            .Produces<LocationResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Update Location");
+
+        routeBuilder.MapDelete("{locationId}", DeleteLocation)
+            .Produces(StatusCodes.Status200OK)
+            .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Delete Location");
+
         return routeBuilder;
     }
     private static async Task<IResult> GetLocationsByUserId(HttpContext context, [FromServices] IMediator mediator, CancellationToken cancellationToken)
@@ -48,6 +59,25 @@ internal static partial class EndpointsMapper
         var location = await mediator.Send(new CreateLocation(userid, request.Name), cancellationToken);
         return location
             .Map(loc => new LocationResponse(loc))
+            .ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> UpdateLocation(HttpContext context, long LocationId, LocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userid = context.GetUserId();
+
+        var location = await mediator.Send(new UpdateLocation(userid, LocationId, request.Name), cancellationToken);
+        return location
+            .Map(loc => new LocationResponse(loc))
+            .ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> DeleteLocation(HttpContext context, long LocationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userid = context.GetUserId();
+
+        var location = await mediator.Send(new DeleteLocation(userid, LocationId), cancellationToken);
+        return location
             .ToMinimalApiResult();
     }
 }

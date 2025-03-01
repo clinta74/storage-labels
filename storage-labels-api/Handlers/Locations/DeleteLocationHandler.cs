@@ -7,7 +7,7 @@ namespace StorageLabelsApi.Handlers.Locations;
 
 public record DeleteLocation(string UserId, long LocationId) : IRequest<Result>;
 
-public class DeleteLocationHandler(StorageLabelsDbContext dbContext, Logger<DeleteLocationHandler> logger) : IRequestHandler<DeleteLocation, Result>
+public class DeleteLocationHandler(StorageLabelsDbContext dbContext, ILogger<DeleteLocationHandler> logger) : IRequestHandler<DeleteLocation, Result>
 {
     public async Task<Result> Handle(DeleteLocation request, CancellationToken cancellationToken)
     {

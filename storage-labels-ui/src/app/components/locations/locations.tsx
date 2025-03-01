@@ -10,7 +10,7 @@ import { useApi } from '../../../api';
 export const Locations: React.FC = () => {
     const alert = useAlertMessage();
     const { Api } = useApi();
-    const [locations, setLocations] = useState<Location[]>([]);
+    const [locations, setLocations] = useState<StorageLocation[]>([]);
 
     const theme = createTheme();
 
@@ -25,7 +25,7 @@ export const Locations: React.FC = () => {
         <React.Fragment>
             <Box position="relative">
                 <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)}>
-                    <Fab color="primary" title="Create a Plan" aria-label="add" component={Link} to={`location/add`}>
+                    <Fab color="primary" title="Create a Plan" aria-label="add" component={Link} to={`add`}>
                         <AddIcon />
                     </Fab>
                 </Box>

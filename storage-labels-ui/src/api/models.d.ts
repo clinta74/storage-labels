@@ -17,7 +17,7 @@ interface LocationRequest {
     name: string;
 }
 
-interface Location {
+interface StorageLocation {
     locationId: number;
     name: string;
     created: string;

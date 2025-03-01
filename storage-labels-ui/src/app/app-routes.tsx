@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
@@ -29,7 +29,8 @@ export const AppRoutes: React.FunctionComponent = () => {
                     <Routes>
                         <Route path="/legal/*" element={<LegalRoutes />} />
                         <Route path="/new-user/*" element={<NewUserRoutes />} />
-                        <Route path="/*" element={<LocationRoutes />} />
+                        <Route path="/location/*" element={<LocationRoutes />} />
+                        <Route index element={<Navigate to="/location" />} />
                     </Routes>
                 </ApiProvider>
             </Box>

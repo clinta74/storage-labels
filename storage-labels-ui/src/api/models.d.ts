@@ -24,3 +24,23 @@ interface StorageLocation {
     updated: string;
     accessLevel: AccessLevels; 
 }
+
+interface Box {
+        boxId: string;
+        code: string;
+        name: string;
+        description: string;
+        imageUrl: string;
+        locationId: number;
+        created: string;
+        updated: string;
+        lastAccessed: string;
+}
+
+interface BoxRequest {
+    code: string;
+    name: string;
+    locationId: number;
+    description: string;
+    imageUrl: string;
+  }

@@ -5,6 +5,7 @@ import { CONFIG } from '../config';
 import { UserEndpoints, getUserEndpoints } from './endpoints/user';
 import { getNewUserEndpoints, NewUserEndpoints } from './endpoints/new-user';
 import { getLocationEndpoints, LocationEndpoints } from './endpoints/location';
+import { BoxEndpoints, getBoxEndpoints } from './endpoints/box';
 
 const createAxiosInstance = (): AxiosInstance => {
     return axios.create({
@@ -22,6 +23,7 @@ interface IApiContext {
     Location: LocationEndpoints;
     NewUser: NewUserEndpoints;
     User: UserEndpoints;
+    Box: BoxEndpoints;
 }
 
 const ApiContext = React.createContext<{ Api: IApiContext } | null>(null);
@@ -44,6 +46,7 @@ export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
             Location: getLocationEndpoints(client),
             NewUser: getNewUserEndpoints(client),
             User: getUserEndpoints(client),
+            Box: getBoxEndpoints(client),
         }
 
         setApi(api);

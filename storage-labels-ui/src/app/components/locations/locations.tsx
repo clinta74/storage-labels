@@ -1,11 +1,11 @@
 import { Avatar, Box, createTheme, Fab, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import WarehouseIcon from '@mui/icons-material/Warehouse';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { useApi } from '../../../api';
+import AddIcon from '@mui/icons-material/Add';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import WarehouseIcon from '@mui/icons-material/Warehouse';
 
 export const Locations: React.FC = () => {
     const alert = useAlertMessage();
@@ -25,7 +25,7 @@ export const Locations: React.FC = () => {
         <React.Fragment>
             <Box position="relative">
                 <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)}>
-                    <Fab color="primary" title="Create a Plan" aria-label="add" component={Link} to={`add`}>
+                    <Fab color="primary" title="Add a Location" aria-label="add" component={Link} to={`add`}>
                         <AddIcon />
                     </Fab>
                 </Box>
@@ -44,7 +44,7 @@ export const Locations: React.FC = () => {
                                             </IconButton>
                                         }
                                     >
-                                        <ListItemButton component={Link} to={`location/${location.locationId}`}>
+                                        <ListItemButton component={Link} to={`${location.locationId}`}>
                                             <ListItemAvatar>
                                                 <Avatar>
                                                     <WarehouseIcon />

@@ -25,8 +25,22 @@ internal static partial class EndpointsMapper
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status409Conflict)
             .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest);
 
-        routeBuilder.MapGet("/box/{boxid}/", GetItemsByBoxId)
+        routeBuilder.MapGet("/box/{boxid:guid}/", GetItemsByBoxId)
             .Produces<IAsyncEnumerable<ItemResponse>>(StatusCodes.Status200OK);
+
+        // New endpoints for get, update, delete by ItemId
+        routeBuilder.MapGet("/{itemId:guid}", GetItemById)
+            .Produces<ItemResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
+
+        routeBuilder.MapPut("/{itemId:guid}", UpdateItem)
+            .Produces<ItemResponse>(StatusCodes.Status200OK)
+            .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound);
+
+        routeBuilder.MapDelete("/{itemId:guid}", DeleteItem)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound);
 
         return routeBuilder;
     }
@@ -57,5 +71,45 @@ internal static partial class EndpointsMapper
             if (cancellationToken.IsCancellationRequested) break;
             yield return new ItemResponse(item);
         }
+    }
+
+    private static async Task<IResult> GetItemById(HttpContext context, Guid itemId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var item = await mediator.Send(new GetItemById(itemId, userId), cancellationToken);
+
+        if (item is null)
+            return Results.NotFound();
+
+        return Results.Ok(new ItemResponse(item));
+    }
+
+    private static async Task<IResult> UpdateItem(HttpContext context, Guid itemId, ItemRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var result = await mediator.Send(new UpdateItem(
+            ItemId: itemId,
+            UserId: userId,
+            BoxId: request.BoxId,
+            Name: request.Name,
+            Description: request.Description,
+            ImageUrl: request.ImageUrl
+        ), cancellationToken);
+
+        if (result is null)
+            return Results.NotFound();
+
+        return Results.Ok(new ItemResponse(result));
+    }
+
+    private static async Task<IResult> DeleteItem(HttpContext context, Guid itemId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var deleted = await mediator.Send(new DeleteItem(itemId, userId), cancellationToken);
+
+        if (!deleted)
+            return Results.NotFound();
+
+        return Results.NoContent();
     }
 }

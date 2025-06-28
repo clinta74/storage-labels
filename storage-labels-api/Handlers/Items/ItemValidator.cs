@@ -2,9 +2,18 @@ using FluentValidation;
 
 namespace StorageLabelsApi.Handlers.Items;
 
-public class ItemValidator : AbstractValidator<CreateItem>
+public class CreateItemValidator : AbstractValidator<CreateItem>
 {
-    public ItemValidator()
+    public CreateItemValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty();
+        RuleFor(x => x.UserId).NotEmpty();
+    }
+}
+
+public class UpdateItemValidator : AbstractValidator<UpdateItem>
+{
+    public UpdateItemValidator()
     {
         RuleFor(x => x.Name).NotEmpty();
         RuleFor(x => x.UserId).NotEmpty();

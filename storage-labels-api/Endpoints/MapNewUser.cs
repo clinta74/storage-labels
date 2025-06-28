@@ -35,11 +35,7 @@ internal static partial class EndpointsMapper
         var user = await mediator.Send(new GetNewUser(userId), cancellationToken);
 
         return user
-            .Map(user => new GetNewUserResponse(
-                user.FirstName,
-                user.LastName,
-                user.Email)
-            )
+            .Map(user => new GetNewUserResponse(user))
             .ToMinimalApiResult();
     }
 }

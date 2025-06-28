@@ -24,6 +24,11 @@ internal static partial class EndpointsMapper
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
             .WithName("Get Current User Locations");
 
+        routeBuilder.MapGet("{locationId}", GetLocation)
+            .Produces<LocationResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Get Location");
+
         routeBuilder.MapPost("/", CreateLocation)
             .Produces<LocationResponse>(StatusCodes.Status201Created)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
@@ -49,6 +54,16 @@ internal static partial class EndpointsMapper
 
         return locations
             .Map(locs => locs.Select(loc => new LocationResponse(loc)))
+            .ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> GetLocation(HttpContext context, long locationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userid = context.GetUserId();
+        var location = await mediator.Send(new GetLocation(userid, locationId), cancellationToken);
+
+        return location
+            .Map(loc => new LocationResponse(loc))
             .ToMinimalApiResult();
     }
 

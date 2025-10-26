@@ -29,7 +29,7 @@ public static class MapImage
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest);
 
-        group.MapGet("/{hashedUserId}/{imageId:guid}", GetImageFileHandlerEndpoint)
+        group.MapGet("/{hashedUserId}/{imageId}", GetImageFileHandlerEndpoint)
             .AddEndpointFilter<ImageAccessFilter>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status403Forbidden)
@@ -75,18 +75,30 @@ public static class MapImage
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetImageFileHandlerEndpoint(
         string hashedUserId,
-        Guid imageId,
+        string imageId,
         IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
-        var userId = context.GetUserId();
-        var result = await mediator.Send(new GetImageFile(imageId, hashedUserId, userId), cancellationToken);
-        
-        return result.Status switch
+        // Decode the Base64URL encoded parameters
+        if (!Base64UrlEncoder.TryDecodeString(hashedUserId, out var decodedHashedUserId))
         {
-            Ardalis.Result.ResultStatus.Ok => Results.File(result.Value.StoragePath, result.Value.ContentType, result.Value.FileName),
-            _ => result.ToMinimalApiResult()
-        };
+            return Results.BadRequest("Invalid user ID encoding");
+        }
+        
+        if (!Base64UrlEncoder.TryDecodeGuid(imageId, out var decodedImageId))
+        {
+            return Results.BadRequest("Invalid image ID encoding");
+        }
+
+        var userId = context.GetUserId();
+        var result = await mediator.Send(new GetImageFile(decodedImageId, decodedHashedUserId, userId), cancellationToken);
+        
+        if (result.IsSuccess)
+        {
+            return Results.File(result.Value.StoragePath, result.Value.ContentType, result.Value.FileName);
+        }
+        
+        return result.ToMinimalApiResult();
     }
 }

@@ -2,11 +2,12 @@ using Ardalis.Result.FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Items;
 
 public record CreateItem(
-    string? UserId,
+    string UserId,
     Guid BoxId,
     string Name,
     string? Description,
@@ -25,7 +26,7 @@ public class CreateItemHandler(StorageLabelsDbContext dbContext, TimeProvider ti
 
         if (!userCanEditBox)
         {
-            logger.LogWarning("User ({userId}) attempted to add an item to box ({boxId}).", request.UserId, request.BoxId);
+            logger.LogItemAddAttemptWarning(request.UserId, request.BoxId);
             return Result.Invalid(new ValidationError(nameof(Box), $"Cannot add item to box ({request.BoxId}).", "Access", ValidationSeverity.Error));
         }
 

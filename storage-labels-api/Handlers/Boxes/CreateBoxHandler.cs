@@ -2,6 +2,7 @@ using Ardalis.Result.FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Boxes;
 public record CreateBox(string Code, string Name, string UserId, long LocationId, string? Description = null, string? ImageUrl = null) : IRequest<Result<Box>>;

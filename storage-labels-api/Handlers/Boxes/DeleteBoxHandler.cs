@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Boxes;
 

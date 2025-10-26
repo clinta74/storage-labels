@@ -85,6 +85,7 @@ builder.Services.AddAuthentication(options =>
     });
 
 builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+builder.Services.AddSingleton<StorageLabelsApi.Filters.RateLimiter>(sp => new StorageLabelsApi.Filters.RateLimiter(100, TimeSpan.FromMinutes(1)));
 
 builder.Services.AddAuthorization(options =>
 {

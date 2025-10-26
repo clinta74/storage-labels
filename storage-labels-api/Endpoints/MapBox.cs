@@ -32,7 +32,13 @@ internal static partial class EndpointsMapper
         routeBuilder.MapGet("/location/{locationid}/", GetBoxesByLocationId)
             .Produces<IAsyncEnumerable<BoxResponse>>(StatusCodes.Status200OK);
 
-        routeBuilder.MapDelete("{boxId}", DeleteLocation)
+        routeBuilder.MapPut("{boxId}", UpdateBox)
+            .Produces<BoxResponse>(StatusCodes.Status200OK)
+            .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Update Box");
+
+        routeBuilder.MapDelete("{boxId}", DeleteBox)
             .Produces(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
@@ -52,7 +58,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> CreateBox(HttpContext context, CreateBoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> CreateBox(HttpContext context, BoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 
@@ -80,6 +86,26 @@ internal static partial class EndpointsMapper
             if (cancellationToken.IsCancellationRequested) break;
             yield return new BoxResponse(box);
         }
+    }
+
+
+    private static async Task<IResult> UpdateBox(HttpContext context, Guid boxId, BoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+
+        var result = await mediator.Send(new UpdateBox(
+            BoxId: boxId,
+            Code: request.Code,
+            Name: request.Name,
+            UserId: userId,
+            LocationId: request.LocationId,
+            Description: request.Description,
+            ImageUrl: request.ImageUrl
+        ), cancellationToken);
+
+        return result
+            .Map(box => new BoxResponse(box))
+            .ToMinimalApiResult();
     }
 
     private static async Task<IResult> DeleteBox(HttpContext context, Guid BoxId, [FromServices] IMediator mediator, CancellationToken cancellationToken)

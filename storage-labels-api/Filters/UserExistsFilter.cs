@@ -1,4 +1,5 @@
 using StorageLabelsApi.Handlers.Users;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Filters;
 

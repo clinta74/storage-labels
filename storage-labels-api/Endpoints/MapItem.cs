@@ -78,16 +78,15 @@ internal static partial class EndpointsMapper
         var userId = context.GetUserId();
         var item = await mediator.Send(new GetItemById(itemId, userId), cancellationToken);
 
-        if (item is null)
-            return Results.NotFound();
-
-        return Results.Ok(new ItemResponse(item));
+        return item
+            .Map(item => new ItemResponse(item))
+            .ToMinimalApiResult();
     }
 
     private static async Task<IResult> UpdateItem(HttpContext context, Guid itemId, ItemRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        var result = await mediator.Send(new UpdateItem(
+        var item = await mediator.Send(new UpdateItem(
             ItemId: itemId,
             UserId: userId,
             BoxId: request.BoxId,
@@ -96,20 +95,16 @@ internal static partial class EndpointsMapper
             ImageUrl: request.ImageUrl
         ), cancellationToken);
 
-        if (result is null)
-            return Results.NotFound();
-
-        return Results.Ok(new ItemResponse(result));
+        return item
+            .Map(item => new ItemResponse(item))
+            .ToMinimalApiResult();
     }
 
     private static async Task<IResult> DeleteItem(HttpContext context, Guid itemId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        var deleted = await mediator.Send(new DeleteItem(itemId, userId), cancellationToken);
+        var item = await mediator.Send(new DeleteItem(itemId, userId), cancellationToken);
 
-        if (!deleted)
-            return Results.NotFound();
-
-        return Results.NoContent();
+        return item.ToMinimalApiResult();
     }
 }

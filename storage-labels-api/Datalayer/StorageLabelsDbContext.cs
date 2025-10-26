@@ -12,6 +12,7 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
     public required DbSet<Location> Locations { get; set; }
     public required DbSet<User> Users { get; set; }
     public required DbSet<UserLocation> UserLocations { get; set; }
+    public required DbSet<ImageMetadata> Images { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,5 +57,21 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
 
         modelBuilder.Entity<UserLocation>()
             .HasKey(userLocation => new { userLocation.UserId, userLocation.LocationId });
+
+        modelBuilder.Entity<ImageMetadata>()
+            .HasKey(img => img.ImageId);
+
+        modelBuilder.Entity<ImageMetadata>()
+            .HasIndex(img => img.HashedUserId);
+
+        modelBuilder.Entity<ImageMetadata>()
+            .HasMany(img => img.ReferencedByBoxes)
+            .WithOne()
+            .HasForeignKey("ImageMetadataId");
+
+        modelBuilder.Entity<ImageMetadata>()
+            .HasMany(img => img.ReferencedByItems)
+            .WithOne()
+            .HasForeignKey("ImageMetadataId");
     }
 }

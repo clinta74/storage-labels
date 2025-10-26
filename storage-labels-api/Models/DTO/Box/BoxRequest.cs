@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace StorageLabelsApi.Models.DTO;
 
-public record CreateBoxRequest(
+public record BoxRequest(
     [Required] string Code, 
     [Required] string Name, 
     [Required] long LocationId,

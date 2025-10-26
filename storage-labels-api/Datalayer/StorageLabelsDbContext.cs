@@ -18,6 +18,10 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
     {
         modelBuilder.Entity<Box>()
             .HasKey(box => box.BoxId);
+
+        modelBuilder.Entity<Box>()
+            .Property(box => box.ImageMetadataId)
+            .HasColumnName("ImageMetadataId");
         
         modelBuilder.Entity<Box>()
             .HasIndex(box => new { box.Code, box.BoxId })
@@ -33,6 +37,10 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
 
         modelBuilder.Entity<Item>()
             .HasKey(item => item.ItemId);
+
+        modelBuilder.Entity<Item>()
+            .Property(item => item.ImageMetadataId)
+            .HasColumnName("ImageMetadataId");
 
         modelBuilder.Entity<Location>()
             .HasKey(location => location.LocationId);
@@ -66,12 +74,12 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
 
         modelBuilder.Entity<ImageMetadata>()
             .HasMany(img => img.ReferencedByBoxes)
-            .WithOne()
-            .HasForeignKey("ImageMetadataId");
+            .WithOne(box => box.ImageMetadata)
+            .HasForeignKey(box => box.ImageMetadataId);
 
         modelBuilder.Entity<ImageMetadata>()
             .HasMany(img => img.ReferencedByItems)
-            .WithOne()
-            .HasForeignKey("ImageMetadataId");
+            .WithOne(item => item.ImageMetadata)
+            .HasForeignKey(item => item.ImageMetadataId);
     }
 }

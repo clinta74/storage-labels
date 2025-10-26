@@ -6,6 +6,7 @@ import { Auth0ProviderWithHistory } from '../auth/auth0-provider-with-history';
 import { AppRoutes } from './app-routes';
 import { AlertMessage, AlertProvider } from './providers/alert-provider';
 import { UserPermissionProvider } from './providers/user-permission-provider';
+import { NavigationBar } from './components/navigation-bar';
 
 export const App: React.FC = () => {
     // const theme = createTheme();
@@ -21,6 +22,7 @@ export const App: React.FC = () => {
                             <Router>
                                 <Auth0ProviderWithHistory>
                                     <UserPermissionProvider>
+                                        <NavigationBar />
                                         <Container maxWidth="lg" style={{ paddingBottom: 8 }}>
                                             <AppRoutes />
                                         </Container>

@@ -6,6 +6,9 @@ import { UserEndpoints, getUserEndpoints } from './endpoints/user';
 import { getNewUserEndpoints, NewUserEndpoints } from './endpoints/new-user';
 import { getLocationEndpoints, LocationEndpoints } from './endpoints/location';
 import { BoxEndpoints, getBoxEndpoints } from './endpoints/box';
+import { ItemEndpoints, getItemEndpoints } from './endpoints/item';
+import { ImageEndpoints, getImageEndpoints } from './endpoints/image';
+import { CommonLocationEndpoints, getCommonLocationEndpoints } from './endpoints/common-location';
 
 const createAxiosInstance = (): AxiosInstance => {
     return axios.create({
@@ -24,6 +27,10 @@ interface IApiContext {
     NewUser: NewUserEndpoints;
     User: UserEndpoints;
     Box: BoxEndpoints;
+    Item: ItemEndpoints;
+    Image: ImageEndpoints;
+    CommonLocation: CommonLocationEndpoints;
+    getAccessToken: () => Promise<string>;
 }
 
 const ApiContext = React.createContext<{ Api: IApiContext } | null>(null);
@@ -47,6 +54,10 @@ export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
             NewUser: getNewUserEndpoints(client),
             User: getUserEndpoints(client),
             Box: getBoxEndpoints(client),
+            Item: getItemEndpoints(client),
+            Image: getImageEndpoints(client),
+            CommonLocation: getCommonLocationEndpoints(client),
+            getAccessToken: getAccessTokenSilently,
         }
 
         setApi(api);

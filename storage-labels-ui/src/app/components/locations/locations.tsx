@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { useApi } from '../../../api';
 import AddIcon from '@mui/icons-material/Add';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import EditIcon from '@mui/icons-material/Edit';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 
 export const Locations: React.FC = () => {
@@ -30,19 +30,26 @@ export const Locations: React.FC = () => {
                     </Fab>
                 </Box>
                 <Paper>
-                    <Box margin={1} textAlign="center">
+                    <Box margin={1} textAlign="center" pb={2}>
                         <Typography variant='h4'>Your Locations</Typography>
                     </Box>
                     <Box margin={2}>
                         <List>
                             {
                                 locations.map(location =>
-                                    <ListItem key={location.locationId}
+                                    <ListItem 
+                                        key={location.locationId}
                                         secondaryAction={
-                                            <IconButton edge="end" aria-label="delete">
-                                                <NavigateNextIcon />
+                                            <IconButton 
+                                                edge="end" 
+                                                aria-label="edit"
+                                                component={Link}
+                                                to={`${location.locationId}/edit`}
+                                            >
+                                                <EditIcon />
                                             </IconButton>
                                         }
+                                        disablePadding
                                     >
                                         <ListItemButton component={Link} to={`${location.locationId}`}>
                                             <ListItemAvatar>

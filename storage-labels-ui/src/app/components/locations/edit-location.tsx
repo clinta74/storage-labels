@@ -1,26 +1,24 @@
 import { Autocomplete, Box, Button, FormControl, Paper, Stack, TextField, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { ErrorMessage } from '../error-message';
 import { validateAll } from '../../../utils/validate';
 import { validationTests } from './validation-test';
 import { useApi } from '../../../api';
+import { useAlertMessage } from '../../providers/alert-provider';
 import { AxiosError } from 'axios';
-// import { useAlertMessage } from '../../providers/alert-provider';
 
-export const AddLocation: React.FC = () => {
+type Params = Record<'locationId', string>;
+
+export const EditLocation: React.FC = () => {
+    const params = useParams<Params>();
     const navigate = useNavigate();
-    // const alert = useAlertMessage();
-    const [location, setLocation] = useState<StorageLocation>({
-        locationId: 0,
-        name: '',
-        created: '',
-        updated: '',
-        accessLevel: 'None'
-    });
+    const alert = useAlertMessage();
+    const [location, setLocation] = useState<StorageLocation | null>(null);
+    const [name, setName] = useState('');
     const { Api } = useApi();
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [postingJob, setPostingJob] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [commonLocations, setCommonLocations] = useState<CommonLocation[]>([]);
 
     useEffect(() => {
@@ -31,32 +29,42 @@ export const AddLocation: React.FC = () => {
             .catch((error) => console.error('Error loading common locations:', error));
     }, []);
 
-    const addLocation: React.MouseEventHandler<HTMLButtonElement> = () => {
-        const [valid] = validateAll(validationTests, location);
+    useEffect(() => {
+        const locationId = Number(params.locationId);
+        if (locationId) {
+            Api.Location.getLocation(locationId)
+                .then(({ data }) => {
+                    setLocation(data);
+                    setName(data.name);
+                })
+                .catch((error) => alert.addMessage(error));
+        }
+    }, [params]);
+
+    const handleSave: React.MouseEventHandler<HTMLButtonElement> = () => {
         setIsSubmitted(true);
-        if (!postingJob && valid) {
-            setPostingJob(true);
-            Api.Location.createLocation(location)
+        const updatedLocation: StorageLocation = {
+            ...location!,
+            name,
+        };
+        const [valid] = validateAll(validationTests, updatedLocation);
+        
+        if (!saving && valid && location) {
+            setSaving(true);
+            Api.Location.updateLocation(location.locationId, updatedLocation as any)
                 .then(() => {
                     navigate(`..`);
                 })
-                .catch((error: AxiosError) => alert(error.message))
-                .finally(() => setPostingJob(false));
+                .catch((error: AxiosError) => alert.addMessage(error.message))
+                .finally(() => setSaving(false));
         }
+    };
+
+    if (!location) {
+        return null;
     }
 
-    const onChangeStringField: React.ChangeEventHandler<HTMLInputElement> = event => {
-        const { name, value } = event.target;
-
-        setLocation(location => ({
-            ...location,
-            [name]: value
-        }
-        ));
-    }
-
-
-    const [isValid, results] = validateAll(validationTests, location);
+    const [isValid, results] = validateAll(validationTests, { ...location, name });
     const showErrors = isSubmitted && !isValid;
 
     const hasErrors = (inputName: keyof StorageLocation) => results
@@ -68,25 +76,19 @@ export const AddLocation: React.FC = () => {
             <Box>
                 <Paper>
                     <Box margin={1} textAlign="center">
-                        <Typography variant='h4'>Add Location</Typography>
+                        <Typography variant='h4'>Edit Location</Typography>
                     </Box>
                     <Box margin={2}>
                         <FormControl fullWidth>
                             <Autocomplete
                                 freeSolo
                                 options={commonLocations.map((cl) => cl.name)}
-                                value={location.name}
+                                value={name}
                                 onChange={(event, newValue) => {
-                                    setLocation({
-                                        ...location,
-                                        name: newValue || ''
-                                    });
+                                    setName(newValue || '');
                                 }}
                                 onInputChange={(event, newInputValue) => {
-                                    setLocation({
-                                        ...location,
-                                        name: newInputValue
-                                    });
+                                    setName(newInputValue);
                                 }}
                                 renderInput={(params) => (
                                     <TextField
@@ -94,7 +96,7 @@ export const AddLocation: React.FC = () => {
                                         variant="standard"
                                         label="Name"
                                         error={showErrors && hasErrors('name')}
-                                        disabled={postingJob}
+                                        disabled={saving}
                                         required
                                     />
                                 )}
@@ -103,11 +105,11 @@ export const AddLocation: React.FC = () => {
                         </FormControl>
                     </Box>
                     <Stack direction="row" spacing={2} padding={2} justifyContent="right">
-                        <Button color="primary" onClick={addLocation} loading={postingJob}>Add</Button>
+                        <Button color="primary" onClick={handleSave} disabled={saving}>Save</Button>
                         <Button color="secondary" component={Link} to="..">Cancel</Button>
                     </Stack>
                 </Paper>
             </Box>
         </React.Fragment>
-    )
-}
+    );
+};

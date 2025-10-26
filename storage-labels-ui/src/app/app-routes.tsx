@@ -8,6 +8,8 @@ import { ApiProvider } from '../api';
 import { LegalRoutes } from './components/legal/legal-routes';
 import { NewUserRoutes } from './components/new-user/new-user-routes';
 import { LocationRoutes } from './components/locations/locations-routes';
+import { ImagesRoutes } from './components/images/images-routes';
+import { CommonLocationsRoutes } from './components/common-locations/common-locations-routes';
 
 export const AppRoutes: React.FunctionComponent = () => {
     const { isAuthenticated, isLoading } = useAuth0();
@@ -29,8 +31,11 @@ export const AppRoutes: React.FunctionComponent = () => {
                     <Routes>
                         <Route path="/legal/*" element={<LegalRoutes />} />
                         <Route path="/new-user/*" element={<NewUserRoutes />} />
-                        <Route path="/location/*" element={<LocationRoutes />} />
-                        <Route index element={<Navigate to="/location" />} />
+                        <Route path="/locations/*" element={<LocationRoutes />} />
+                        <Route path="/images/*" element={<ImagesRoutes />} />
+                        <Route path="/common-locations/*" element={<CommonLocationsRoutes />} />
+                        <Route index element={<Navigate to="/locations" />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </ApiProvider>
             </Box>

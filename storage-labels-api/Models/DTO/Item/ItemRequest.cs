@@ -4,5 +4,6 @@ public record ItemRequest(
     Guid BoxId,
     string Name,
     string? Description,
-    string? ImageUrl
+    string? ImageUrl,
+    Guid? ImageMetadataId
 );

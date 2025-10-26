@@ -9,6 +9,7 @@ public record Box(
     string Name,
     string? Description,
     string? ImageUrl,
+    Guid? ImageMetadataId,
     long LocationId,
     DateTimeOffset Created,
     DateTimeOffset Updated,
@@ -16,4 +17,5 @@ public record Box(
 {
     public Location Location { get; } = null!;
     public ICollection<Item> Items { get; } = [];
+    public ImageMetadata? ImageMetadata { get; set; }
 }

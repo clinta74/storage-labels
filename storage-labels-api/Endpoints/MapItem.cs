@@ -53,7 +53,8 @@ internal static partial class EndpointsMapper
             BoxId: request.BoxId,
             Name: request.Name,
             Description: request.Description,
-            ImageUrl: request.ImageUrl
+            ImageUrl: request.ImageUrl,
+            ImageMetadataId: request.ImageMetadataId
         ));
 
         return item
@@ -92,7 +93,8 @@ internal static partial class EndpointsMapper
             BoxId: request.BoxId,
             Name: request.Name,
             Description: request.Description,
-            ImageUrl: request.ImageUrl
+            ImageUrl: request.ImageUrl,
+            ImageMetadataId: request.ImageMetadataId
         ), cancellationToken);
 
         return item

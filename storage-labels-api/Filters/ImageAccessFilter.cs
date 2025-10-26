@@ -9,11 +9,13 @@ public class ImageAccessFilter : IEndpointFilter
 {
     private readonly RateLimiter _rateLimiter;
     private readonly ILogger<ImageAccessFilter> _logger;
+    private readonly IConfiguration _configuration;
 
-    public ImageAccessFilter(RateLimiter rateLimiter, ILogger<ImageAccessFilter> logger)
+    public ImageAccessFilter(RateLimiter rateLimiter, ILogger<ImageAccessFilter> logger, IConfiguration configuration)
     {
         _rateLimiter = rateLimiter;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
@@ -29,22 +31,42 @@ public class ImageAccessFilter : IEndpointFilter
             return Results.StatusCode(429);
         }
 
-        // Anti-hotlinking: Only allow requests with an Origin or Referer from our own domain
+        // Anti-hotlinking: Only allow requests with an Origin or Referer from our own domain or allowed origins
         var referer = httpContext.Request.Headers["Referer"].ToString();
         var origin = httpContext.Request.Headers["Origin"].ToString();
+
+        // Get allowed origins from configuration (same as CORS)
+        var allowedOrigins = new[] 
+        { 
+            "http://localhost:4000", 
+            "https://storage-labels.pollyspeople.net",
+            hostValue // Also allow the API's own host
+        };
         
-        if (!string.IsNullOrEmpty(referer) && !referer.Contains(hostValue, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(referer) && !IsAllowedOrigin(referer, allowedOrigins))
         {
             _logger.LogImageHotlinkReferer(userId, referer);
             return Results.Forbid();
         }
-        if (!string.IsNullOrEmpty(origin) && !origin.Contains(hostValue, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(origin) && !IsAllowedOrigin(origin, allowedOrigins))
         {
             _logger.LogImageHotlinkOrigin(userId, origin);
             return Results.Forbid();
         }
 
         return await next(context);
+    }
+
+    private static bool IsAllowedOrigin(string url, string[] allowedOrigins)
+    {
+        foreach (var allowedOrigin in allowedOrigins)
+        {
+            if (url.StartsWith(allowedOrigin, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

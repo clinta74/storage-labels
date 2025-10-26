@@ -9,8 +9,10 @@ public record Item(
     string Name,
     string? Description,
     string? ImageUrl,
+    Guid? ImageMetadataId,
     DateTimeOffset Created,
     DateTimeOffset Updated)
 {
     public Box Box { get; } = null!;
+    public ImageMetadata? ImageMetadata { get; set; }
 };

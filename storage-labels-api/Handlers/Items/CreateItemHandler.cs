@@ -11,7 +11,8 @@ public record CreateItem(
     Guid BoxId,
     string Name,
     string? Description,
-    string? ImageUrl
+    string? ImageUrl,
+    Guid? ImageMetadataId
 ) : IRequest<Result<Item>>;
 
 public class CreateItemHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, ILogger<CreateItemHandler> logger) : IRequestHandler<CreateItem, Result<Item>>
@@ -44,6 +45,7 @@ public class CreateItemHandler(StorageLabelsDbContext dbContext, TimeProvider ti
                 Name: request.Name,
                 Description: request.Description,
                 ImageUrl: request.ImageUrl,
+                ImageMetadataId: request.ImageMetadataId,
                 Created: dateTime,
                 Updated: dateTime
             )

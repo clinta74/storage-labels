@@ -5,7 +5,7 @@ using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Boxes;
-public record CreateBox(string Code, string Name, string UserId, long LocationId, string? Description = null, string? ImageUrl = null) : IRequest<Result<Box>>;
+public record CreateBox(string Code, string Name, string UserId, long LocationId, string? Description = null, string? ImageUrl = null, Guid? ImageMetadataId = null) : IRequest<Result<Box>>;
 
 public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, ILogger<CreateBoxHandler> logger) : IRequestHandler<CreateBox, Result<Box>>
 {
@@ -49,6 +49,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
                 Name: request.Name,
                 Description: request.Description,
                 ImageUrl: request.ImageUrl,
+                ImageMetadataId: request.ImageMetadataId,
                 LocationId: request.LocationId,
                 Created: dateTime,
                 Updated: dateTime,

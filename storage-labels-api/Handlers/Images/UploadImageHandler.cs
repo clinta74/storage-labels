@@ -29,9 +29,16 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
 
     public async Task<Result<ImageMetadata>> Handle(UploadImage request, CancellationToken cancellationToken)
     {
+        const long maxFileSizeInBytes = 10 * 1024 * 1024; // 10 MB
+
         if (request.File.ContentType != "image/jpeg")
         {
             return Result.Error("Only JPEG images are supported");
+        }
+
+        if (request.File.Length > maxFileSizeInBytes)
+        {
+            return Result.Error($"File size exceeds the maximum allowed size of {maxFileSizeInBytes / 1024 / 1024} MB");
         }
 
         var hashedUserId = HashUserId(request.UserId);

@@ -68,7 +68,8 @@ internal static partial class EndpointsMapper
             UserId: userId,
             LocationId: request.LocationId,
             Description: request.Description,
-            ImageUrl: request.ImageUrl
+            ImageUrl: request.ImageUrl,
+            ImageMetadataId: request.ImageMetadataId
         ), cancellationToken);
 
         return box
@@ -100,7 +101,8 @@ internal static partial class EndpointsMapper
             UserId: userId,
             LocationId: request.LocationId,
             Description: request.Description,
-            ImageUrl: request.ImageUrl
+            ImageUrl: request.ImageUrl,
+            ImageMetadataId: request.ImageMetadataId
         ), cancellationToken);
 
         return result

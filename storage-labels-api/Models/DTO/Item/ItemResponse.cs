@@ -8,6 +8,7 @@ public record ItemResponse(
     string Name,
     string? Description,
     string? ImageUrl,
+    Guid? ImageMetadataId,
     DateTimeOffset Created,
     DateTimeOffset Updated)
 {
@@ -17,6 +18,7 @@ public record ItemResponse(
         item.Name,
         item.Description,
         item.ImageUrl,
+        item.ImageMetadataId,
         item.Created,
         item.Updated)
     { }

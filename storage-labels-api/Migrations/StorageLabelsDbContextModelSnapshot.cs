@@ -66,7 +66,7 @@ namespace StorageLabelsApi.Migrations
                     b.HasIndex("Code", "BoxId")
                         .IsUnique();
 
-                    b.ToTable("Boxes");
+                    b.ToTable("Boxes", (string)null);
                 });
 
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.CommonLocation", b =>
@@ -83,7 +83,7 @@ namespace StorageLabelsApi.Migrations
 
                     b.HasKey("CommonLocationId");
 
-                    b.ToTable("CommonLocations");
+                    b.ToTable("CommonLocations", (string)null);
                 });
 
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.ImageMetadata", b =>
@@ -122,7 +122,7 @@ namespace StorageLabelsApi.Migrations
 
                     b.HasIndex("HashedUserId");
 
-                    b.ToTable("Images");
+                    b.ToTable("Images", (string)null);
                 });
 
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.Item", b =>
@@ -159,7 +159,7 @@ namespace StorageLabelsApi.Migrations
 
                     b.HasIndex("ImageMetadataId");
 
-                    b.ToTable("Items");
+                    b.ToTable("Items", (string)null);
                 });
 
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.Location", b =>
@@ -182,7 +182,7 @@ namespace StorageLabelsApi.Migrations
 
                     b.HasKey("LocationId");
 
-                    b.ToTable("Locations");
+                    b.ToTable("Locations", (string)null);
                 });
 
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.User", b =>
@@ -207,7 +207,7 @@ namespace StorageLabelsApi.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.UserLocation", b =>
@@ -231,7 +231,7 @@ namespace StorageLabelsApi.Migrations
 
                     b.HasIndex("LocationId");
 
-                    b.ToTable("UserLocations");
+                    b.ToTable("UserLocations", (string)null);
                 });
 
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.Box", b =>

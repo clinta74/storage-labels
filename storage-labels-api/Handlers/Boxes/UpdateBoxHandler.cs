@@ -13,7 +13,8 @@ public record UpdateBox(
     string UserId,
     long LocationId,
     string? Description = null,
-    string? ImageUrl = null) : IRequest<Result<Box>>;
+    string? ImageUrl = null,
+    Guid? ImageMetadataId = null) : IRequest<Result<Box>>;
 
 
 public class UpdateBoxHandler(
@@ -33,6 +34,7 @@ public class UpdateBoxHandler(
         var hasBoxCode = await dbContext.Boxes
             .AsNoTracking()
             .Where(box => box.Code == request.Code)
+            .Where(box => box.BoxId != request.BoxId)
             .AnyAsync(cancellationToken);
 
         if (hasBoxCode)
@@ -72,6 +74,7 @@ public class UpdateBoxHandler(
                 Name = request.Name,
                 Description = request.Description,
                 ImageUrl = request.ImageUrl,
+                ImageMetadataId = request.ImageMetadataId,
                 LocationId = request.LocationId,
                 Updated = dateTime
             });

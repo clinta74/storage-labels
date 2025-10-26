@@ -14,7 +14,6 @@ internal static partial class EndpointsMapper
     {
         return routeBuilder.MapGroup("common-location")
             .WithTags("Common Locations")
-            .RequireAuthorization(Policies.Read_CommonLocations)
             .MapCommonLocationEndpoints();
     }
 

@@ -11,7 +11,8 @@ public record UpdateItem(
     Guid BoxId,
     string Name,
     string? Description,
-    string? ImageUrl
+    string? ImageUrl,
+    Guid? ImageMetadataId
 ) : IRequest<Result<Item>>;
 
 public class UpdateItemHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider) : IRequestHandler<UpdateItem, Result<Item>>
@@ -38,6 +39,7 @@ public class UpdateItemHandler(StorageLabelsDbContext dbContext, TimeProvider ti
             Name = request.Name,
             Description = request.Description,
             ImageUrl = request.ImageUrl,
+            ImageMetadataId = request.ImageMetadataId,
             Updated = timeProvider.GetUtcNow()
         };
 

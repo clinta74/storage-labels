@@ -7,5 +7,6 @@ public record BoxRequest(
     [Required] string Name, 
     [Required] long LocationId,
     string? Description,
-    string? ImageUrl
+    string? ImageUrl,
+    Guid? ImageMetadataId
 );

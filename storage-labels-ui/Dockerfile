@@ -9,12 +9,6 @@ ARG REACT_APP_AUTH0_DOMAIN
 ARG REACT_APP_AUTH0_CLIENT_ID
 ARG REACT_APP_AUTH0_AUDIENCE
 
-# Set them as environment variables for the build
-ENV API_URL=$API_URL
-ENV REACT_APP_AUTH0_DOMAIN=$REACT_APP_AUTH0_DOMAIN
-ENV REACT_APP_AUTH0_CLIENT_ID=$REACT_APP_AUTH0_CLIENT_ID
-ENV REACT_APP_AUTH0_AUDIENCE=$REACT_APP_AUTH0_AUDIENCE
-
 # Copy package files
 COPY package*.json ./
 
@@ -24,7 +18,16 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Create .env file from build args
+RUN echo "API_URL=${API_URL}" > .env && \
+    echo "REACT_APP_AUTH0_DOMAIN=${REACT_APP_AUTH0_DOMAIN}" >> .env && \
+    echo "REACT_APP_AUTH0_CLIENT_ID=${REACT_APP_AUTH0_CLIENT_ID}" >> .env && \
+    echo "REACT_APP_AUTH0_AUDIENCE=${REACT_APP_AUTH0_AUDIENCE}" >> .env
+
+# Display the .env file contents for debugging
+RUN echo "=== .env file contents ===" && cat .env && echo "========================="
+
+# Build the application (Parcel will read .env file)
 RUN npm run build
 
 # Production stage

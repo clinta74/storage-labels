@@ -43,8 +43,18 @@ export const AlertMessage: React.FC = () => {
             {
                 value => value.messages &&
                     <Portal>
-                        <Box boxShadow={2}>
-                            <Box p={1} textAlign="right">
+                        <Box 
+                            boxShadow={2} 
+                            sx={{ 
+                                position: 'fixed', 
+                                bottom: 0, 
+                                left: 0, 
+                                right: 0, 
+                                zIndex: 9999,
+                                maxWidth: '100%'
+                            }}
+                        >
+                            <Box p={1} textAlign="right" bgcolor="background.paper">
                                 <Button onClick={value.clearMessages}>Clear</Button>
                             </Box>
                             {

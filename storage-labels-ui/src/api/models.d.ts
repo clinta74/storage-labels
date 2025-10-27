@@ -56,6 +56,23 @@ interface CommonLocationRequest {
     name: string;
 }
 
+interface UserLocationResponse {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    emailAddress: string;
+    accessLevel: AccessLevels;
+}
+
+interface AddUserLocationRequest {
+    emailAddress: string;
+    accessLevel: AccessLevels;
+}
+
+interface UpdateUserLocationRequest {
+    accessLevel: AccessLevels;
+}
+
 interface ItemRequest {
     boxId: string;
     name: string;

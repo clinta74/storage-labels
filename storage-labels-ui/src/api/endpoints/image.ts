@@ -16,8 +16,8 @@ export const getImageEndpoints = (client: AxiosInstance) => ({
     getUserImages: () =>
         client.get<ImageMetadataResponse[]>('images'),
 
-    deleteImage: (imageId: string) =>
-        client.delete(`images/${imageId}`),
+    deleteImage: (imageId: string, force?: boolean) =>
+        client.delete(force ? `images/${imageId}/force` : `images/${imageId}`),
 
     getImageUrl: (hashedUserId: string, imageId: string) =>
         `${client.defaults.baseURL}images/${hashedUserId}/${imageId}`,

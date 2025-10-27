@@ -101,6 +101,14 @@ builder.Services.AddScoped<UserExistsEndpointFilter>();
 
 var app = builder.Build();
 
+using (var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
+{
+    using (var context = serviceScope.ServiceProvider.GetRequiredService<StorageLabelsDbContext>())
+    {
+        context.Database.Migrate();
+    }
+}
+
 app.UseCors(config => config
     .WithExposedHeaders("x-total-count")
     .WithOrigins(

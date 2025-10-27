@@ -8,7 +8,6 @@ public class ImageMetadata
     public required string UserId { get; set; }
     public required string FileName { get; set; }
     public required string ContentType { get; set; }
-    public required string HashedUserId { get; set; }
     public required string StoragePath { get; set; }
     public DateTime UploadedAt { get; set; }
     public long SizeInBytes { get; set; }

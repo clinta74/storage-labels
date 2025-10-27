@@ -33,7 +33,7 @@ public static class MapImage
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest);
 
-        group.MapGet("/{hashedUserId}/{imageId}", GetImageFileHandlerEndpoint)
+        group.MapGet("/{imageId:guid}", GetImageFileHandlerEndpoint)
             .AddEndpointFilter<ImageAccessFilter>()
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status403Forbidden)
@@ -89,25 +89,13 @@ public static class MapImage
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetImageFileHandlerEndpoint(
-        string hashedUserId,
-        string imageId,
+        Guid imageId,
         IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
-        // Decode the Base64URL encoded parameters
-        if (!Base64UrlEncoder.TryDecodeString(hashedUserId, out var decodedHashedUserId))
-        {
-            return Results.BadRequest("Invalid user ID encoding");
-        }
-        
-        if (!Base64UrlEncoder.TryDecodeGuid(imageId, out var decodedImageId))
-        {
-            return Results.BadRequest("Invalid image ID encoding");
-        }
-
         var userId = context.GetUserId();
-        var result = await mediator.Send(new GetImageFile(decodedImageId, decodedHashedUserId, userId), cancellationToken);
+        var result = await mediator.Send(new GetImageFile(imageId, userId), cancellationToken);
         
         if (result.IsSuccess)
         {

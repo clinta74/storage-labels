@@ -1,5 +1,4 @@
 using StorageLabelsApi.DataLayer.Models;
-using StorageLabelsApi.Extensions;
 
 namespace StorageLabelsApi.Models.DTO;
 
@@ -18,7 +17,7 @@ public record ImageMetadataResponse(
         img.ImageId,
         img.FileName,
         img.ContentType,
-        $"{baseUrl}/images/{Base64UrlEncoder.EncodeString(img.HashedUserId)}/{Base64UrlEncoder.EncodeGuid(img.ImageId)}",
+        $"{baseUrl}/images/{img.ImageId}",
         img.UploadedAt,
         img.SizeInBytes,
         img.ReferencedByBoxes?.Count ?? 0,

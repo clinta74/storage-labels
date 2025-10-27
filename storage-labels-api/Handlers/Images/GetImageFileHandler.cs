@@ -8,7 +8,7 @@ using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Images;
 
-public record GetImageFile(Guid ImageId, string HashedUserId, string UserId) : IRequest<Result<ImageMetadata>>;
+public record GetImageFile(Guid ImageId, string UserId) : IRequest<Result<ImageMetadata>>;
 
 public class GetImageFileHandler : IRequestHandler<GetImageFile, Result<ImageMetadata>>
 {
@@ -31,7 +31,7 @@ public class GetImageFileHandler : IRequestHandler<GetImageFile, Result<ImageMet
             .Include(img => img.ReferencedByItems)
             .ThenInclude(item => item.Box)
             .ThenInclude(box => box.Location)
-            .FirstOrDefaultAsync(img => img.ImageId == request.ImageId && img.HashedUserId == request.HashedUserId, cancellationToken);
+            .FirstOrDefaultAsync(img => img.ImageId == request.ImageId, cancellationToken);
 
         if (image == null)
         {

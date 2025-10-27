@@ -26,8 +26,8 @@ export const getLocationEndpoints = (client: AxiosInstance) => ({
         client.post<UserLocationResponse>(`location/${locationId}/users`, request),
 
     updateUserLocationAccess: (locationId: number, userId: string, request: UpdateUserLocationRequest) =>
-        client.put<UserLocationResponse>(`location/${locationId}/users/${userId}`, request),
+        client.put<UserLocationResponse>(`location/${locationId}/users/${encodeURIComponent(userId)}`, request),
 
     removeUserFromLocation: (locationId: number, userId: string) =>
-        client.delete(`location/${locationId}/users/${userId}`),
+        client.delete(`location/${locationId}/users/${encodeURIComponent(userId)}`),
 });

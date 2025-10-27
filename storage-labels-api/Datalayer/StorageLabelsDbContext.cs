@@ -70,9 +70,6 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
             .HasKey(img => img.ImageId);
 
         modelBuilder.Entity<ImageMetadata>()
-            .HasIndex(img => img.HashedUserId);
-
-        modelBuilder.Entity<ImageMetadata>()
             .HasMany(img => img.ReferencedByBoxes)
             .WithOne(box => box.ImageMetadata)
             .HasForeignKey(box => box.ImageMetadataId);

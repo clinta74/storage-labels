@@ -58,13 +58,13 @@ internal static partial class EndpointsMapper
             .Produces(StatusCodes.Status409Conflict)
             .WithName("Add User To Location");
 
-        routeBuilder.MapPut("{locationId}/users/{targetUserId}", UpdateUserLocationAccess)
+        routeBuilder.MapPut("{locationId}/users/{userId}", UpdateUserLocationAccess)
             .Produces<UserLocationResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Update User Location Access");
 
-        routeBuilder.MapDelete("{locationId}/users/{targetUserId}", RemoveUserFromLocation)
+        routeBuilder.MapDelete("{locationId}/users/{userId}", RemoveUserFromLocation)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
@@ -141,20 +141,20 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> UpdateUserLocationAccess(HttpContext context, long locationId, string targetUserId, UpdateUserLocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> UpdateUserLocationAccess(HttpContext context, long locationId, string userId, UpdateUserLocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
-        var userid = context.GetUserId();
-        var result = await mediator.Send(new UpdateUserLocationAccess(userid, locationId, targetUserId, request.AccessLevel), cancellationToken);
+        var requestUserId = context.GetUserId();
+        var result = await mediator.Send(new UpdateUserLocationAccess(requestUserId, locationId, userId, request.AccessLevel), cancellationToken);
 
         return result
             .Map(ul => new UserLocationResponse(ul))
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> RemoveUserFromLocation(HttpContext context, long locationId, string targetUserId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> RemoveUserFromLocation(HttpContext context, long locationId, string userId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
-        var userid = context.GetUserId();
-        var result = await mediator.Send(new RemoveUserFromLocation(userid, locationId, targetUserId), cancellationToken);
+        var requestUserId = context.GetUserId();
+        var result = await mediator.Send(new RemoveUserFromLocation(requestUserId, locationId, userId), cancellationToken);
 
         return result.ToMinimalApiResult();
     }

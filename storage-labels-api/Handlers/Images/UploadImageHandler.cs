@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -41,11 +39,13 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
             return Result.Error($"File size exceeds the maximum allowed size of {maxFileSizeInBytes / 1024 / 1024} MB");
         }
 
-        var hashedUserId = HashUserId(request.UserId);
         var imageId = Guid.NewGuid();
         var fileName = Path.GetFileName(request.File.FileName);
         var fileGuid = Guid.CreateVersion7();
-        var userDir = Path.Combine(_storagePath, hashedUserId);
+        
+        // Sanitize userId for use in file path (replace invalid characters)
+        var sanitizedUserId = string.Join("_", request.UserId.Split(Path.GetInvalidFileNameChars()));
+        var userDir = Path.Combine(_storagePath, sanitizedUserId);
         Directory.CreateDirectory(userDir);
         var storagePath = Path.Combine(userDir, $"{fileGuid}{Path.GetExtension(fileName)}");
 
@@ -61,7 +61,6 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
             UserId = request.UserId,
             FileName = fileName,
             ContentType = request.File.ContentType,
-            HashedUserId = hashedUserId,
             StoragePath = storagePath,
             UploadedAt = DateTime.UtcNow,
             SizeInBytes = request.File.Length
@@ -73,12 +72,5 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
         _logger.LogImageUploaded(imageId, request.UserId, fileName);
 
         return Result.Success(metadata);
-    }
-
-    private static string HashUserId(string userId)
-    {
-        using var sha256 = SHA256.Create();
-        var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(userId));
-        return Convert.ToHexString(hashBytes).ToLower();
     }
 }

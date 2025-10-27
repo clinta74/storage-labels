@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.cache
+.DS_Store
+Thumbs.db
+*.log
+.git
+.gitignore
+README.md
+Migrations/

@@ -24,15 +24,19 @@ public class UpdateLocationHandler(StorageLabelsDbContext dbContext, TimeProvide
 
         var dateTime = timeProvider.GetUtcNow();
 
-        var result = dbContext.Locations
-            .Update(location with
-            {
-                Name = request.Name,
-                Updated = dateTime
-            });
+        await dbContext.Locations
+            .Where(l => l.LocationId == request.LocationId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(l => l.Name, request.Name)
+                .SetProperty(l => l.Updated, dateTime),
+                cancellationToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        // Reload the updated location
+        var updatedLocation = await dbContext.Locations
+            .AsNoTracking()
+            .Where(l => l.LocationId == request.LocationId)
+            .FirstAsync(cancellationToken);
 
-        return Result.Success(new LocationWithAccess(result.Entity, location.AccessLevel));
+        return Result.Success(new LocationWithAccess(updatedLocation, location.AccessLevel));
     }
 }

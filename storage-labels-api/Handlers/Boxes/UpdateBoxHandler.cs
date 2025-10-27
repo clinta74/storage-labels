@@ -67,20 +67,23 @@ public class UpdateBoxHandler(
 
         var dateTime = timeProvider.GetUtcNow();
 
-        var result = dbContext.Boxes
-            .Update(box with 
-            {
-                Code = request.Code,
-                Name = request.Name,
-                Description = request.Description,
-                ImageUrl = request.ImageUrl,
-                ImageMetadataId = request.ImageMetadataId,
-                LocationId = request.LocationId,
-                Updated = dateTime
-            });
+        await dbContext.Boxes
+            .Where(b => b.BoxId == request.BoxId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(b => b.Code, request.Code)
+                .SetProperty(b => b.Name, request.Name)
+                .SetProperty(b => b.Description, request.Description)
+                .SetProperty(b => b.ImageUrl, request.ImageUrl)
+                .SetProperty(b => b.ImageMetadataId, request.ImageMetadataId)
+                .SetProperty(b => b.LocationId, request.LocationId)
+                .SetProperty(b => b.Updated, dateTime),
+                cancellationToken);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        // Reload the updated box
+        var updatedBox = await dbContext.Boxes
+            .AsNoTracking()
+            .FirstAsync(b => b.BoxId == request.BoxId, cancellationToken);
 
-        return Result.Success(result.Entity);
+        return Result.Success(updatedBox);
     }   
 }

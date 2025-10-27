@@ -34,10 +34,9 @@ public class DeleteBoxHandler(StorageLabelsDbContext dbContext, ILogger<DeleteBo
             }));
         }
 
-
-        dbContext.Boxes.Remove(box);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.Boxes
+            .Where(b => b.BoxId == request.BoxId)
+            .ExecuteDeleteAsync(cancellationToken);
 
         logger.DeleteBox(request.BoxId);
 

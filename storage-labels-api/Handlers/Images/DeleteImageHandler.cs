@@ -24,6 +24,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImage, Result>
     public async Task<Result> Handle(DeleteImage request, CancellationToken cancellationToken)
     {
         var image = await _dbContext.Images
+            .AsNoTracking()
             .Include(i => i.ReferencedByBoxes)
             .Include(i => i.ReferencedByItems)
             .FirstOrDefaultAsync(i => i.ImageId == request.ImageId, cancellationToken);
@@ -79,8 +80,9 @@ public class DeleteImageHandler : IRequestHandler<DeleteImage, Result>
             _logger.LogImageDeleteError(ex, image.ImageId);
         }
 
-        _dbContext.Images.Remove(image);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _dbContext.Images
+            .Where(i => i.ImageId == request.ImageId)
+            .ExecuteDeleteAsync(cancellationToken);
 
         _logger.LogImageDeleted(image.ImageId, request.UserId);
 

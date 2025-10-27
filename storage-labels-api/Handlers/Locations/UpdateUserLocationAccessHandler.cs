@@ -49,14 +49,13 @@ public class UpdateUserLocationAccessHandler(StorageLabelsDbContext dbContext, T
         }
 
         var now = timeProvider.GetUtcNow();
-        var updatedUserLocation = userLocation with
-        {
-            AccessLevel = request.AccessLevel,
-            Updated = now
-        };
-
-        dbContext.UserLocations.Update(updatedUserLocation);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        
+        await dbContext.UserLocations
+            .Where(ul => ul.LocationId == request.LocationId && ul.UserId == request.TargetUserId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(ul => ul.AccessLevel, request.AccessLevel)
+                .SetProperty(ul => ul.Updated, now),
+                cancellationToken);
 
         // Reload with user data
         var result = await dbContext.UserLocations

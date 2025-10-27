@@ -10,19 +10,19 @@ public class DeleteCommonLocationHandler(StorageLabelsDbContext dbContext) : IRe
 {
     public async Task<Result> Handle(DeleteCommonLocation request, CancellationToken cancellationToken)
     {
-        var commonLocation = await dbContext.CommonLocations
+        var exists = await dbContext.CommonLocations
             .AsNoTracking()
             .Where(cl => cl.CommonLocationId == request.CommonLocationId)
-            .FirstOrDefaultAsync(cancellationToken);
+            .AnyAsync(cancellationToken);
         
-        if (commonLocation is null)
+        if (!exists)
         {
             return Result.NotFound($"Common location id {request.CommonLocationId} not found.");
         }
 
-        dbContext.CommonLocations.Remove(commonLocation);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.CommonLocations
+            .Where(cl => cl.CommonLocationId == request.CommonLocationId)
+            .ExecuteDeleteAsync(cancellationToken);
 
         return Result.Success();
     }

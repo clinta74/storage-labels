@@ -11,16 +11,18 @@ public class DeleteItemHandler(StorageLabelsDbContext dbContext) : IRequestHandl
 {
     public async Task<Result> Handle(DeleteItem request, CancellationToken cancellationToken)
     {
-        var item = await dbContext.Items
+        var hasAccess = await dbContext.Items
+            .AsNoTracking()
             .Where(i => i.ItemId == request.ItemId)
             .Where(i => i.Box.Location.UserLocations.Any(ul => ul.UserId == request.UserId && ul.AccessLevel >= AccessLevels.Edit))
-            .FirstOrDefaultAsync(cancellationToken);
+            .AnyAsync(cancellationToken);
 
-        if (item is null)
+        if (!hasAccess)
             return Result.NotFound();
 
-        dbContext.Items.Remove(item);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.Items
+            .Where(i => i.ItemId == request.ItemId)
+            .ExecuteDeleteAsync(cancellationToken);
 
         return Result.Success();
     }

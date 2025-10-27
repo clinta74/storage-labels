@@ -33,20 +33,24 @@ public class UpdateItemHandler(StorageLabelsDbContext dbContext, TimeProvider ti
         if (!validation.IsValid)
             return Result<Item>.Invalid(validation.AsErrors());
 
-        // Use 'with' expression for mapping
-        item = item with
-        {
-            BoxId = request.BoxId,
-            Name = request.Name,
-            Description = request.Description,
-            ImageUrl = request.ImageUrl,
-            ImageMetadataId = request.ImageMetadataId,
-            Updated = timeProvider.GetUtcNow()
-        };
+        var dateTime = timeProvider.GetUtcNow();
 
-        dbContext.Items.Update(item);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.Items
+            .Where(i => i.ItemId == request.ItemId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(i => i.BoxId, request.BoxId)
+                .SetProperty(i => i.Name, request.Name)
+                .SetProperty(i => i.Description, request.Description)
+                .SetProperty(i => i.ImageUrl, request.ImageUrl)
+                .SetProperty(i => i.ImageMetadataId, request.ImageMetadataId)
+                .SetProperty(i => i.Updated, dateTime),
+                cancellationToken);
 
-        return Result.Success(item);
+        // Reload the updated item
+        var updatedItem = await dbContext.Items
+            .AsNoTracking()
+            .FirstAsync(i => i.ItemId == request.ItemId, cancellationToken);
+
+        return Result.Success(updatedItem);
     }
 }

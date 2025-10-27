@@ -24,8 +24,9 @@ public class RemoveUserFromLocationHandler(StorageLabelsDbContext dbContext) : I
             return Result.Forbidden();
         }
 
-        // Get the user location to remove
+        // Get the user location to check access level
         var userLocation = await dbContext.UserLocations
+            .AsNoTracking()
             .FirstOrDefaultAsync(ul => ul.LocationId == request.LocationId 
                 && ul.UserId == request.TargetUserId, 
                 cancellationToken);
@@ -49,8 +50,9 @@ public class RemoveUserFromLocationHandler(StorageLabelsDbContext dbContext) : I
             }
         }
 
-        dbContext.UserLocations.Remove(userLocation);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.UserLocations
+            .Where(ul => ul.LocationId == request.LocationId && ul.UserId == request.TargetUserId)
+            .ExecuteDeleteAsync(cancellationToken);
 
         return Result.Success();
     }

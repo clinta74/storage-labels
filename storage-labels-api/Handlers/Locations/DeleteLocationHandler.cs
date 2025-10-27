@@ -36,9 +36,9 @@ public class DeleteLocationHandler(StorageLabelsDbContext dbContext, ILogger<Del
             }));
         }
 
-        dbContext.Locations.Remove(location);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.Locations
+            .Where(l => l.LocationId == request.LocationId)
+            .ExecuteDeleteAsync(cancellationToken);
 
         logger.DeleteLocation(request.LocationId);
 

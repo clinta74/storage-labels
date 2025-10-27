@@ -142,12 +142,17 @@ docker run -p 8080:80 \
 cd storage-labels-api
 docker build -t storage-labels-api:local -f Dockerfile ..
 docker run -p 5000:8080 \
+  -v $(pwd)/data:/app/data \
   -e ASPNETCORE_ENVIRONMENT=Production \
   -e DATA_SOURCE=localhost \  # SQL Server hostname or IP address
   -e INITIAL_CATALOG=StorageLabels \
   -e DB_USERNAME=sa \
   -e DB_PASSWORD=YourStrong@Password \
   -e Auth0Settings__ClientSecret=your-client-secret \
+  storage-labels-api:local
+```
+
+**Note:** The `-v $(pwd)/data:/app/data` volume mount persists uploaded images between container restarts.
   storage-labels-api:local
 ```
 
@@ -200,6 +205,11 @@ services:
 volumes:
   sqldata:
 ```
+
+**Important:** The API uses a volume mount (`./data:/app/data`) to persist uploaded images. This directory will be created on your host machine and contains:
+- `/app/data/images/` - Uploaded image files organized by user
+
+Without this volume mount, all uploaded images will be lost when the container is stopped or recreated.
 
 ### Using Environment Files
 

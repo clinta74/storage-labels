@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
@@ -17,11 +18,15 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
 
     public UploadImageHandler(
         StorageLabelsDbContext dbContext,
-        ILogger<UploadImageHandler> logger)
+        ILogger<UploadImageHandler> logger,
+        IConfiguration configuration)
     {
         _dbContext = dbContext;
         _logger = logger;
-        _storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StorageLabels", "Images");
+        
+        // Use configured path or default to /app/data/images for Docker compatibility
+        var basePath = configuration["ImageStoragePath"] ?? "/app/data/images";
+        _storagePath = Path.GetFullPath(basePath);
         Directory.CreateDirectory(_storagePath);
     }
 

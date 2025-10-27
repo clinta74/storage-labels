@@ -17,7 +17,7 @@ public record ImageMetadataResponse(
         img.ImageId,
         img.FileName,
         img.ContentType,
-        $"{baseUrl}/images/{img.ImageId}",
+        $"/api/images/{img.ImageId}",
         img.UploadedAt,
         img.SizeInBytes,
         img.ReferencedByBoxes?.Count ?? 0,

@@ -21,6 +21,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 
 WORKDIR /app
 
+# Create directory for persistent image storage
+RUN mkdir -p /app/data/images
+
 # Copy published files
 COPY --from=publish /app/publish .
 
@@ -29,6 +32,9 @@ EXPOSE 8080
 
 # Set environment variable for ASP.NET Core
 ENV ASPNETCORE_URLS=http://+:8080
+
+# Volume for persistent image storage
+VOLUME ["/app/data"]
 
 # Start the application
 ENTRYPOINT ["dotnet", "storage-labels-api.dll"]

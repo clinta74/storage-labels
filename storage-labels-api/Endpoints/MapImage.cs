@@ -60,9 +60,8 @@ public static class MapImage
     {
         var userId = context.GetUserId();
         var result = await mediator.Send(new GetUserImages(userId), cancellationToken);
-        var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}/api";
         return result
-            .Map(images => images.ConvertAll(img => new ImageMetadataResponse(img, baseUrl)))
+            .Map(images => images.ConvertAll(img => new ImageMetadataResponse(img, string.Empty)))
             .ToMinimalApiResult();
     }
 

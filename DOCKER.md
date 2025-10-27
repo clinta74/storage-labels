@@ -71,20 +71,84 @@ To enable the GitHub Actions workflows to push Docker images to Docker Hub, you 
   - .NET 9.0 runtime
   - Optimized for production
 
+## Environment Variables
+
+### UI Environment Variables
+
+The UI requires the following environment variables. Create a `.env` file in `storage-labels-ui/`:
+
+```env
+# API Configuration
+API_URL=http://localhost:5000/api
+
+# Auth0 Configuration
+REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com
+REACT_APP_AUTH0_CLIENT_ID=your-client-id
+REACT_APP_AUTH0_AUDIENCE=https://your-api-audience
+```
+
+**Variable Descriptions:**
+- `API_URL`: Base URL for the API (without trailing slash)
+- `REACT_APP_AUTH0_DOMAIN`: Your Auth0 domain
+- `REACT_APP_AUTH0_CLIENT_ID`: Your Auth0 application client ID
+- `REACT_APP_AUTH0_AUDIENCE`: Your Auth0 API audience identifier
+
+### API Environment Variables
+
+The API uses the following environment variables for configuration:
+
+```env
+# ASP.NET Core
+ASPNETCORE_ENVIRONMENT=Production
+ASPNETCORE_URLS=http://+:8080
+
+# Database Configuration (used to build connection string)
+DATA_SOURCE=localhost  # SQL Server hostname or IP address
+INITIAL_CATALOG=StorageLabels
+DB_USERNAME=sa
+DB_PASSWORD=YourStrong@Password
+
+# Auth0 Configuration
+# Note: Domain, Audience, ClientId, and ApiClientId are configured in appsettings.json
+# Only the ClientSecret needs to be set via environment variable
+Auth0Settings__ClientSecret=your-client-secret
+```
+
+**Variable Descriptions:**
+- `DATA_SOURCE`: SQL Server hostname/IP (e.g., `localhost`, `db`, `sqlserver.example.com`)
+- `INITIAL_CATALOG`: Database name
+- `DB_USERNAME`: Database user (default: `sa` for SQL Server)
+- `DB_PASSWORD`: Database password
+- `Auth0Settings__ClientSecret`: Your Auth0 client secret (other Auth0 settings are in appsettings.json)
+
+**Note:** The connection string is built from these individual variables with `IntegratedSecurity=false` and `TrustServerCertificate=true`.
+
 ## Local Development
 
 ### Build UI Docker Image Locally
 ```bash
 cd storage-labels-ui
 docker build -t storage-labels-ui:local .
-docker run -p 8080:80 storage-labels-ui:local
+docker run -p 8080:80 \
+  -e API_URL=http://localhost:5000/api \
+  -e REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com \
+  -e REACT_APP_AUTH0_CLIENT_ID=your-client-id \
+  -e REACT_APP_AUTH0_AUDIENCE=https://your-api-audience \
+  storage-labels-ui:local
 ```
 
 ### Build API Docker Image Locally
 ```bash
 cd storage-labels-api
 docker build -t storage-labels-api:local -f Dockerfile ..
-docker run -p 5000:8080 storage-labels-api:local
+docker run -p 5000:8080 \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  -e DATA_SOURCE=localhost \  # SQL Server hostname or IP address
+  -e INITIAL_CATALOG=StorageLabels \
+  -e DB_USERNAME=sa \
+  -e DB_PASSWORD=YourStrong@Password \
+  -e Auth0Settings__ClientSecret=your-client-secret \
+  storage-labels-api:local
 ```
 
 ## Docker Compose (Optional)
@@ -100,7 +164,10 @@ services:
     ports:
       - "3000:80"
     environment:
-      - API_URL=http://api:8080
+      - API_URL=http://localhost:5000/api
+      - REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com
+      - REACT_APP_AUTH0_CLIENT_ID=your-client-id
+      - REACT_APP_AUTH0_AUDIENCE=https://your-api-audience
     depends_on:
       - api
 
@@ -110,9 +177,62 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=YOUR_DB_CONNECTION_STRING
+      - DATA_SOURCE=db  # SQL Server hostname (docker service name) or IP address
+      - INITIAL_CATALOG=StorageLabels
+      - DB_USERNAME=sa
+      - DB_PASSWORD=YourStrong@Password
+      - Auth0Settings__ClientSecret=your-client-secret
+    depends_on:
+      - db
     volumes:
       - ./data:/app/data
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Password
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+
+volumes:
+  sqldata:
+```
+
+### Using Environment Files
+
+For easier management, create `.env` files:
+
+**`.env.ui`:**
+```env
+API_URL=http://localhost:5000/api
+REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com
+REACT_APP_AUTH0_CLIENT_ID=your-client-id
+REACT_APP_AUTH0_AUDIENCE=https://your-api-audience
+```
+
+**`.env.api`:**
+```env
+ASPNETCORE_ENVIRONMENT=Production
+DATA_SOURCE=db  # SQL Server hostname (docker service name) or IP address
+INITIAL_CATALOG=StorageLabels
+DB_USERNAME=sa
+DB_PASSWORD=YourStrong@Password
+Auth0Settings__ClientSecret=your-client-secret
+```
+
+Then update docker-compose.yml:
+```yaml
+services:
+  ui:
+    env_file: .env.ui
+    # ... rest of config
+  
+  api:
+    env_file: .env.api
+    # ... rest of config
 ```
 
 ## Image Tags

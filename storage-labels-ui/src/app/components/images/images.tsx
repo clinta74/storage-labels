@@ -56,7 +56,6 @@ export const Images: React.FC = () => {
         setUploading(true);
         try {
             await Api.Image.uploadImage(file);
-            alert.addMessage('Image uploaded successfully');
             loadImages();
         } catch (error) {
             alert.addMessage(error);

@@ -66,7 +66,6 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
             // Reload images to get the new one
             await loadImages();
             setMode('select');
-            alert.addMessage('Image uploaded successfully');
         } catch (error) {
             alert.addMessage(error);
         } finally {

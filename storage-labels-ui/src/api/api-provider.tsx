@@ -44,7 +44,6 @@ export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
         client.interceptors.request
             .use(async config => {
                 const token = await getAccessTokenSilently();
-                console.log(token);
                 config.headers['Authorization'] = `Bearer ${token}`;
                 return config;
             });

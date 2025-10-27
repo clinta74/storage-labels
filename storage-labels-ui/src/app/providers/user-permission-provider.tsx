@@ -25,7 +25,6 @@ export const UserPermissionProvider: React.FC<PropsWithChildren> = ({ children }
             getAccessTokenSilently()
                 .then(token => {
                     const jwt = jwtDecode<Auth0JwtPayload>(token);
-                    console.log('JWT: ', jwt);
                     setPermissions(jwt.permissions);
                 })
                 .catch(console.error);

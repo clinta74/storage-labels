@@ -52,8 +52,6 @@ export const BoxComponent: React.FC = () => {
         if (boxId) {
             Api.Box.getBox(boxId)
                 .then(({ data }) => {
-                    console.log('Box data:', data);
-                    console.log('Box imageUrl:', data.imageUrl);
                     setBox(data);
                 })
                 .catch((error) => alert.addMessage(error));

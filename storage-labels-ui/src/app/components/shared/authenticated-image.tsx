@@ -15,7 +15,6 @@ export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt
 
     useEffect(() => {
         if (!src) {
-            console.log('AuthenticatedImage: No src provided');
             setLoading(false);
             return;
         }
@@ -27,11 +26,8 @@ export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt
                 setLoading(true);
                 setError(false);
                 
-                console.log('AuthenticatedImage: Fetching image from:', src);
-                
                 // Get the access token
                 const token = await Api.getAccessToken();
-                console.log('AuthenticatedImage: Got access token');
                 
                 // Fetch the image with authentication
                 const response = await fetch(src, {
@@ -40,16 +36,12 @@ export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt
                     },
                 });
 
-                console.log('AuthenticatedImage: Response status:', response.status);
-
                 if (!response.ok) {
                     throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
                 }
 
                 const blob = await response.blob();
-                console.log('AuthenticatedImage: Got blob, size:', blob.size, 'type:', blob.type);
                 objectUrl = URL.createObjectURL(blob);
-                console.log('AuthenticatedImage: Created object URL:', objectUrl);
                 setImageUrl(objectUrl);
             } catch (err) {
                 console.error('AuthenticatedImage: Error loading image:', err);
@@ -64,7 +56,6 @@ export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt
         // Cleanup: revoke object URL when component unmounts or src changes
         return () => {
             if (objectUrl) {
-                console.log('AuthenticatedImage: Revoking object URL');
                 URL.revokeObjectURL(objectUrl);
             }
         };

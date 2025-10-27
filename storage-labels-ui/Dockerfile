@@ -3,28 +3,16 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Declare build arguments
-ARG API_URL=""
-ARG REACT_APP_AUTH0_DOMAIN
-ARG REACT_APP_AUTH0_CLIENT_ID
-ARG REACT_APP_AUTH0_AUDIENCE
-
-# Set them as environment variables for the build
-ENV API_URL=$API_URL
-ENV REACT_APP_AUTH0_DOMAIN=$REACT_APP_AUTH0_DOMAIN
-ENV REACT_APP_AUTH0_CLIENT_ID=$REACT_APP_AUTH0_CLIENT_ID
-ENV REACT_APP_AUTH0_AUDIENCE=$REACT_APP_AUTH0_AUDIENCE
-
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
 RUN npm ci
 
-# Copy source code
+# Copy source code (includes .env.production)
 COPY . .
 
-# Build the application
+# Build the application (Parcel will use .env.production for production builds)
 RUN npm run build
 
 # Production stage

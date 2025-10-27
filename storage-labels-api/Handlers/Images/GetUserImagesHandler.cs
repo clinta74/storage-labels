@@ -21,6 +21,8 @@ public class GetUserImagesHandler : IRequestHandler<GetUserImages, Result<List<I
     {
         var images = await _dbContext.Images
             .AsNoTracking()
+            .Include(img => img.ReferencedByBoxes)
+            .Include(img => img.ReferencedByItems)
             .Where(img => img.UserId == request.UserId)
             .ToListAsync(cancellationToken);
 

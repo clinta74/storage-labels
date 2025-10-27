@@ -28,6 +28,10 @@ public static class MapImage
         group.MapDelete("/{imageId:guid}", DeleteImageHandler)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest);
+        
+        group.MapDelete("/{imageId:guid}/force", ForceDeleteImageHandler)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest);
 
         group.MapGet("/{hashedUserId}/{imageId}", GetImageFileHandlerEndpoint)
             .AddEndpointFilter<ImageAccessFilter>()
@@ -69,7 +73,18 @@ public static class MapImage
         CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        var result = await mediator.Send(new DeleteImage(imageId, userId), cancellationToken);
+        var result = await mediator.Send(new DeleteImage(imageId, userId, false), cancellationToken);
+        return result.ToMinimalApiResult();
+    }
+
+    private static async Task<Microsoft.AspNetCore.Http.IResult> ForceDeleteImageHandler(
+        Guid imageId,
+        IMediator mediator,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var result = await mediator.Send(new DeleteImage(imageId, userId, true), cancellationToken);
         return result.ToMinimalApiResult();
     }
 

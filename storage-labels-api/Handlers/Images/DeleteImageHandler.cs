@@ -1,11 +1,12 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Images;
 
-public record DeleteImage(Guid ImageId, string UserId) : IRequest<Result>;
+public record DeleteImage(Guid ImageId, string UserId, bool Force) : IRequest<Result>;
 
 public class DeleteImageHandler : IRequestHandler<DeleteImage, Result>
 {
@@ -22,7 +23,11 @@ public class DeleteImageHandler : IRequestHandler<DeleteImage, Result>
 
     public async Task<Result> Handle(DeleteImage request, CancellationToken cancellationToken)
     {
-        var image = await _dbContext.Images.FindAsync([request.ImageId], cancellationToken);
+        var image = await _dbContext.Images
+            .Include(i => i.ReferencedByBoxes)
+            .Include(i => i.ReferencedByItems)
+            .FirstOrDefaultAsync(i => i.ImageId == request.ImageId, cancellationToken);
+            
         if (image == null)
         {
             return Result.NotFound("Image not found");
@@ -33,9 +38,33 @@ public class DeleteImageHandler : IRequestHandler<DeleteImage, Result>
             return Result.Unauthorized("Not authorized to delete this image");
         }
 
-        if (image.ReferencedByBoxes.Any() || image.ReferencedByItems.Any())
+        var hasReferences = image.ReferencedByBoxes.Any() || image.ReferencedByItems.Any();
+        
+        if (hasReferences && !request.Force)
         {
-            return Result.Error("Cannot delete image that is still referenced by boxes or items");
+            var boxCount = image.ReferencedByBoxes.Count;
+            var itemCount = image.ReferencedByItems.Count;
+            return Result.Error($"Cannot delete image that is still referenced by {boxCount} box(es) and {itemCount} item(s). Use force delete to remove references.");
+        }
+
+        // If forcing delete, clear all references
+        if (request.Force && hasReferences)
+        {
+            // Clear image references from boxes
+            await _dbContext.Boxes
+                .Where(b => b.ImageMetadataId == request.ImageId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(b => b.ImageUrl, (string?)null)
+                    .SetProperty(b => b.ImageMetadataId, (Guid?)null),
+                    cancellationToken);
+                
+            // Clear image references from items
+            await _dbContext.Items
+                .Where(i => i.ImageMetadataId == request.ImageId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(i => i.ImageUrl, (string?)null)
+                    .SetProperty(i => i.ImageMetadataId, (Guid?)null),
+                    cancellationToken);
         }
 
         try

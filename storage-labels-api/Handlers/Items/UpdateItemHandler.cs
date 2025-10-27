@@ -20,6 +20,7 @@ public class UpdateItemHandler(StorageLabelsDbContext dbContext, TimeProvider ti
     public async Task<Result<Item>> Handle(UpdateItem request, CancellationToken cancellationToken)
     {
         var item = await dbContext.Items
+            .AsNoTracking()
             .Where(i => i.ItemId == request.ItemId)
             .Where(i => i.Box.Location.UserLocations.Any(ul => ul.UserId == request.UserId && ul.AccessLevel >= AccessLevels.Edit))
             .FirstOrDefaultAsync(cancellationToken);

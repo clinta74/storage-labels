@@ -25,7 +25,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DeleteIcon from '@mui/icons-material/Delete';
-import WarehouseIcon from '@mui/icons-material/Warehouse';
+import InventoryIcon from '@mui/icons-material/Inventory';
 
 type Params = Record<'locationId', string>
 
@@ -125,7 +125,7 @@ export const Location: React.FC = () => {
                                         <ListItemButton component={Link} to={`box/${box.boxId}`}>
                                             <ListItemAvatar>
                                                 <Avatar>
-                                                    <WarehouseIcon />
+                                                    <InventoryIcon />
                                                 </Avatar>
                                             </ListItemAvatar>
                                             <ListItemText primary={box.name} secondary={box.description} />

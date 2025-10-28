@@ -28,6 +28,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import LabelIcon from '@mui/icons-material/Label';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { AuthenticatedImage } from '../shared';
@@ -200,9 +201,9 @@ export const BoxComponent: React.FC = () => {
                                         disablePadding
                                     >
                                         <ListItemButton onClick={() => handleItemClick(item)}>
-                                            <ListItemAvatar>
+                                            <ListItemAvatar sx={{ display: { xs: 'none', sm: 'flex' } }}>
                                                 <Avatar>
-                                                    <InventoryIcon />
+                                                    <LabelIcon />
                                                 </Avatar>
                                             </ListItemAvatar>
                                             <ListItemText

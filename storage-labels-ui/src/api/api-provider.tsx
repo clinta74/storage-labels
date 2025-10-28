@@ -9,6 +9,7 @@ import { BoxEndpoints, getBoxEndpoints } from './endpoints/box';
 import { ItemEndpoints, getItemEndpoints } from './endpoints/item';
 import { ImageEndpoints, getImageEndpoints } from './endpoints/image';
 import { CommonLocationEndpoints, getCommonLocationEndpoints } from './endpoints/common-location';
+import { SearchEndpoints, getSearchEndpoints } from './endpoints/search';
 
 const createAxiosInstance = (): AxiosInstance => {
     return axios.create({
@@ -30,6 +31,7 @@ interface IApiContext {
     Item: ItemEndpoints;
     Image: ImageEndpoints;
     CommonLocation: CommonLocationEndpoints;
+    Search: SearchEndpoints;
     getAccessToken: () => Promise<string>;
 }
 
@@ -56,6 +58,7 @@ export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
             Item: getItemEndpoints(client),
             Image: getImageEndpoints(client),
             CommonLocation: getCommonLocationEndpoints(client),
+            Search: getSearchEndpoints(client),
             getAccessToken: getAccessTokenSilently,
         }
 

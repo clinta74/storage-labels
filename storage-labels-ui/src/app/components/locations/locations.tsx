@@ -1,16 +1,22 @@
 import { Avatar, Box, createTheme, Fab, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
+import { useSearch } from '../../providers/search-provider';
 import { useApi } from '../../../api';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
+import { SearchBar, SearchResults } from '../shared';
 
 export const Locations: React.FC = () => {
     const alert = useAlertMessage();
+    const navigate = useNavigate();
     const { Api } = useApi();
+    const { clearSearch } = useSearch();
     const [locations, setLocations] = useState<StorageLocation[]>([]);
+    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
+    const [searching, setSearching] = useState(false);
 
     const theme = createTheme();
 
@@ -21,8 +27,61 @@ export const Locations: React.FC = () => {
             });
     }, []);
 
+    const handleSearch = (query: string) => {
+        // Clear results if query is empty
+        if (!query || !query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        
+        setSearching(true);
+        Api.Search.searchBoxesAndItems(query)
+            .then(({ data }) => {
+                setSearchResults(data.results);
+            })
+            .catch((error) => alert.addMessage(error))
+            .finally(() => setSearching(false));
+    };
+
+    const handleQrCodeScan = (code: string) => {
+        Api.Search.searchByQrCode(code)
+            .then(({ data }) => {
+                // Navigate directly to the box
+                if (data.boxId) {
+                    navigate(`${data.locationId}/box/${data.boxId}`);
+                }
+            })
+            .catch((error) => {
+                alert.addMessage(`No box found with code: ${code}`);
+            });
+    };
+
+    const handleSearchResultClick = (result: SearchResultResponse) => {
+        setSearchResults([]); // Clear results
+        clearSearch(); // Clear search box
+        
+        if (result.type === 'box' && result.boxId) {
+            navigate(`${result.locationId}/box/${result.boxId}`);
+        } else if (result.type === 'item' && result.boxId) {
+            navigate(`${result.locationId}/box/${result.boxId}`);
+        }
+    };
+
     return (
         <React.Fragment>
+            <Box margin={2} mb={2} position="relative">
+                <SearchBar
+                    placeholder="Search all boxes and items..."
+                    onSearch={handleSearch}
+                    onQrCodeScan={handleQrCodeScan}
+                />
+                <SearchResults
+                    results={searchResults}
+                    onResultClick={handleSearchResultClick}
+                    loading={searching}
+                />
+            </Box>
+
             <Box position="relative">
                 <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)}>
                     <Fab color="primary" title="Add a Location" aria-label="add" component={Link} to={`add`}>

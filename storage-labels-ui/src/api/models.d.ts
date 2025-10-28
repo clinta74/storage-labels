@@ -102,3 +102,18 @@ interface ImageMetadataResponse {
     boxReferenceCount: number;
     itemReferenceCount: number;
 }
+interface SearchResultResponse {
+    type: 'box' | 'item';
+    boxId?: string;
+    boxName?: string;
+    boxCode?: string;
+    itemId?: string;
+    itemName?: string;
+    itemCode?: string;
+    locationId: string;
+    locationName: string;
+}
+
+interface SearchResultsResponse {
+    results: SearchResultResponse[];
+}

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
+import { useSearch } from '../../providers/search-provider';
+import { useLocation } from '../../providers/location-provider';
 import { useApi } from '../../../api';
 import { 
     Avatar, 
@@ -26,18 +28,21 @@ import AddIcon from '@mui/icons-material/Add';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InventoryIcon from '@mui/icons-material/Inventory';
-
-type Params = Record<'locationId', string>
+import { SearchBar, SearchResults } from '../shared';
 
 export const Location: React.FC = () => {
-    const params = useParams<Params>();
+    const params = useParams();
+    const navigate = useNavigate();
     const alert = useAlertMessage();
     const { Api } = useApi();
+    const { clearSearch } = useSearch();
+    const { location } = useLocation();
     const [boxes, setBoxes] = useState<Box[]>([]);
-    const [location, setLocation] = useState<StorageLocation>();
     const [boxToDelete, setBoxToDelete] = useState<Box | null>(null);
     const [boxItemCount, setBoxItemCount] = useState<number>(0);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
+    const [searching, setSearching] = useState(false);
 
     const theme = createTheme();
 
@@ -45,10 +50,6 @@ export const Location: React.FC = () => {
         const locationId = Number(params.locationId);
 
         if (locationId) {
-            Api.Location.getLocation(locationId)
-                .then(({ data }) => {
-                    setLocation(data);
-                });
             Api.Box.getBoxes(locationId)
                 .then(({ data }) => {
                     setBoxes(data);
@@ -89,8 +90,64 @@ export const Location: React.FC = () => {
         }
     };
 
+    const handleSearch = (query: string) => {
+        // Clear results if query is empty
+        if (!query || !query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        
+        setSearching(true);
+        // Search globally, not just in this location
+        Api.Search.searchBoxesAndItems(query)
+            .then(({ data }) => {
+                setSearchResults(data.results);
+            })
+            .catch((error) => alert.addMessage(error))
+            .finally(() => setSearching(false));
+    };
+
+    const handleQrCodeScan = (code: string) => {
+        Api.Search.searchByQrCode(code)
+            .then(({ data }) => {
+                // Navigate directly to the box (could be in any location)
+                if (data.boxId) {
+                    navigate(`/locations/${data.locationId}/box/${data.boxId}`);
+                }
+            })
+            .catch((error) => {
+                alert.addMessage(`No box found with code: ${code}`);
+            });
+    };
+
+    const handleSearchResultClick = (result: SearchResultResponse) => {
+        setSearchResults([]); // Clear results
+        clearSearch(); // Clear search box
+        
+        if (result.type === 'box' && result.boxId) {
+            // Navigate to the found box (could be in any location)
+            navigate(`/locations/${result.locationId}/box/${result.boxId}`);
+        } else if (result.type === 'item' && result.boxId) {
+            // Navigate to the box containing the item (could be in any location)
+            navigate(`/locations/${result.locationId}/box/${result.boxId}`);
+        }
+    };
+
     return (
         <React.Fragment>
+            <Box margin={2} mb={2} position="relative">
+                <SearchBar
+                    placeholder="Search all boxes and items..."
+                    onSearch={handleSearch}
+                    onQrCodeScan={handleQrCodeScan}
+                />
+                <SearchResults
+                    results={searchResults}
+                    onResultClick={handleSearchResultClick}
+                    loading={searching}
+                />
+            </Box>
+
             <Paper>
                 <Box position="relative">
                     <Box position="absolute" left={theme.spacing(1)} top={theme.spacing(1)}>

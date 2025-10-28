@@ -208,6 +208,10 @@ export const BoxComponent: React.FC = () => {
                                             <ListItemText
                                                 primary={item.name}
                                                 secondary={item.description}
+                                                slotProps={{
+                                                    primary: { noWrap: true }
+                                                }}
+                                                sx={{ pr: 2, overflow: 'hidden' }}
                                             />
                                         </ListItemButton>
                                     </ListItem>

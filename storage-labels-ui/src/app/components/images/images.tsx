@@ -23,11 +23,13 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
+import { useSnackbar } from '../../providers/snackbar-provider';
 import { AuthenticatedImage } from '../shared';
 
 export const Images: React.FC = () => {
     const { Api } = useApi();
     const alert = useAlertMessage();
+    const snackbar = useSnackbar();
     const [images, setImages] = useState<ImageMetadataResponse[]>([]);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -56,6 +58,7 @@ export const Images: React.FC = () => {
         setUploading(true);
         try {
             await Api.Image.uploadImage(file);
+            snackbar.showSuccess('Image uploaded successfully');
             loadImages();
         } catch (error) {
             alert.addMessage(error);
@@ -82,7 +85,7 @@ export const Images: React.FC = () => {
 
         try {
             await Api.Image.deleteImage(selectedImage.imageId, forceDelete);
-            alert.addMessage('Image deleted successfully');
+            snackbar.showSuccess('Image deleted successfully');
             setDeleteDialogOpen(false);
             setSelectedImage(null);
             setForceDelete(false);

@@ -29,6 +29,7 @@ import { validateAll } from '../../../utils/validate';
 import { validationTests } from './validation-test';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
+import { useSnackbar } from '../../providers/snackbar-provider';
 import { AxiosError } from 'axios';
 
 type Params = Record<'locationId', string>;
@@ -37,6 +38,7 @@ export const EditLocation: React.FC = () => {
     const params = useParams<Params>();
     const navigate = useNavigate();
     const alert = useAlertMessage();
+    const snackbar = useSnackbar();
     const [location, setLocation] = useState<StorageLocation | null>(null);
     const [name, setName] = useState('');
     const { Api } = useApi();
@@ -118,7 +120,7 @@ export const EditLocation: React.FC = () => {
             accessLevel: newUserAccessLevel,
         })
             .then(() => {
-                alert.addMessage('User added successfully');
+                snackbar.showSuccess('User added successfully');
                 setNewUserEmail('');
                 setNewUserAccessLevel('Edit');
                 loadLocationUsers(location.locationId);
@@ -139,7 +141,7 @@ export const EditLocation: React.FC = () => {
             accessLevel: newAccessLevel,
         })
             .then(() => {
-                alert.addMessage('Access level updated');
+                snackbar.showSuccess('Access level updated');
                 loadLocationUsers(location.locationId);
             })
             .catch((error) => alert.addMessage(error));
@@ -155,7 +157,7 @@ export const EditLocation: React.FC = () => {
 
         Api.Location.removeUserFromLocation(location.locationId, userToDelete.userId)
             .then(() => {
-                alert.addMessage('User access removed');
+                snackbar.showSuccess('User access removed');
                 setDeleteDialogOpen(false);
                 setUserToDelete(null);
                 loadLocationUsers(location.locationId);

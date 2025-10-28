@@ -29,9 +29,12 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import LabelIcon from '@mui/icons-material/Label';
+import WarehouseIcon from '@mui/icons-material/Warehouse';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
-import { AuthenticatedImage } from '../shared';
+import { useSearch } from '../../providers/search-provider';
+import { useLocation } from '../../providers/location-provider';
+import { AuthenticatedImage, SearchBar, SearchResults } from '../shared';
 
 type Params = Record<'boxId', string>;
 
@@ -40,12 +43,16 @@ export const BoxComponent: React.FC = () => {
     const navigate = useNavigate();
     const alert = useAlertMessage();
     const { Api } = useApi();
+    const { clearSearch } = useSearch();
+    const { location } = useLocation();
     const [box, setBox] = useState<Box | null>(null);
     const [items, setItems] = useState<ItemResponse[]>([]);
     const [selectedItem, setSelectedItem] = useState<ItemResponse | null>(null);
     const [itemToDelete, setItemToDelete] = useState<ItemResponse | null>(null);
     const [openModal, setOpenModal] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
+    const [searching, setSearching] = useState(false);
     const theme = createTheme();
 
     useEffect(() => {
@@ -101,6 +108,69 @@ export const BoxComponent: React.FC = () => {
         }
     };
 
+    const handleSearch = (query: string) => {
+        // Clear results if query is empty
+        if (!query || !query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        
+        setSearching(true);
+        // Search globally across all locations and boxes
+        Api.Search.searchBoxesAndItems(query)
+            .then(({ data }) => {
+                setSearchResults(data.results);
+            })
+            .catch((error) => alert.addMessage(error))
+            .finally(() => setSearching(false));
+    };
+
+    const handleQrCodeScan = (code: string) => {
+        Api.Search.searchByQrCode(code)
+            .then(({ data }) => {
+                // Navigate to the box containing the scanned item/box
+                if (data.boxId && data.type === 'box') {
+                    // Navigating to the found box (could be in any location)
+                    navigate(`/locations/${data.locationId}/box/${data.boxId}`);
+                } else if (data.boxId && data.type === 'item') {
+                    // Navigate to the box containing the item
+                    if (data.boxId === params.boxId) {
+                        // Item is in current box - find and show it
+                        const item = items.find(i => i.itemId === data.itemId);
+                        if (item) {
+                            handleItemClick(item);
+                        }
+                    } else {
+                        // Navigate to the box containing the item (could be in any location)
+                        navigate(`/locations/${data.locationId}/box/${data.boxId}`);
+                    }
+                }
+            })
+            .catch((error) => {
+                alert.addMessage(`No box or item found with code: ${code}`);
+            });
+    };
+
+    const handleSearchResultClick = (result: SearchResultResponse) => {
+        setSearchResults([]); // Clear results
+        clearSearch(); // Clear search box
+        
+        if (result.type === 'box' && result.boxId) {
+            // Navigate to the found box (could be in any location)
+            navigate(`/locations/${result.locationId}/box/${result.boxId}`);
+        } else if (result.type === 'item') {
+            // Check if item is in current box
+            const item = items.find(i => i.itemId === result.itemId);
+            if (item) {
+                // Item is in current box - show details modal
+                handleItemClick(item);
+            } else if (result.boxId) {
+                // Item is in a different box - navigate to that box
+                navigate(`/locations/${result.locationId}/box/${result.boxId}`);
+            }
+        }
+    };
+
     if (!box) {
         return null;
     }
@@ -120,6 +190,19 @@ export const BoxComponent: React.FC = () => {
 
     return (
         <React.Fragment>
+            <Box margin={2} mb={2} position="relative">
+                <SearchBar
+                    placeholder="Search all boxes and items..."
+                    onSearch={handleSearch}
+                    onQrCodeScan={handleQrCodeScan}
+                />
+                <SearchResults
+                    results={searchResults}
+                    onResultClick={handleSearchResultClick}
+                    loading={searching}
+                />
+            </Box>
+
             <Paper>
                 <Box position="relative">
                     <Box position="absolute" left={theme.spacing(1)} top={theme.spacing(1)}>
@@ -134,6 +217,14 @@ export const BoxComponent: React.FC = () => {
                     </Box>
                     <Box margin={1} textAlign="center">
                         <Typography variant="h4">{box.name}</Typography>
+                        {location && (
+                            <Box display="flex" alignItems="center" justifyContent="center" gap={1} mt={1}>
+                                <WarehouseIcon color="action" />
+                                <Typography variant="body1" color="text.secondary">
+                                    {location.name}
+                                </Typography>
+                            </Box>
+                        )}
                     </Box>
                     <Box margin={2} pb={2}>
                         <Grid container spacing={2}>

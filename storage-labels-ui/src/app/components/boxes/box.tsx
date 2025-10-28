@@ -212,7 +212,7 @@ export const BoxComponent: React.FC = () => {
                                                 slotProps={{
                                                     primary: { noWrap: true }
                                                 }}
-                                                sx={{ pr: 2, overflow: 'hidden' }}
+                                                sx={{ pr: 3, overflow: 'hidden' }}
                                             />
                                         </ListItemButton>
                                     </ListItem>

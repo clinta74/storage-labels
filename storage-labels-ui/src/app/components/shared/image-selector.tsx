@@ -98,6 +98,7 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
                     <Box textAlign="center" py={4}>
                         <input
                             accept="image/*"
+                            capture="environment"
                             style={{ display: 'none' }}
                             id="image-upload-input"
                             type="file"

@@ -112,11 +112,11 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> DeleteLocation(HttpContext context, long LocationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> DeleteLocation(HttpContext context, long LocationId, [FromServices] IMediator mediator, CancellationToken cancellationToken, [FromQuery] bool force = false)
     {
         var userid = context.GetUserId();
 
-        var location = await mediator.Send(new DeleteLocation(userid, LocationId), cancellationToken);
+        var location = await mediator.Send(new DeleteLocation(userid, LocationId, force), cancellationToken);
         return location
             .ToMinimalApiResult();
     }

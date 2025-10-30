@@ -5,7 +5,7 @@ using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Boxes;
 
-public record DeleteBox(Guid BoxId, string UserId) : IRequest<Result>;
+public record DeleteBox(Guid BoxId, string UserId, bool Force = false) : IRequest<Result>;
 
 public class DeleteBoxHandler(StorageLabelsDbContext dbContext, ILogger<DeleteBoxHandler> logger) : IRequestHandler<DeleteBox, Result>
 {
@@ -23,7 +23,7 @@ public class DeleteBoxHandler(StorageLabelsDbContext dbContext, ILogger<DeleteBo
             return Result.NotFound($"Box with id ({request.BoxId})");
         }
 
-        if (box.Items.Count > 0)
+        if (box.Items.Count > 0 && !request.Force)
         {
             return Result.Invalid(box.Items.Select(item => new ValidationError
             {
@@ -32,6 +32,14 @@ public class DeleteBoxHandler(StorageLabelsDbContext dbContext, ILogger<DeleteBo
                 ErrorMessage = $"Box id ({box.BoxId}) with name ({box.Name}) with item id ({item.ItemId}).",
                 Severity = ValidationSeverity.Info,
             }));
+        }
+
+        // If force delete, delete items first
+        if (request.Force && box.Items.Count > 0)
+        {
+            await dbContext.Items
+                .Where(i => i.BoxId == request.BoxId)
+                .ExecuteDeleteAsync(cancellationToken);
         }
 
         await dbContext.Boxes

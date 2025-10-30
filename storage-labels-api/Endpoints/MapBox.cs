@@ -38,6 +38,12 @@ internal static partial class EndpointsMapper
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Update Box");
 
+        routeBuilder.MapPut("{boxId}/move", MoveBox)
+            .Produces<BoxResponse>(StatusCodes.Status200OK)
+            .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Move Box");
+
         routeBuilder.MapDelete("{boxId}", DeleteBox)
             .Produces(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
@@ -110,11 +116,22 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> DeleteBox(HttpContext context, Guid BoxId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> MoveBox(HttpContext context, Guid BoxId, [FromBody] MoveBoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 
-        var box = await mediator.Send(new DeleteBox(BoxId, userId), cancellationToken);
+        var result = await mediator.Send(new Handlers.Boxes.MoveBox(BoxId, request.DestinationLocationId, userId), cancellationToken);
+
+        return result
+            .Map(box => new BoxResponse(box))
+            .ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> DeleteBox(HttpContext context, Guid BoxId, [FromServices] IMediator mediator, CancellationToken cancellationToken, [FromQuery] bool force = false)
+    {
+        var userId = context.GetUserId();
+
+        var box = await mediator.Send(new DeleteBox(BoxId, userId, force), cancellationToken);
 
         return box.ToMinimalApiResult();
     }

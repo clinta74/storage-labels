@@ -1,4 +1,4 @@
-import { Avatar, Box, createTheme, Fab, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography } from '@mui/material';
+import { Avatar, Box, Fab, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography, useTheme } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
@@ -18,7 +18,7 @@ export const Locations: React.FC = () => {
     const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
     const [searching, setSearching] = useState(false);
 
-    const theme = createTheme();
+    const theme = useTheme();
 
     useEffect(() => {
         Api.Location.getLocaions()
@@ -83,14 +83,26 @@ export const Locations: React.FC = () => {
             </Box>
 
             <Box position="relative">
-                <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)}>
+                <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                     <Fab color="primary" title="Add a Location" aria-label="add" component={Link} to={`add`}>
                         <AddIcon />
                     </Fab>
                 </Box>
                 <Paper>
-                    <Box margin={1} textAlign="center" pb={2}>
-                        <Typography variant='h4'>Your Locations</Typography>
+                    <Box 
+                        margin={1} 
+                        textAlign="center" 
+                        pb={2}
+                        sx={{
+                            px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
+                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                        }}
+                    >
+                        <Typography variant='h4' sx={{ 
+                            fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
+                        }}>
+                            Your Locations
+                        </Typography>
                     </Box>
                     <Box margin={2}>
                         <List>

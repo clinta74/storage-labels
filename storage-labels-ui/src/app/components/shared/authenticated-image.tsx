@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CircularProgress, Box } from '@mui/material';
 import { useApi } from '../../../api';
+import { CONFIG } from '../../../config';
 
 interface AuthenticatedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
     src: string;
@@ -29,8 +30,13 @@ export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt
                 // Get the access token
                 const token = await Api.getAccessToken();
                 
+                // Construct full URL if src is relative
+                const fullUrl = src.startsWith('http') 
+                    ? src 
+                    : `${CONFIG.API_URL}${src.startsWith('/') ? src : '/' + src}`;
+                
                 // Fetch the image with authentication
-                const response = await fetch(src, {
+                const response = await fetch(fullUrl, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },

@@ -113,6 +113,8 @@ export const AddBox: React.FC = () => {
                                                     onClick={() => setShowQrScanner(!showQrScanner)}
                                                     edge="end"
                                                     disabled={saving}
+                                                    aria-label="scan QR code"
+                                                    title="Scan QR code"
                                                 >
                                                     <QrCodeScannerIcon />
                                                 </IconButton>

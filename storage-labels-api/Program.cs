@@ -119,6 +119,17 @@ app.UseCors(config => config
     .AllowAnyMethod()
     .AllowAnyHeader());
 
+// Add security headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Content-Security-Policy"] = "frame-ancestors 'none'";
+    context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    await next();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 

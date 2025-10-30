@@ -76,6 +76,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                                             onClick={handleClearSearch}
                                             edge="end"
                                             sx={{ mr: 0.5 }}
+                                            aria-label="clear search"
+                                            title="Clear search"
                                         >
                                             <CloseIcon />
                                         </IconButton>
@@ -84,6 +86,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                                         color="primary"
                                         onClick={() => setScannerOpen(true)}
                                         edge="end"
+                                        aria-label="scan QR code"
+                                        title="Scan QR code"
                                     >
                                         <QrCodeScannerIcon />
                                     </IconButton>
@@ -109,6 +113,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                             right: 8,
                             top: 8,
                         }}
+                        aria-label="close scanner"
+                        title="Close scanner"
                     >
                         <CloseIcon />
                     </IconButton>

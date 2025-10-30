@@ -8,7 +8,6 @@ import {
     Avatar, 
     Box, 
     Button,
-    createTheme, 
     Dialog,
     DialogActions,
     DialogContent,
@@ -22,7 +21,8 @@ import {
     ListItemButton, 
     ListItemText, 
     Paper, 
-    Typography 
+    Typography,
+    useTheme
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
@@ -44,7 +44,7 @@ export const Location: React.FC = () => {
     const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
     const [searching, setSearching] = useState(false);
 
-    const theme = createTheme();
+    const theme = useTheme();
 
     useEffect(() => {
         const locationId = Number(params.locationId);
@@ -150,18 +150,30 @@ export const Location: React.FC = () => {
 
             <Paper>
                 <Box position="relative">
-                    <Box position="absolute" left={theme.spacing(1)} top={theme.spacing(1)}>
+                    <Box position="absolute" left={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                         <IconButton edge="end" aria-label="back" component={Link} to={`../`}>
                             <NavigateBeforeIcon />
                         </IconButton>
                     </Box>
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)}>
+                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                         <Fab color="primary" title="Add a Box" aria-label="add" component={Link} to={`box/add`}>
                             <AddIcon />
                         </Fab>
                     </Box>
-                    <Box margin={1} textAlign="center" pb={2}>
-                        <Typography variant='h4'>{location?.name}</Typography>
+                    <Box 
+                        margin={1} 
+                        textAlign="center" 
+                        pb={2}
+                        sx={{
+                            px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
+                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                        }}
+                    >
+                        <Typography variant='h4' sx={{ 
+                            fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
+                        }}>
+                            {location?.name}
+                        </Typography>
                     </Box>
                     <Box margin={2}>
                         <List>

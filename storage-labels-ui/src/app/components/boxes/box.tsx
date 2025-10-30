@@ -4,7 +4,6 @@ import {
     Avatar,
     Box,
     Button,
-    createTheme,
     Dialog,
     DialogActions,
     DialogContent,
@@ -22,6 +21,7 @@ import {
     Paper,
     Stack,
     Typography,
+    useTheme,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -53,7 +53,7 @@ export const BoxComponent: React.FC = () => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
     const [searching, setSearching] = useState(false);
-    const theme = createTheme();
+    const theme = useTheme();
 
     useEffect(() => {
         const boxId = params.boxId;
@@ -205,18 +205,29 @@ export const BoxComponent: React.FC = () => {
 
             <Paper>
                 <Box position="relative">
-                    <Box position="absolute" left={theme.spacing(1)} top={theme.spacing(1)}>
+                    <Box position="absolute" left={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                         <IconButton edge="end" aria-label="back" component={Link} to={`/locations/${box.locationId}`}>
                             <NavigateBeforeIcon />
                         </IconButton>
                     </Box>
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)}>
+                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                         <IconButton aria-label="edit" component={Link} to="edit">
                             <EditIcon />
                         </IconButton>
                     </Box>
-                    <Box margin={1} textAlign="center">
-                        <Typography variant="h4">{box.name}</Typography>
+                    <Box 
+                        margin={1} 
+                        textAlign="center"
+                        sx={{
+                            px: { xs: 7, sm: 2 }, // Extra horizontal padding on mobile to avoid buttons overlap
+                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                        }}
+                    >
+                        <Typography variant="h4" sx={{ 
+                            fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
+                        }}>
+                            {box.name}
+                        </Typography>
                         {location && (
                             <Box display="flex" alignItems="center" justifyContent="center" gap={1} mt={1}>
                                 <WarehouseIcon color="action" />
@@ -252,13 +263,25 @@ export const BoxComponent: React.FC = () => {
 
             <Paper sx={{ mt: 2 }}>
                 <Box position="relative">
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)}>
+                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                         <Fab color="primary" title="Add an Item" aria-label="add" component={Link} to="item/add">
                             <AddIcon />
                         </Fab>
                     </Box>
-                    <Box margin={1} textAlign="center" pb={2}>
-                        <Typography variant="h4">Items</Typography>
+                    <Box 
+                        margin={1} 
+                        textAlign="center" 
+                        pb={2}
+                        sx={{
+                            px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
+                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                        }}
+                    >
+                        <Typography variant="h4" sx={{ 
+                            fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
+                        }}>
+                            Items
+                        </Typography>
                     </Box>
                     <Box margin={2}>
                         {items.length === 0 ? (

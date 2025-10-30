@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
     Avatar,
     Box,
-    createTheme,
     Fab,
     IconButton,
     List,
@@ -12,6 +11,7 @@ import {
     ListItemText,
     Paper,
     Typography,
+    useTheme,
 } from '@mui/material';
 import { Link } from 'react-router';
 import AddIcon from '@mui/icons-material/Add';
@@ -27,7 +27,7 @@ export const CommonLocations: React.FC = () => {
     const { Api } = useApi();
     const alert = useAlertMessage();
     const [locations, setLocations] = useState<CommonLocation[]>([]);
-    const theme = createTheme();
+    const theme = useTheme();
 
     const canWrite = hasPermission(Permissions.Write_CommonLocations);
 
@@ -53,15 +53,26 @@ export const CommonLocations: React.FC = () => {
         <React.Fragment>
             <Box position="relative">
                 {canWrite && (
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)}>
+                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                         <Fab color="primary" title="Add a Common Location" aria-label="add" component={Link} to="add">
                             <AddIcon />
                         </Fab>
                     </Box>
                 )}
                 <Paper>
-                    <Box margin={1} textAlign="center">
-                        <Typography variant="h4">Common Locations</Typography>
+                    <Box 
+                        margin={1} 
+                        textAlign="center"
+                        sx={{
+                            px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
+                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                        }}
+                    >
+                        <Typography variant="h4" sx={{ 
+                            fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
+                        }}>
+                            Common Locations
+                        </Typography>
                     </Box>
                     <Box margin={2}>
                         {locations.length === 0 ? (

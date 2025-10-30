@@ -17,18 +17,20 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#1a1a1a",
-  "background_color": "#1a1a1a",
+  "theme_color": "#8B4513",
+  "background_color": "#F5F5F0",
   "screenshots": [
     {
-      "src": "screenshots/wide.yourmealtracker.com.jpeg",
-      "sizes": "1938x1562",
-      "type": "image/jpeg"
+      "src": "screenshots/wide.storage-labels.pollyspeople.net.jpeg",
+      "sizes": "964x1095",
+      "type": "image/jpeg",
+      "form_factor": "wide"
     },
     {
-      "src": "screenshots/narrow.storage-labels.pollyspeople.net.png",
-      "sizes": "702x1404",
-      "type": "image/png"
+      "src": "screenshots/narrow.storage-labels.pollyspeople.net.jpeg",
+      "sizes": "412x883",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
     }
   ]
 }

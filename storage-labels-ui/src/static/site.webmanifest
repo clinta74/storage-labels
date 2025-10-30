@@ -1,6 +1,6 @@
 {
   "name": "What's in the box?",
-  "short_name": "What's in the box?",
+  "short_name": "Storage Box",
   "lang": "en-US",
   "start_url": "/",
   "display": "standalone",
@@ -22,16 +22,13 @@
   "screenshots": [
     {
       "src": "screenshots/wide.yourmealtracker.com.jpeg",
-      "form_factor": "wide",
       "sizes": "1938x1562",
-      "label": "What's in the box?"
+      "type": "image/jpeg"
     },
     {
-      "src": "screenshots/narrow.yourmealtracker.com.jpeg",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
+      "src": "screenshots/narrow.storage-labels.pollyspeople.net.png",
       "sizes": "702x1404",
-      "label": "What's in the box?"
+      "type": "image/png"
     }
   ]
 }

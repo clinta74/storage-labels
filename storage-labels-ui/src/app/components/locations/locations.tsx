@@ -1,13 +1,12 @@
-import { Avatar, Box, Fab, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography, useTheme } from '@mui/material';
+import { Avatar, Box, Fab, List, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography, useTheme } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { useSearch } from '../../providers/search-provider';
 import { useApi } from '../../../api';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
-import { SearchBar, SearchResults } from '../shared';
+import { SearchBar, SearchResults, EmptyState } from '../shared';
 
 export const Locations: React.FC = () => {
     const alert = useAlertMessage();
@@ -105,35 +104,35 @@ export const Locations: React.FC = () => {
                         </Typography>
                     </Box>
                     <Box margin={2}>
-                        <List>
-                            {
-                                locations.map(location =>
-                                    <ListItem 
-                                        key={location.locationId}
-                                        secondaryAction={
-                                            <IconButton 
-                                                edge="end" 
-                                                aria-label="edit"
-                                                component={Link}
-                                                to={`${location.locationId}/edit`}
-                                            >
-                                                <EditIcon />
-                                            </IconButton>
-                                        }
-                                        disablePadding
-                                    >
-                                        <ListItemButton component={Link} to={`${location.locationId}`}>
-                                            <ListItemAvatar>
-                                                <Avatar>
-                                                    <WarehouseIcon />
-                                                </Avatar>
-                                            </ListItemAvatar>
-                                            <ListItemText primary={location.name} />
-                                        </ListItemButton>
-                                    </ListItem>
-                                )
-                            }
-                        </List>
+                        {locations.length === 0 ? (
+                            <EmptyState
+                                icon={WarehouseIcon}
+                                title="No locations yet"
+                                message="Create your first storage location to start organizing your items. Locations can be rooms, buildings, or any physical space where you store boxes."
+                                actionLabel="Add Location"
+                                onAction={() => navigate('add')}
+                            />
+                        ) : (
+                            <List>
+                                {
+                                    locations.map(location =>
+                                        <ListItem 
+                                            key={location.locationId}
+                                            disablePadding
+                                        >
+                                            <ListItemButton component={Link} to={`${location.locationId}`}>
+                                                <ListItemAvatar>
+                                                    <Avatar>
+                                                        <WarehouseIcon />
+                                                    </Avatar>
+                                                </ListItemAvatar>
+                                                <ListItemText primary={location.name} />
+                                            </ListItemButton>
+                                        </ListItem>
+                                    )
+                                }
+                            </List>
+                        )}
                     </Box>
                 </Paper>
             </Box>

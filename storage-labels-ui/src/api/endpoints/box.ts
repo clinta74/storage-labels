@@ -15,6 +15,9 @@ export const getBoxEndpoints = (client: AxiosInstance) => ({
     updateBox: (boxId: string, box: Box) =>
         client.put<Box>(`box/${boxId}`, box),
 
-    deleteBox: (boxId: string) =>
-        client.delete<never>(`box/${boxId}`),
+    moveBox: (boxId: string, destinationLocationId: number) =>
+        client.put<Box>(`box/${boxId}/move`, { destinationLocationId }),
+
+    deleteBox: (boxId: string, force?: boolean) =>
+        client.delete<never>(`box/${boxId}${force ? '?force=true' : ''}`),
 });

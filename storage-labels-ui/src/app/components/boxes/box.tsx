@@ -4,12 +4,16 @@ import {
     Avatar,
     Box,
     Button,
+    Checkbox,
     Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
     DialogTitle,
     Fab,
+    FormControl,
+    FormControlLabel,
+    FormLabel,
     Grid,
     IconButton,
     List,
@@ -17,8 +21,11 @@ import {
     ListItemAvatar,
     ListItemButton,
     ListItemText,
+    Menu,
+    MenuItem,
     Modal,
     Paper,
+    Select,
     Stack,
     Typography,
     useTheme,
@@ -27,6 +34,8 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import LabelIcon from '@mui/icons-material/Label';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
@@ -34,7 +43,7 @@ import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { useSearch } from '../../providers/search-provider';
 import { useLocation } from '../../providers/location-provider';
-import { AuthenticatedImage, SearchBar, SearchResults } from '../shared';
+import { AuthenticatedImage, SearchBar, SearchResults, Breadcrumbs, EmptyState } from '../shared';
 
 type Params = Record<'boxId', string>;
 
@@ -48,11 +57,19 @@ export const BoxComponent: React.FC = () => {
     const [box, setBox] = useState<Box | null>(null);
     const [items, setItems] = useState<ItemResponse[]>([]);
     const [selectedItem, setSelectedItem] = useState<ItemResponse | null>(null);
+    const [itemMenuAnchor, setItemMenuAnchor] = useState<null | HTMLElement>(null);
+    const [itemMenuContext, setItemMenuContext] = useState<ItemResponse | null>(null);
     const [itemToDelete, setItemToDelete] = useState<ItemResponse | null>(null);
     const [openModal, setOpenModal] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [openDeleteBoxDialog, setOpenDeleteBoxDialog] = useState(false);
+    const [openMoveBoxDialog, setOpenMoveBoxDialog] = useState(false);
     const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
     const [searching, setSearching] = useState(false);
+    const [boxMenuAnchor, setBoxMenuAnchor] = useState<null | HTMLElement>(null);
+    const [forceDelete, setForceDelete] = useState(false);
+    const [availableLocations, setAvailableLocations] = useState<StorageLocation[]>([]);
+    const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
     const theme = useTheme();
 
     useEffect(() => {
@@ -105,6 +122,65 @@ export const BoxComponent: React.FC = () => {
                     handleCloseDeleteDialog();
                 })
                 .catch((error) => alert.addMessage(error.message));
+        }
+    };
+
+    const handleDeleteBoxClick = () => {
+        setBoxMenuAnchor(null);
+        setForceDelete(false); // Reset checkbox
+        setOpenDeleteBoxDialog(true);
+    };
+
+    const handleCloseDeleteBoxDialog = () => {
+        setOpenDeleteBoxDialog(false);
+        setForceDelete(false); // Reset checkbox
+    };
+
+    const handleConfirmDeleteBox = () => {
+        if (box && location) {
+            Api.Box.deleteBox(box.boxId, forceDelete)
+                .then(() => {
+                    // Navigate back to the location
+                    navigate(`/locations/${location.locationId}`);
+                })
+                .catch((error) => alert.addMessage(error.message));
+        }
+    };
+
+    const handleMoveBoxClick = () => {
+        setBoxMenuAnchor(null);
+        // Load available locations
+        Api.Location.getLocaions()
+            .then(({ data }) => {
+                // Filter out the current location
+                const otherLocations = data.filter(l => l.locationId !== location?.locationId);
+                setAvailableLocations(otherLocations);
+                setSelectedLocationId(otherLocations.length > 0 ? otherLocations[0].locationId : null);
+                setOpenMoveBoxDialog(true);
+            })
+            .catch((error) => alert.addMessage(error));
+    };
+
+    const handleCloseMoveBoxDialog = () => {
+        setOpenMoveBoxDialog(false);
+        setSelectedLocationId(null);
+    };
+
+    const handleConfirmMoveBox = () => {
+        if (box && selectedLocationId) {
+            Api.Box.moveBox(box.boxId, selectedLocationId)
+                .then(() => {
+                    // Navigate to the box in its new location
+                    navigate(`/locations/${selectedLocationId}/box/${box.boxId}`);
+                    handleCloseMoveBoxDialog();
+                })
+                .catch((error) => {
+                    if (error.response?.status === 400) {
+                        alert.addMessage("You don't have permission to move boxes to the selected location. You need edit access.");
+                    } else {
+                        alert.addMessage(error.message);
+                    }
+                });
         }
     };
 
@@ -191,6 +267,14 @@ export const BoxComponent: React.FC = () => {
     return (
         <React.Fragment>
             <Box margin={2} mb={2} position="relative">
+                {location && box && (
+                    <Breadcrumbs 
+                        items={[
+                            { label: location.name, path: `/locations/${box.locationId}` },
+                            { label: box.name }
+                        ]}
+                    />
+                )}
                 <SearchBar
                     placeholder="Search all boxes and items..."
                     onSearch={handleSearch}
@@ -205,24 +289,27 @@ export const BoxComponent: React.FC = () => {
 
             <Paper>
                 <Box position="relative">
-                    <Box position="absolute" left={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
-                        <IconButton edge="end" aria-label="back" component={Link} to={`/locations/${box.locationId}`}>
-                            <NavigateBeforeIcon />
-                        </IconButton>
-                    </Box>
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
-                        <IconButton aria-label="edit" component={Link} to="edit">
-                            <EditIcon />
-                        </IconButton>
-                    </Box>
                     <Box 
                         margin={1} 
                         textAlign="center"
+                        position="relative"
                         sx={{
-                            px: { xs: 7, sm: 2 }, // Extra horizontal padding on mobile to avoid buttons overlap
+                            px: { xs: 6, sm: 2 }, // Extra horizontal padding on mobile to avoid menu button overlap
                             pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
                         }}
                     >
+                        <IconButton
+                            aria-label="box settings"
+                            title="Box Settings"
+                            onClick={(e) => setBoxMenuAnchor(e.currentTarget)}
+                            sx={{
+                                position: 'absolute',
+                                left: theme.spacing(1),
+                                top: theme.spacing(1)
+                            }}
+                        >
+                            <MoreVertIcon />
+                        </IconButton>
                         <Typography variant="h4" sx={{ 
                             fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
                         }}>
@@ -285,32 +372,30 @@ export const BoxComponent: React.FC = () => {
                     </Box>
                     <Box margin={2}>
                         {items.length === 0 ? (
-                            <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
-                                No items in this box yet.
-                            </Typography>
+                            <EmptyState
+                                icon={LabelIcon}
+                                title="No items in this box"
+                                message="Add items to track what's stored in this box. You can add descriptions, images, and other details to help you find things later."
+                                actionLabel="Add Item"
+                                onAction={() => navigate('item/add')}
+                            />
                         ) : (
                             <List>
                                 {items.map((item) => (
                                     <ListItem
                                         key={item.itemId}
                                         secondaryAction={
-                                            <Stack direction="row" spacing={1}>
-                                                <IconButton 
-                                                    edge="end" 
-                                                    aria-label="edit"
-                                                    component={Link}
-                                                    to={`item/${item.itemId}/edit`}
-                                                >
-                                                    <EditIcon />
-                                                </IconButton>
-                                                <IconButton 
-                                                    edge="end" 
-                                                    aria-label="delete"
-                                                    onClick={() => handleDeleteClick(item)}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Stack>
+                                            <IconButton 
+                                                edge="end" 
+                                                aria-label="item menu"
+                                                title="Item options"
+                                                onClick={(e) => {
+                                                    setItemMenuAnchor(e.currentTarget);
+                                                    setItemMenuContext(item);
+                                                }}
+                                            >
+                                                <MoreVertIcon />
+                                            </IconButton>
                                         }
                                         disablePadding
                                     >
@@ -401,6 +486,177 @@ export const BoxComponent: React.FC = () => {
                     <Button onClick={handleCloseDeleteDialog} color="secondary">
                         Cancel
                     </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Item Menu */}
+            <Menu
+                anchorEl={itemMenuAnchor}
+                open={Boolean(itemMenuAnchor)}
+                onClose={() => {
+                    setItemMenuAnchor(null);
+                    setItemMenuContext(null);
+                }}
+            >
+                <MenuItem 
+                    component={Link} 
+                    to={`item/${itemMenuContext?.itemId}/edit`}
+                    onClick={() => {
+                        setItemMenuAnchor(null);
+                        setItemMenuContext(null);
+                    }}
+                >
+                    <EditIcon sx={{ mr: 1 }} fontSize="small" />
+                    Edit
+                </MenuItem>
+                <MenuItem 
+                    onClick={() => {
+                        if (itemMenuContext) {
+                            handleDeleteClick(itemMenuContext);
+                        }
+                        setItemMenuAnchor(null);
+                        setItemMenuContext(null);
+                    }}
+                >
+                    <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
+                    Delete
+                </MenuItem>
+            </Menu>
+
+            {/* Box Settings Menu */}
+            <Menu
+                anchorEl={boxMenuAnchor}
+                open={Boolean(boxMenuAnchor)}
+                onClose={() => setBoxMenuAnchor(null)}
+            >
+                <MenuItem 
+                    component={Link} 
+                    to="edit"
+                    onClick={() => setBoxMenuAnchor(null)}
+                >
+                    <EditIcon sx={{ mr: 1 }} fontSize="small" />
+                    Edit
+                </MenuItem>
+                <MenuItem 
+                    onClick={handleMoveBoxClick}
+                >
+                    <DriveFileMoveIcon sx={{ mr: 1 }} fontSize="small" />
+                    Move to Location
+                </MenuItem>
+                <MenuItem 
+                    onClick={handleDeleteBoxClick}
+                >
+                    <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
+                    Delete
+                </MenuItem>
+            </Menu>
+
+            {/* Move Box Dialog */}
+            <Dialog
+                open={openMoveBoxDialog}
+                onClose={handleCloseMoveBoxDialog}
+                aria-labelledby="move-box-dialog-title"
+            >
+                <DialogTitle id="move-box-dialog-title">
+                    Move Box to Another Location
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText sx={{ mb: 2 }}>
+                        Select the location where you want to move "{box?.name}".
+                    </DialogContentText>
+                    {availableLocations.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary">
+                            No other locations available. Please create another location first.
+                        </Typography>
+                    ) : (
+                        <FormControl fullWidth>
+                            <FormLabel>Destination Location</FormLabel>
+                            <Select
+                                value={selectedLocationId || ''}
+                                onChange={(e) => setSelectedLocationId(Number(e.target.value))}
+                                variant="standard"
+                            >
+                                {availableLocations.map((loc) => (
+                                    <MenuItem key={loc.locationId} value={loc.locationId}>
+                                        {loc.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    {availableLocations.length > 0 && (
+                        <Button onClick={handleConfirmMoveBox} color="primary" autoFocus>
+                            Move
+                        </Button>
+                    )}
+                    <Button onClick={handleCloseMoveBoxDialog} color="secondary">
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Box Confirmation Dialog */}
+            <Dialog
+                open={openDeleteBoxDialog}
+                onClose={handleCloseDeleteBoxDialog}
+                aria-labelledby="delete-box-dialog-title"
+                aria-describedby="delete-box-dialog-description"
+            >
+                <DialogTitle id="delete-box-dialog-title">
+                    Delete Box
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="delete-box-dialog-description">
+                        {items.length > 0 ? (
+                            <>
+                                This box contains {items.length} item{items.length !== 1 ? 's' : ''}.
+                                <br /><br />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={forceDelete}
+                                            onChange={(e) => setForceDelete(e.target.checked)}
+                                            color="primary"
+                                        />
+                                    }
+                                    label={`Delete all ${items.length} item${items.length !== 1 ? 's' : ''} and the box`}
+                                />
+                                <br /><br />
+                                {forceDelete ? (
+                                    <>
+                                        Are you sure you want to permanently delete "{box?.name}" and all {items.length} item{items.length !== 1 ? 's' : ''} inside it? 
+                                        This action cannot be undone.
+                                    </>
+                                ) : (
+                                    <>
+                                        Please delete all items from this box before deleting the box itself, or check the box above to force delete.
+                                    </>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                Are you sure you want to delete "{box?.name}"? This action cannot be undone.
+                            </>
+                        )}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    {items.length > 0 && !forceDelete ? (
+                        <Button onClick={handleCloseDeleteBoxDialog} color="primary" autoFocus>
+                            OK
+                        </Button>
+                    ) : (
+                        <>
+                            <Button onClick={handleConfirmDeleteBox} color="primary" autoFocus>
+                                Delete
+                            </Button>
+                            <Button onClick={handleCloseDeleteBoxDialog} color="secondary">
+                                Cancel
+                            </Button>
+                        </>
+                    )}
                 </DialogActions>
             </Dialog>
         </React.Fragment>

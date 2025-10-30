@@ -43,6 +43,11 @@ export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt
                 });
 
                 if (!response.ok) {
+                    // Handle 404 silently as it just means the image doesn't exist on disk
+                    if (response.status === 404) {
+                        setError(true);
+                        return;
+                    }
                     throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
                 }
 

@@ -15,8 +15,8 @@ export const getLocationEndpoints = (client: AxiosInstance) => ({
     updateLocation: (locationId: number, location: Location) =>
         client.put<StorageLocation>(`location/${locationId}`, location),
 
-    deleteLocation: (locationId: number) =>
-        client.delete<never>(`location/${locationId}`),
+    deleteLocation: (locationId: number, force?: boolean) =>
+        client.delete<never>(`location/${locationId}${force ? '?force=true' : ''}`),
 
     // User access management
     getLocationUsers: (locationId: number) =>

@@ -79,7 +79,7 @@ The UI requires the following environment variables. Create a `.env` file in `st
 
 ```env
 # API Configuration
-API_URL=http://localhost:5000/api
+API_URL=http://localhost:5000
 
 # Auth0 Configuration
 REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com
@@ -130,7 +130,7 @@ Auth0Settings__ClientSecret=your-client-secret
 cd storage-labels-ui
 docker build -t storage-labels-ui:local .
 docker run -p 8080:80 \
-  -e API_URL=http://localhost:5000/api \
+  -e API_URL=http://localhost:5000 \
   -e REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com \
   -e REACT_APP_AUTH0_CLIENT_ID=your-client-id \
   -e REACT_APP_AUTH0_AUDIENCE=https://your-api-audience \
@@ -169,7 +169,7 @@ services:
     ports:
       - "3000:80"
     environment:
-      - API_URL=http://localhost:5000/api
+      - API_URL=http://localhost:5000
       - REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com
       - REACT_APP_AUTH0_CLIENT_ID=your-client-id
       - REACT_APP_AUTH0_AUDIENCE=https://your-api-audience
@@ -217,7 +217,7 @@ For easier management, create `.env` files:
 
 **`.env.ui`:**
 ```env
-API_URL=http://localhost:5000/api
+API_URL=http://localhost:5000
 REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com
 REACT_APP_AUTH0_CLIENT_ID=your-client-id
 REACT_APP_AUTH0_AUDIENCE=https://your-api-audience

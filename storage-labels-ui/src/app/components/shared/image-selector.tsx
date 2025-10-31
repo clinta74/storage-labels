@@ -62,10 +62,17 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
 
         setUploading(true);
         try {
-            const { data } = await Api.Image.uploadImage(file);
+            const { data: imageId } = await Api.Image.uploadImage(file);
             // Reload images to get the new one
-            await loadImages();
-            setMode('select');
+            const { data: updatedImages } = await Api.Image.getUserImages();
+            setImages(updatedImages);
+            
+            // Find the newly uploaded image and auto-select it
+            const newImage = updatedImages.find(img => img.imageId === imageId);
+            if (newImage) {
+                // Automatically use the uploaded image and save
+                onImageSelected(newImage.url, newImage.imageId);
+            }
         } catch (error) {
             alert.addMessage(error);
         } finally {
@@ -98,7 +105,6 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
                     <Box textAlign="center" py={4}>
                         <input
                             accept="image/*"
-                            capture="environment"
                             style={{ display: 'none' }}
                             id="image-upload-input"
                             type="file"

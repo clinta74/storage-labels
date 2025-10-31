@@ -119,7 +119,6 @@ export const Images: React.FC = () => {
                 <Typography variant="h4">Images</Typography>
                 <input
                     accept="image/*"
-                    capture="environment"
                     style={{ display: 'none' }}
                     id="image-upload-button"
                     type="file"

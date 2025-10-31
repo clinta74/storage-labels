@@ -60,7 +60,8 @@ export const EditLocation: React.FC = () => {
         
         if (!saving && valid && location) {
             setSaving(true);
-            Api.Location.updateLocation(location.locationId, updatedLocation as any)
+            const request: LocationRequest = { name };
+            Api.Location.updateLocation(location.locationId, request)
                 .then(() => {
                     navigate(`..`);
                 })

@@ -32,11 +32,9 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
-import InventoryIcon from '@mui/icons-material/Inventory';
 import LabelIcon from '@mui/icons-material/Label';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import { useApi } from '../../../api';
@@ -222,7 +220,7 @@ export const BoxComponent: React.FC = () => {
                     }
                 }
             })
-            .catch((error) => {
+            .catch((_error) => {
                 alert.addMessage(`No box or item found with code: ${code}`);
             });
     };
@@ -252,7 +250,7 @@ export const BoxComponent: React.FC = () => {
     }
 
     const modalStyle = {
-        position: 'absolute' as 'absolute',
+        position: 'absolute' as const,
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
@@ -476,7 +474,7 @@ export const BoxComponent: React.FC = () => {
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="delete-dialog-description">
-                        Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.
+                        Are you sure you want to delete &ldquo;{itemToDelete?.name}&rdquo;? This action cannot be undone.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -562,7 +560,7 @@ export const BoxComponent: React.FC = () => {
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText sx={{ mb: 2 }}>
-                        Select the location where you want to move "{box?.name}".
+                        Select the location where you want to move &ldquo;{box?.name}&rdquo;.
                     </DialogContentText>
                     {availableLocations.length === 0 ? (
                         <Typography variant="body2" color="text.secondary">
@@ -626,7 +624,7 @@ export const BoxComponent: React.FC = () => {
                                 <br /><br />
                                 {forceDelete ? (
                                     <>
-                                        Are you sure you want to permanently delete "{box?.name}" and all {items.length} item{items.length !== 1 ? 's' : ''} inside it? 
+                                        Are you sure you want to permanently delete &ldquo;{box?.name}&rdquo; and all {items.length} item{items.length !== 1 ? 's' : ''} inside it? 
                                         This action cannot be undone.
                                     </>
                                 ) : (
@@ -637,7 +635,7 @@ export const BoxComponent: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                Are you sure you want to delete "{box?.name}"? This action cannot be undone.
+                                Are you sure you want to delete &ldquo;{box?.name}&rdquo;? This action cannot be undone.
                             </>
                         )}
                     </DialogContentText>

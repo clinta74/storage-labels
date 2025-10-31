@@ -46,8 +46,9 @@ export const Preferences: React.FC = () => {
             updateUser(); // Refresh user data to get updated preferences
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
-        } catch (err: any) {
-            setError(err.message || 'Failed to save preferences');
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to save preferences';
+            setError(errorMessage);
         } finally {
             setSaving(false);
         }
@@ -128,7 +129,7 @@ export const Preferences: React.FC = () => {
                         helperText="Format: length:color,length:color,... Use * for remaining chars. Colors: primary, secondary, error, warning, info, success"
                     />
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-                        Example: "3:primary,2:secondary,*,4:error" colors first 3 chars primary, next 2 secondary, skip middle, last 4 error
+                        Example: &ldquo;3:primary,2:secondary,*,4:error&rdquo; colors first 3 chars primary, next 2 secondary, skip middle, last 4 error
                     </Typography>
                 </FormControl>
 

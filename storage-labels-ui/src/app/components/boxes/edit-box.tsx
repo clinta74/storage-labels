@@ -50,17 +50,17 @@ export const EditBox: React.FC = () => {
         }
     }, [params]);
 
-    const handleQrScan = (data: any) => {
-        if (data && data.length > 0) {
+    const handleQrScan = (data: unknown) => {
+        if (data && Array.isArray(data) && data.length > 0) {
             const result = data[0];
-            if (result && result.rawValue) {
-                setCode(result.rawValue);
+            if (result && typeof result === 'object' && 'rawValue' in result) {
+                setCode(String(result.rawValue));
                 setShowQrScanner(false);
             }
         }
     };
 
-    const handleQrError = (err: any) => {
+    const handleQrError = (err: unknown) => {
         console.error('QR Scanner error:', err);
     };
 

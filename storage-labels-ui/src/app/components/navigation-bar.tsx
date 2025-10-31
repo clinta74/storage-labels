@@ -13,11 +13,10 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useUserPermission } from '../providers/user-permission-provider';
-import { Permissions } from '../constants/permissions';
 
 export const NavigationBar: React.FC = () => {
     const { logout, isAuthenticated } = useAuth0();
-    const { hasPermission } = useUserPermission();
+    const { } = useUserPermission();
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 

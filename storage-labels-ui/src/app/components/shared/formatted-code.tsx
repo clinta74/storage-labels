@@ -72,7 +72,7 @@ const parseColorPattern = (pattern: string, code: string): ParsedSegment[] => {
         }
 
         return segments;
-    } catch (error) {
+    } catch {
         // If parsing fails, return the whole code without formatting
         return [{ text: code, color: 'default' }];
     }

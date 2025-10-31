@@ -50,7 +50,7 @@ export const Locations: React.FC = () => {
                     navigate(`${data.locationId}/box/${data.boxId}`);
                 }
             })
-            .catch((error) => {
+            .catch((_error) => {
                 alert.addMessage(`No box found with code: ${code}`);
             });
     };
@@ -118,7 +118,6 @@ export const Locations: React.FC = () => {
                                     locations.map(location =>
                                         <ListItem 
                                             key={location.locationId}
-                                            disablePadding
                                         >
                                             <ListItemButton component={Link} to={`${location.locationId}`}>
                                                 <ListItemAvatar>

@@ -12,7 +12,7 @@ export const getLocationEndpoints = (client: AxiosInstance) => ({
     createLocation: (location: LocationRequest) =>
         client.post<StorageLocation>(`location`, location),
 
-    updateLocation: (locationId: number, location: Location) =>
+    updateLocation: (locationId: number, location: LocationRequest) =>
         client.put<StorageLocation>(`location/${locationId}`, location),
 
     deleteLocation: (locationId: number, force?: boolean) =>

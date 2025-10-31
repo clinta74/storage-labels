@@ -30,7 +30,6 @@ import {
     useTheme
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
@@ -81,17 +80,7 @@ export const Location: React.FC = () => {
         }
     }, [params]);
 
-    const handleDeleteClick = (box: Box) => {
-        // Fetch the number of items in the box
-        Api.Item.getItemsByBoxId(box.boxId)
-            .then(({ data }) => {
-                setBoxItemCount(data.length);
-                setBoxToDelete(box);
-                setOpenDeleteDialog(true);
-            })
-            .catch((error) => alert.addMessage(error));
-    };
-
+    
     const handleCloseDeleteDialog = () => {
         setOpenDeleteDialog(false);
         setBoxToDelete(null);
@@ -161,7 +150,7 @@ export const Location: React.FC = () => {
                     navigate(`/locations/${data.locationId}/box/${data.boxId}`);
                 }
             })
-            .catch((error) => {
+            .catch((_error) => {
                 alert.addMessage(`No box found with code: ${code}`);
             });
     };
@@ -249,7 +238,7 @@ export const Location: React.FC = () => {
                             <List>
                                 {
                                     boxes.map(box =>
-                                        <ListItem key={box.boxId} disablePadding>
+                                        <ListItem key={box.boxId}>
                                             <ListItemButton component={Link} to={`box/${box.boxId}`}>
                                                 <ListItemAvatar>
                                                     <Badge 
@@ -285,7 +274,7 @@ export const Location: React.FC = () => {
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="delete-dialog-description">
-                        Are you sure you want to delete "{boxToDelete?.name}"? 
+                        Are you sure you want to delete &ldquo;{boxToDelete?.name}&rdquo;? 
                         {boxItemCount > 0 && (
                             <> This box contains {boxItemCount} item{boxItemCount !== 1 ? 's' : ''}.</>
                         )}
@@ -361,7 +350,7 @@ export const Location: React.FC = () => {
                                 <br /><br />
                                 {forceDelete ? (
                                     <>
-                                        Are you sure you want to permanently delete "{location?.name}" and all {boxes.length} box{boxes.length !== 1 ? 'es' : ''} with their items? 
+                                        Are you sure you want to permanently delete &ldquo;{location?.name}&rdquo; and all {boxes.length} box{boxes.length !== 1 ? 'es' : ''} with their items? 
                                         This action cannot be undone.
                                     </>
                                 ) : (
@@ -372,7 +361,7 @@ export const Location: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                Are you sure you want to delete "{location?.name}"? This action cannot be undone.
+                                Are you sure you want to delete &ldquo;{location?.name}&rdquo;? This action cannot be undone.
                             </>
                         )}
                     </DialogContentText>

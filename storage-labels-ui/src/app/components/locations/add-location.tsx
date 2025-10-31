@@ -45,16 +45,6 @@ export const AddLocation: React.FC = () => {
         }
     }
 
-    const onChangeStringField: React.ChangeEventHandler<HTMLInputElement> = event => {
-        const { name, value } = event.target;
-
-        setLocation(location => ({
-            ...location,
-            [name]: value
-        }
-        ));
-    }
-
 
     const [isValid, results] = validateAll(validationTests, location);
     const showErrors = isSubmitted && !isValid;

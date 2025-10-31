@@ -59,7 +59,10 @@ var sqlBuilder = new SqlConnectionStringBuilder()
 
 builder.Services.AddDbContext<StorageLabelsDbContext>(options =>
 {
-    options.UseSqlServer(sqlBuilder.ConnectionString);
+    options.UseSqlServer(
+        sqlBuilder.ConnectionString,
+        sqlOptions => sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+    );
 }, ServiceLifetime.Transient);
 
 var auth0 = builder.Configuration.GetSection(nameof(Auth0Settings)).Get<Auth0Settings>()

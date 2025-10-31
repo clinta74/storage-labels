@@ -4,13 +4,7 @@ import {
     Typography,
     Button,
     Grid,
-    Card,
-    CardMedia,
-    CardContent,
-    CardActions,
     CircularProgress,
-    Chip,
-    Stack,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -19,16 +13,13 @@ import {
     FormControlLabel,
     Checkbox,
     Paper,
-    Divider,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { useSnackbar } from '../../providers/snackbar-provider';
-import { AuthenticatedImage } from '../shared';
+import { ImageCapture } from '../shared/image-capture';
+import { ImageCard } from './image-card';
 
 export const Images: React.FC = () => {
     const { Api } = useApi();
@@ -41,23 +32,11 @@ export const Images: React.FC = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState<ImageMetadataResponse | null>(null);
     const [forceDelete, setForceDelete] = useState(false);
-    const [hasCamera, setHasCamera] = useState(false);
+    const [captureDialogOpen, setCaptureDialogOpen] = useState(false);
 
     useEffect(() => {
         loadImages();
-        checkCameraAvailability();
     }, []);
-
-    const checkCameraAvailability = async () => {
-        try {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            setHasCamera(videoDevices.length > 0);
-        } catch (error) {
-            // If we can't check, assume no camera
-            setHasCamera(false);
-        }
-    };
 
     const loadImages = () => {
         setLoading(true);
@@ -69,10 +48,7 @@ export const Images: React.FC = () => {
             .finally(() => setLoading(false));
     };
 
-    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
+    const handleImageCapture = async (file: File) => {
         setUploading(true);
         try {
             await Api.Image.uploadImage(file);
@@ -119,16 +95,6 @@ export const Images: React.FC = () => {
         setForceDelete(false);
     };
 
-    const formatFileSize = (bytes: number): string => {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    };
-
-    const formatDate = (dateString: string): string => {
-        return new Date(dateString).toLocaleDateString();
-    };
-
     const hasReferences = selectedImage ? (selectedImage.boxReferenceCount > 0 || selectedImage.itemReferenceCount > 0) : false;
 
     return (
@@ -142,74 +108,15 @@ export const Images: React.FC = () => {
                     Add photos of your storage boxes and items
                 </Typography>
 
-                {hasCamera ? (
-                    // Device has camera: Show separate Camera and Gallery buttons
-                    <Stack direction="row" spacing={2} mt={2}>
-                        <input
-                            accept="image/*"
-                            capture="user"
-                            style={{ display: 'none' }}
-                            id="camera-upload"
-                            type="file"
-                            onChange={handleFileUpload}
-                            disabled={uploading}
-                        />
-                        <label htmlFor="camera-upload" style={{ flex: 1 }}>
-                            <Button
-                                variant="contained"
-                                component="span"
-                                fullWidth
-                                disabled={uploading}
-                                startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CameraAltIcon />}
-                            >
-                                {uploading ? 'Uploading...' : 'Take Photo'}
-                            </Button>
-                        </label>
-
-                        <input
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            id="gallery-upload"
-                            type="file"
-                            onChange={handleFileUpload}
-                            disabled={uploading}
-                        />
-                        <label htmlFor="gallery-upload" style={{ flex: 1 }}>
-                            <Button
-                                variant="outlined"
-                                component="span"
-                                fullWidth
-                                disabled={uploading}
-                                startIcon={<PhotoLibraryIcon />}
-                            >
-                                Choose File
-                            </Button>
-                        </label>
-                    </Stack>
-                ) : (
-                    // No camera: Show single upload button
-                    <>
-                        <input
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            id="desktop-upload"
-                            type="file"
-                            onChange={handleFileUpload}
-                            disabled={uploading}
-                        />
-                        <label htmlFor="desktop-upload">
-                            <Button
-                                variant="contained"
-                                component="span"
-                                disabled={uploading}
-                                startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
-                                sx={{ mt: 2 }}
-                            >
-                                {uploading ? 'Uploading...' : 'Upload Image'}
-                            </Button>
-                        </label>
-                    </>
-                )}
+                <Button
+                    variant="contained"
+                    onClick={() => setCaptureDialogOpen(true)}
+                    disabled={uploading}
+                    startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
+                    sx={{ mt: 2 }}
+                >
+                    {uploading ? 'Uploading...' : 'Upload Image'}
+                </Button>
             </Paper>
 
             {/* Images Gallery Section */}
@@ -233,51 +140,7 @@ export const Images: React.FC = () => {
                     <Grid container spacing={2}>
                         {images.map((image) => (
                             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={image.imageId}>
-                                <Card>
-                                    <Box height={200} display="flex" alignItems="center" justifyContent="center" bgcolor="grey.100">
-                                        <AuthenticatedImage
-                                            src={image.url}
-                                            alt={image.fileName}
-                                            style={{ width: '100%', height: '200px', objectFit: 'contain' }}
-                                        />
-                                    </Box>
-                                    <CardContent>
-                                        <Typography variant="body2" noWrap title={image.fileName}>
-                                            {image.fileName}
-                                        </Typography>
-                                        <Typography variant="caption" color="text.secondary" display="block">
-                                            {formatFileSize(image.sizeInBytes)} • {formatDate(image.uploadedAt)}
-                                        </Typography>
-                                        <Stack direction="row" spacing={0.5} mt={1} flexWrap="wrap" gap={0.5}>
-                                            {image.boxReferenceCount > 0 && (
-                                                <Chip
-                                                    label={`${image.boxReferenceCount} box${image.boxReferenceCount > 1 ? 'es' : ''}`}
-                                                    size="small"
-                                                    color="primary"
-                                                    variant="outlined"
-                                                />
-                                            )}
-                                            {image.itemReferenceCount > 0 && (
-                                                <Chip
-                                                    label={`${image.itemReferenceCount} item${image.itemReferenceCount > 1 ? 's' : ''}`}
-                                                    size="small"
-                                                    color="secondary"
-                                                    variant="outlined"
-                                                />
-                                            )}
-                                        </Stack>
-                                    </CardContent>
-                                    <CardActions>
-                                        <Button
-                                            size="small"
-                                            color="error"
-                                            startIcon={<DeleteIcon />}
-                                            onClick={() => handleDeleteClick(image)}
-                                        >
-                                            Delete
-                                        </Button>
-                                    </CardActions>
-                                </Card>
+                                <ImageCard image={image} onDelete={handleDeleteClick} />
                             </Grid>
                         ))}
                     </Grid>
@@ -316,7 +179,7 @@ export const Images: React.FC = () => {
                                             )}
                                         </Box>
                                         <Typography variant="body2" color="text.primary" mt={1}>
-                                            To delete this image, you must check the "Force Delete" option below. This will remove the image from all boxes and items.
+                                            To delete this image, you must check the &ldquo;Force Delete&rdquo; option below. This will remove the image from all boxes and items.
                                         </Typography>
                                     </Box>
                                     <Box mt={2}>
@@ -350,6 +213,14 @@ export const Images: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Image Capture Dialog */}
+            <ImageCapture
+                open={captureDialogOpen}
+                onClose={() => setCaptureDialogOpen(false)}
+                onCapture={handleImageCapture}
+                uploading={uploading}
+            />
         </Box>
     );
 };

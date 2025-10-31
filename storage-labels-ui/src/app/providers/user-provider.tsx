@@ -27,13 +27,13 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
                             .then(({ data }) => {
                                 setUser(data);
                             })
-                            .catch(error => alert.addMessage(error));
+                            .catch(error => alert.addError(error));
                     }
                     else {
                         navigate('/new-user');
                     }
                 })
-                .catch(error => alert.addMessage(error));
+                .catch(error => alert.addError(error));
         }
     }, [isAuthenticated]);
 
@@ -45,13 +45,13 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
                         .then(({ data }) => {
                             setUser(data);
                         })
-                        .catch(error => alert.addMessage(error));
+                        .catch(error => alert.addError(error));
                 }
                 else {
                     navigate('/new-user');
                 }
             })
-            .catch(error => alert.addMessage(error));
+            .catch(error => alert.addError(error));
     }
 
     return (

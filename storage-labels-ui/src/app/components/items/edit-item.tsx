@@ -40,7 +40,7 @@ export const EditItem: React.FC = () => {
                     setImageUrl(data.imageUrl || '');
                     setImageMetadataId(data.imageMetadataId);
                 })
-                .catch((error) => alert.addMessage(error));
+                .catch((error) => alert.addError(error));
         }
     }, [params]);
 
@@ -62,7 +62,7 @@ export const EditItem: React.FC = () => {
                 .then(() => {
                     navigate('../..');
                 })
-                .catch((error) => alert.addMessage(error.message))
+                .catch((error) => alert.addError(error))
                 .finally(() => setSaving(false));
         }
     };

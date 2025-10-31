@@ -15,7 +15,6 @@ import { validateAll } from '../../../utils/validate';
 import { validationTests } from './validation-test';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
-import { AxiosError } from 'axios';
 
 type Params = Record<'locationId', string>;
 
@@ -46,7 +45,7 @@ export const EditLocation: React.FC = () => {
                     setLocation(data);
                     setName(data.name);
                 })
-                .catch((error) => alert.addMessage(error));
+                .catch((error) => alert.addError(error));
         }
     }, [params]);
 
@@ -65,7 +64,7 @@ export const EditLocation: React.FC = () => {
                 .then(() => {
                     navigate(`..`);
                 })
-                .catch((error: AxiosError) => alert.addMessage(error.message))
+                .catch((error) => alert.addError(error))
                 .finally(() => setSaving(false));
         }
     };

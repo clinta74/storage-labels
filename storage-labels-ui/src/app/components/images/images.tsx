@@ -44,7 +44,7 @@ export const Images: React.FC = () => {
             .then(({ data }) => {
                 setImages(data);
             })
-            .catch((error) => alert.addMessage(error))
+            .catch((error) => alert.addError(error))
             .finally(() => setLoading(false));
     };
 
@@ -55,7 +55,7 @@ export const Images: React.FC = () => {
             snackbar.showSuccess('Image uploaded successfully');
             loadImages();
         } catch (error) {
-            alert.addMessage(error);
+            alert.addError(error);
         } finally {
             setUploading(false);
         }

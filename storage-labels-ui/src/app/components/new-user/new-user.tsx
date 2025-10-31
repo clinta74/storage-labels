@@ -47,7 +47,7 @@ export const NewUser: React.FC = () => {
                 });
                 setEmailAddress(data.emailAddress || '');
             })
-            .catch(error => alert.addMessage(error));
+            .catch(error => alert.addError(error));
     }, []);
 
     const onChangeStringField: React.ChangeEventHandler<HTMLInputElement> = event => {

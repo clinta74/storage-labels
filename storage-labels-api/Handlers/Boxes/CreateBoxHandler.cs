@@ -17,14 +17,15 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
             return Result<Box>.Invalid(validation.AsErrors());
         }
 
-        var hasBoxCode = await dbContext.Boxes
+        var hasBoxCodeInLocation = await dbContext.Boxes
             .AsNoTracking()
             .Where(box => box.Code == request.Code)
+            .Where(box => box.LocationId == request.LocationId)
             .AnyAsync(cancellationToken);
 
-        if (hasBoxCode)
+        if (hasBoxCodeInLocation)
         {
-            return Result.Conflict([$"Box with the code {request.Code} already exists"]);
+            return Result.Conflict([$"A box with the code {request.Code} already exists in this location"]);
         }
 
         var userCanAccessLocation = await dbContext.UserLocations

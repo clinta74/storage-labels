@@ -80,7 +80,7 @@ export const Location: React.FC = () => {
         }
     }, [params]);
 
-    
+
     const handleCloseDeleteDialog = () => {
         setOpenDeleteDialog(false);
         setBoxToDelete(null);
@@ -96,10 +96,10 @@ export const Location: React.FC = () => {
                         .then(({ data }) => {
                             setBoxes(data);
                         })
-                        .catch((error) => alert.addMessage(error));
+                        .catch((error) => alert.addError(error));
                     handleCloseDeleteDialog();
                 })
-                .catch((error) => alert.addMessage(error.message));
+                .catch((error) => alert.addError(error));
         }
     };
 
@@ -121,7 +121,7 @@ export const Location: React.FC = () => {
                     // Navigate back to locations list
                     navigate('/locations');
                 })
-                .catch((error) => alert.addMessage(error.message));
+                .catch((error) => alert.addError(error));
         }
     };
 
@@ -138,7 +138,7 @@ export const Location: React.FC = () => {
             .then(({ data }) => {
                 setSearchResults(data.results);
             })
-            .catch((error) => alert.addMessage(error))
+            .catch((error) => alert.addError(error))
             .finally(() => setSearching(false));
     };
 

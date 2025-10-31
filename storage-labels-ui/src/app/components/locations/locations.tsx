@@ -38,7 +38,7 @@ export const Locations: React.FC = () => {
             .then(({ data }) => {
                 setSearchResults(data.results);
             })
-            .catch((error) => alert.addMessage(error))
+            .catch((error) => alert.addError(error))
             .finally(() => setSearching(false));
     };
 

@@ -24,8 +24,11 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
             .HasColumnName("ImageMetadataId");
         
         modelBuilder.Entity<Box>()
-            .HasIndex(box => new { box.Code, box.BoxId })
+            .HasIndex(box => new { box.LocationId, box.Code })
             .IsUnique();
+
+        modelBuilder.Entity<Box>()
+            .HasIndex(box => box.Code);
 
         modelBuilder.Entity<Box>()
             .HasMany(box => box.Items)

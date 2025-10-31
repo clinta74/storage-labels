@@ -27,7 +27,6 @@ import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { useSnackbar } from '../../providers/snackbar-provider';
 import { Breadcrumbs } from '../shared';
-import { AxiosError } from 'axios';
 
 type Params = Record<'locationId', string>;
 
@@ -54,7 +53,7 @@ export const ManageLocationUsers: React.FC = () => {
                 .then(({ data }) => {
                     setLocation(data);
                 })
-                .catch((error) => alert.addMessage(error));
+                .catch((error) => alert.addError(error));
             
             loadLocationUsers(locationId);
         }
@@ -65,7 +64,7 @@ export const ManageLocationUsers: React.FC = () => {
             .then(({ data }) => {
                 setUsers(data);
             })
-            .catch((error) => alert.addMessage(error));
+            .catch((error) => alert.addError(error));
     };
 
     const handleAddUser = () => {
@@ -89,11 +88,13 @@ export const ManageLocationUsers: React.FC = () => {
                 setNewUserAccessLevel('Edit');
                 loadLocationUsers(location.locationId);
             })
-            .catch((error: AxiosError) => {
-                if (error.response?.status === 404) {
+            .catch((error: unknown) => {
+                if (error && typeof error === 'object' && 'response' in error && 
+                    error.response && typeof error.response === 'object' && 
+                    'status' in error.response && error.response.status === 404) {
                     setUserNotFoundDialogOpen(true);
                 } else {
-                    alert.addMessage(error);
+                    alert.addError(error);
                 }
             });
     };
@@ -108,7 +109,7 @@ export const ManageLocationUsers: React.FC = () => {
                 snackbar.showSuccess('Access level updated');
                 loadLocationUsers(location.locationId);
             })
-            .catch((error) => alert.addMessage(error));
+            .catch((error) => alert.addError(error));
     };
 
     const handleDeleteClick = (user: UserLocationResponse) => {
@@ -126,7 +127,7 @@ export const ManageLocationUsers: React.FC = () => {
                 setUserToDelete(null);
                 loadLocationUsers(location.locationId);
             })
-            .catch((error) => alert.addMessage(error));
+            .catch((error) => alert.addError(error));
     };
 
     if (!location) {

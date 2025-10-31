@@ -70,7 +70,7 @@ export const AddBox: React.FC = () => {
                 .then(() => {
                     navigate(`/locations/${params.locationId}`);
                 })
-                .catch((error) => alert.addMessage(error.message))
+                .catch((error) => alert.addError(error))
                 .finally(() => setSaving(false));
         }
     };

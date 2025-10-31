@@ -54,7 +54,7 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
             .then(({ data }) => {
                 setImages(data);
             })
-            .catch((error) => alert.addMessage(error))
+            .catch((error) => alert.addError(error))
             .finally(() => setLoading(false));
     };
 

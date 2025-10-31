@@ -50,7 +50,7 @@ export const AddItem: React.FC = () => {
                 .then(() => {
                     navigate('../..');
                 })
-                .catch((error) => alert.addMessage(error.message))
+                .catch((error) => alert.addError(error))
                 .finally(() => setSaving(false));
         }
     };

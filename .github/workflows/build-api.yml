@@ -50,8 +50,11 @@ jobs:
           tags: |
             type=raw,value=${{ steps.version.outputs.VERSION }}
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=stable,enable={{is_default_branch}}
             type=sha,prefix=sha-
             type=ref,event=pr
+          flavor: |
+            latest=false
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

@@ -23,8 +23,21 @@ Every time GitHub Actions runs for the UI or API:
 2. The Docker image is built with this version
 3. The image is tagged with:
    - The version number (e.g., `2025.10.42`)
-   - `latest` (for main branch builds)
+   - `latest` (for main branch builds) - Most recent build
+   - `stable` (for main branch builds) - Same as latest, indicates production-ready
    - Git commit SHA (e.g., `sha-abc1234`)
+
+### Tag Meanings
+
+| Tag | Purpose | Updates | Use When |
+|-----|---------|---------|----------|
+| `2025.10.42` | Specific version | Never changes | You need a specific build |
+| `latest` | Most recent build from main | Every main branch build | You want the newest version |
+| `stable` | Production-ready version | Every main branch build | You want a stable version |
+| `sha-abc1234` | Specific git commit | Never changes | You need exact commit version |
+| `pr-123` | Pull request build | Each PR build | Testing PRs before merge |
+
+**Note:** In this setup, `latest` and `stable` are the same - both point to the most recent main branch build. All main branch builds are considered production-ready.
 
 ### GitHub Actions
 The workflows automatically:
@@ -49,21 +62,47 @@ docker inspect storage-labels-ui:latest | grep version
 
 ### Pulling Images
 
-**Latest build:**
+**Production/Stable (recommended for deployments):**
+```bash
+docker pull username/storage-labels-ui:stable
+docker pull username/storage-labels-api:stable
+```
+
+**Latest build (same as stable):**
 ```bash
 docker pull username/storage-labels-ui:latest
 docker pull username/storage-labels-api:latest
 ```
 
-**Specific version:**
+**Specific version (for rollbacks or pinning):**
 ```bash
 docker pull username/storage-labels-ui:2025.10.42
 docker pull username/storage-labels-api:2025.10.42
 ```
 
-**Specific commit:**
+**Specific commit (for debugging):**
 ```bash
 docker pull username/storage-labels-ui:sha-abc1234
+```
+
+### Docker Compose Example
+
+**Pin to stable:**
+```yaml
+services:
+  ui:
+    image: username/storage-labels-ui:stable
+  api:
+    image: username/storage-labels-api:stable
+```
+
+**Pin to specific version:**
+```yaml
+services:
+  ui:
+    image: username/storage-labels-ui:2025.10.42
+  api:
+    image: username/storage-labels-api:2025.10.42
 ```
 
 ### Local Development

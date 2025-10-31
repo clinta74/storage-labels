@@ -1,6 +1,10 @@
 # Build stage
 FROM node:20-alpine AS build
 
+# Accept version as build argument
+ARG VERSION=dev
+ENV APP_VERSION=${VERSION}
+
 WORKDIR /app
 
 # Copy package files
@@ -17,6 +21,11 @@ RUN npm run build
 
 # Production stage
 FROM nginx:alpine
+
+# Accept version from build stage
+ARG VERSION=dev
+LABEL version="${VERSION}"
+LABEL org.opencontainers.image.version="${VERSION}"
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf

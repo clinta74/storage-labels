@@ -87,6 +87,7 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/storage-labels-api
           tags: |
+            type=raw,value=${{ steps.version.outputs.VERSION }}
             type=raw,value=${{ steps.version.outputs.VERSION_NUMBER }}
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=stable,enable={{is_default_branch}}

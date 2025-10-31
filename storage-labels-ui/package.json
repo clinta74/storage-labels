@@ -8,7 +8,9 @@
     "start": "parcel serve src/index.html --port 4000 --open",
     "clean": "rm -Rf dist",
     "build-parcel": "parcel build src/index.html",
-    "build": "npm run clean && npm run build-parcel"
+    "build": "npm run clean && npm run build-parcel",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
   },
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.16.0",

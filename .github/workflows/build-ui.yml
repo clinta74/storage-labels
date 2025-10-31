@@ -24,13 +24,48 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for git describe
 
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          # Get the latest semver tag, or default to v0.0.0
+          LATEST_TAG=$(git tag -l "v*" --sort=-v:refname | head -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+          fi
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
+
       - name: Generate version number
         id: version
         run: |
-          # Format: YYYY.MM.BUILD_NUMBER (e.g., 2025.10.42)
-          VERSION=$(date +%Y.%-m).${{ github.run_number }}
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "Generated version: $VERSION"
+          # Parse the latest tag
+          LATEST_TAG=${{ steps.get_tag.outputs.LATEST_TAG }}
+          VERSION=${LATEST_TAG#v}  # Remove 'v' prefix
+          
+          # Split into major.minor.patch
+          IFS='.' read -ra PARTS <<< "$VERSION"
+          MAJOR=${PARTS[0]:-0}
+          MINOR=${PARTS[1]:-0}
+          PATCH=${PARTS[2]:-0}
+          
+          # Auto-increment patch version
+          PATCH=$((PATCH + 1))
+          
+          # Create new version
+          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          VERSION_NUMBER="$MAJOR.$MINOR.$PATCH"
+          
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION_NUMBER=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+          echo "Generated version: $NEW_VERSION"
+
+      - name: Create and push tag
+        if: github.event_name != 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.VERSION }}
+          git push origin ${{ steps.version.outputs.VERSION }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -49,6 +84,7 @@ jobs:
           images: ${{ secrets.DOCKER_USERNAME }}/storage-labels-ui
           tags: |
             type=raw,value=${{ steps.version.outputs.VERSION }}
+            type=raw,value=${{ steps.version.outputs.VERSION_NUMBER }}
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=stable,enable={{is_default_branch}}
             type=sha,prefix=sha-
@@ -65,7 +101,16 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ steps.version.outputs.VERSION }}
+            VERSION=${{ steps.version.outputs.VERSION_NUMBER }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
+
+      - name: Create GitHub Release
+        if: github.event_name != 'pull_request'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.version.outputs.VERSION }}
+          name: Release ${{ steps.version.outputs.VERSION }}
+          generateReleaseNotes: true
+          makeLatest: true

@@ -31,20 +31,24 @@ export const AppRoutes: React.FunctionComponent = () => {
         return (
             <Box>
                 <ApiProvider>
-                    <UserProvider>
-                        <AppThemeProvider>
-                            <Routes>
-                                <Route path="/legal/*" element={<LegalRoutes />} />
-                                <Route path="/new-user/*" element={<NewUserRoutes />} />
-                                <Route path="/locations/*" element={<LocationRoutes />} />
-                                <Route path="/images/*" element={<ImagesRoutes />} />
-                                <Route path="/common-locations/*" element={<CommonLocationsRoutes />} />
-                                <Route path="/preferences" element={<Preferences />} />
-                                <Route index element={<Navigate to="/locations" />} />
-                                <Route path="*" element={<Navigate to="/" replace />} />
-                            </Routes>
-                        </AppThemeProvider>
-                    </UserProvider>
+                    <Routes>
+                        <Route path="/legal/*" element={<LegalRoutes />} />
+                        <Route path="/new-user/*" element={<NewUserRoutes />} />
+                        <Route path="/*" element={
+                            <UserProvider>
+                                <AppThemeProvider>
+                                    <Routes>
+                                        <Route path="/locations/*" element={<LocationRoutes />} />
+                                        <Route path="/images/*" element={<ImagesRoutes />} />
+                                        <Route path="/common-locations/*" element={<CommonLocationsRoutes />} />
+                                        <Route path="/preferences" element={<Preferences />} />
+                                        <Route index element={<Navigate to="/locations" />} />
+                                        <Route path="*" element={<Navigate to="/" replace />} />
+                                    </Routes>
+                                </AppThemeProvider>
+                            </UserProvider>
+                        } />
+                    </Routes>
                 </ApiProvider>
             </Box>
         );

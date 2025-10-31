@@ -57,7 +57,7 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
     return (
         <React.Fragment>
             {
-                user && <UserContext.Provider value={{ user, updateUser }}>{user && children}</UserContext.Provider>
+                user && <UserContext.Provider value={{ user, updateUser }}>{children}</UserContext.Provider>
             }
         </React.Fragment>
     );

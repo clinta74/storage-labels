@@ -12,8 +12,8 @@ export const getUserEndpoints = (client: AxiosInstance) => ({
     updateUser: (user: UserResponse) =>
         client.patch(`user`, user),
 
-    createUser: (user: NewUser) =>
-        client.post<UserResponse>(`user`, user),
+    createUser: (request: CreateUserRequest) =>
+        client.post<UserResponse>(`user`, request),
 
     getUserPreferences: () =>
         client.get<UserPreferences>(`user/preferences`),

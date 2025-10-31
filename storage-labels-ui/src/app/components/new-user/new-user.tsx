@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, FormControl, Grid, InputLabel, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, FormControl, Grid, Paper, TextField, Typography } from '@mui/material';
 import { AxiosError } from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -23,13 +23,6 @@ const validationTests: ValidationTest<NewUser>[] =
                 name: 'lastName',
             }
         },
-        {
-            passCondition: ({ emailAddress }) => emailAddress.trim().length > 0,
-            result: {
-                message: 'A email address is required.',
-                name: 'emailAddress',
-            }
-        },
     ];
 
 export const NewUser: React.FC = () => {
@@ -40,8 +33,8 @@ export const NewUser: React.FC = () => {
     const [newUser, setNewUser] = useState<NewUser>({
         firstName: '',
         lastName: '',
-        emailAddress: '',
     });
+    const [emailAddress, setEmailAddress] = useState<string>('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [postingNewUser, setPostingNewUser] = useState(false);
 
@@ -49,11 +42,10 @@ export const NewUser: React.FC = () => {
         Api.NewUser.getNewUser()
             .then(({ data }) => {
                 setNewUser({
-                    ...data,
                     firstName: data.firstName || '',
                     lastName: data.lastName || '',
-                    emailAddress: data.emailAddress || '',
                 });
+                setEmailAddress(data.emailAddress || '');
             })
             .catch(error => alert.addMessage(error));
     }, []);
@@ -92,7 +84,7 @@ export const NewUser: React.FC = () => {
 
     return (
         <Grid container justifyContent="center">
-            <Grid item xs={12} md={10} xl={8}>
+            <Grid size={{ xs: 12, md: 10, xl: 8 }}>
                 <Paper elevation={4}>
                     <Box padding={2} mt={4}>
                         <Box mb={2}>
@@ -101,27 +93,37 @@ export const NewUser: React.FC = () => {
                         </Box>
                         <form noValidate autoComplete="off">
                             <Grid container justifyContent="center" alignItems="stretch" spacing={2}>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField error={showErrors && hasErrors('firstName')} label="First Name" id="firstName" name="firstName" value={newUser.firstName} onChange={onChangeStringField} disabled={postingNewUser} required />
                                         <ErrorMessage isSubmitted={isSubmitted} inputName="firstName" results={results} />
                                     </FormControl>
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid size={{ xs: 6 }}>
                                     <FormControl fullWidth>
                                         <TextField error={showErrors && hasErrors('lastName')} label="Last Name" id="lastName" name="lastName" value={newUser.lastName} onChange={onChangeStringField} disabled={postingNewUser} required />
                                         <ErrorMessage isSubmitted={isSubmitted} inputName="lastName" results={results} />
                                     </FormControl>
                                 </Grid>
 
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <FormControl fullWidth>
-                                        <TextField error={showErrors && hasErrors('emailAddress')} label="Last Name" id="emailAddress" name="emailAddress" value={newUser.emailAddress} disabled={postingNewUser} required />
-                                        <ErrorMessage isSubmitted={isSubmitted} inputName="emailAddress" results={results} />
+                                        <TextField 
+                                            label="Email Address" 
+                                            id="emailAddress" 
+                                            name="emailAddress" 
+                                            value={emailAddress} 
+                                            disabled={true}
+                                            slotProps={{
+                                                input: {
+                                                    readOnly: true,
+                                                }
+                                            }}
+                                        />
                                     </FormControl>
                                 </Grid>
 
-                                <Grid item xs={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <em>* Required fields.</em>
                                 </Grid>
                             </Grid>

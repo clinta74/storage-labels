@@ -11,6 +11,16 @@ interface UserResponse {
 interface NewUser {
     firstName: string;
     lastName: string;
+}
+
+interface CreateUserRequest {
+    firstName: string;
+    lastName: string;
+}
+
+interface NewUserResponse {
+    firstName: string;
+    lastName: string;
     emailAddress: string;
 }
 

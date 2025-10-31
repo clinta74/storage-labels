@@ -4,5 +4,5 @@ export type NewUserEndpoints = ReturnType<typeof getNewUserEndpoints>;
 
 export const getNewUserEndpoints = (client: AxiosInstance) => ({
     getNewUser: () =>
-        client.get<NewUser>(`new-user`),
+        client.get<NewUserResponse>(`new-user`),
 });

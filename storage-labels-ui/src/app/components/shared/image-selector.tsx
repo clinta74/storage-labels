@@ -18,6 +18,8 @@ import {
     Chip,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { AuthenticatedImage } from './authenticated-image';
@@ -41,10 +43,23 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
     const [selectedImageUrl, setSelectedImageUrl] = useState<string>(currentImageUrl || '');
     const [selectedImageId, setSelectedImageId] = useState<string>('');
     const [mode, setMode] = useState<'select' | 'upload'>('select');
+    const [hasCamera, setHasCamera] = useState(false);
 
     useEffect(() => {
         loadImages();
+        checkCameraAvailability();
     }, []);
+
+    const checkCameraAvailability = async () => {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            setHasCamera(videoDevices.length > 0);
+        } catch (error) {
+            // If we can't check, assume no camera
+            setHasCamera(false);
+        }
+    };
 
     const loadImages = () => {
         setLoading(true);
@@ -62,14 +77,30 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
 
         setUploading(true);
         try {
-            const { data } = await Api.Image.uploadImage(file);
-            // Reload images to get the new one
-            await loadImages();
-            setMode('select');
+            const { data: imageUrl } = await Api.Image.uploadImage(file);
+            // Reload images to get the new one with metadata
+            const { data: allImages } = await Api.Image.getUserImages();
+            setImages(allImages);
+            
+            // Find the newly uploaded image and automatically save it
+            const newImage = allImages.find(img => img.url === imageUrl);
+            if (newImage) {
+                onImageSelected(newImage.url, newImage.imageId);
+            } else {
+                // If not found by exact URL match, try to find the most recently uploaded image
+                const sortedImages = [...allImages].sort((a, b) => 
+                    new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+                );
+                if (sortedImages.length > 0) {
+                    onImageSelected(sortedImages[0].url, sortedImages[0].imageId);
+                }
+            }
         } catch (error) {
             alert.addMessage(error);
         } finally {
             setUploading(false);
+            // Reset the input
+            event.target.value = '';
         }
     };
 
@@ -95,26 +126,72 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
                 </Box>
 
                 {mode === 'upload' ? (
-                    <Box textAlign="center" py={4}>
-                        <input
-                            accept="image/*"
-                            capture="environment"
-                            style={{ display: 'none' }}
-                            id="image-upload-input"
-                            type="file"
-                            onChange={handleFileUpload}
-                            disabled={uploading}
-                        />
-                        <label htmlFor="image-upload-input">
-                            <Button
-                                variant="contained"
-                                component="span"
-                                startIcon={uploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
-                                disabled={uploading}
-                            >
-                                {uploading ? 'Uploading...' : 'Choose Image to Upload'}
-                            </Button>
-                        </label>
+                    <Box py={4}>
+                        {hasCamera ? (
+                            // Device has camera: Show separate Camera and Gallery buttons
+                            <Stack direction="row" spacing={2} justifyContent="center">
+                                <input
+                                    accept="image/*"
+                                    capture="user"
+                                    style={{ display: 'none' }}
+                                    id="camera-upload-input"
+                                    type="file"
+                                    onChange={handleFileUpload}
+                                    disabled={uploading}
+                                />
+                                <label htmlFor="camera-upload-input">
+                                    <Button
+                                        variant="contained"
+                                        component="span"
+                                        disabled={uploading}
+                                        startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CameraAltIcon />}
+                                    >
+                                        {uploading ? 'Uploading...' : 'Take Photo'}
+                                    </Button>
+                                </label>
+
+                                <input
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    id="gallery-upload-input"
+                                    type="file"
+                                    onChange={handleFileUpload}
+                                    disabled={uploading}
+                                />
+                                <label htmlFor="gallery-upload-input">
+                                    <Button
+                                        variant="outlined"
+                                        component="span"
+                                        disabled={uploading}
+                                        startIcon={<PhotoLibraryIcon />}
+                                    >
+                                        Choose File
+                                    </Button>
+                                </label>
+                            </Stack>
+                        ) : (
+                            // No camera: Show single upload button
+                            <Box textAlign="center">
+                                <input
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    id="image-upload-input"
+                                    type="file"
+                                    onChange={handleFileUpload}
+                                    disabled={uploading}
+                                />
+                                <label htmlFor="image-upload-input">
+                                    <Button
+                                        variant="contained"
+                                        component="span"
+                                        startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
+                                        disabled={uploading}
+                                    >
+                                        {uploading ? 'Uploading...' : 'Choose Image to Upload'}
+                                    </Button>
+                                </label>
+                            </Box>
+                        )}
                     </Box>
                 ) : loading ? (
                     <Box textAlign="center" py={4}>

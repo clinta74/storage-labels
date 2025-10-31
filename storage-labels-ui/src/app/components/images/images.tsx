@@ -18,8 +18,12 @@ import {
     DialogActions,
     FormControlLabel,
     Checkbox,
+    Paper,
+    Divider,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
@@ -30,16 +34,30 @@ export const Images: React.FC = () => {
     const { Api } = useApi();
     const alert = useAlertMessage();
     const snackbar = useSnackbar();
+    
     const [images, setImages] = useState<ImageMetadataResponse[]>([]);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState<ImageMetadataResponse | null>(null);
     const [forceDelete, setForceDelete] = useState(false);
+    const [hasCamera, setHasCamera] = useState(false);
 
     useEffect(() => {
         loadImages();
+        checkCameraAvailability();
     }, []);
+
+    const checkCameraAvailability = async () => {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            setHasCamera(videoDevices.length > 0);
+        } catch (error) {
+            // If we can't check, assume no camera
+            setHasCamera(false);
+        }
+    };
 
     const loadImages = () => {
         setLoading(true);
@@ -115,90 +133,156 @@ export const Images: React.FC = () => {
 
     return (
         <Box>
-            <Box display="flex" justifyContent="space-between" alignItems="center" pb={2}>
-                <Typography variant="h4">Images</Typography>
-                <input
-                    accept="image/*"
-                    capture="environment"
-                    style={{ display: 'none' }}
-                    id="image-upload-button"
-                    type="file"
-                    onChange={handleFileUpload}
-                    disabled={uploading}
-                />
-                <label htmlFor="image-upload-button">
-                    <Button
-                        variant="contained"
-                        component="span"
-                        startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
-                        disabled={uploading}
-                    >
-                        {uploading ? 'Uploading...' : 'Upload Image'}
-                    </Button>
-                </label>
-            </Box>
-
-            {loading ? (
-                <Box textAlign="center" py={4}>
-                    <CircularProgress />
-                </Box>
-            ) : images.length === 0 ? (
-                <Typography variant="body1" color="text.secondary" textAlign="center" py={4}>
-                    No images uploaded yet. Click "Upload Image" to get started.
+            {/* Upload Section */}
+            <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+                <Typography variant="h5" gutterBottom>
+                    Upload New Image
                 </Typography>
-            ) : (
-                <Grid container spacing={2}>
-                    {images.map((image) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={image.imageId}>
-                            <Card>
-                                <Box height={200} display="flex" alignItems="center" justifyContent="center" bgcolor="grey.100">
-                                    <AuthenticatedImage
-                                        src={image.url}
-                                        alt={image.fileName}
-                                        style={{ width: '100%', height: '200px', objectFit: 'contain' }}
-                                    />
-                                </Box>
-                                <CardContent>
-                                    <Typography variant="body2" noWrap title={image.fileName}>
-                                        {image.fileName}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary" display="block">
-                                        {formatFileSize(image.sizeInBytes)} • {formatDate(image.uploadedAt)}
-                                    </Typography>
-                                    <Stack direction="row" spacing={0.5} mt={1} flexWrap="wrap" gap={0.5}>
-                                        {image.boxReferenceCount > 0 && (
-                                            <Chip
-                                                label={`${image.boxReferenceCount} box${image.boxReferenceCount > 1 ? 'es' : ''}`}
-                                                size="small"
-                                                color="primary"
-                                                variant="outlined"
-                                            />
-                                        )}
-                                        {image.itemReferenceCount > 0 && (
-                                            <Chip
-                                                label={`${image.itemReferenceCount} item${image.itemReferenceCount > 1 ? 's' : ''}`}
-                                                size="small"
-                                                color="secondary"
-                                                variant="outlined"
-                                            />
-                                        )}
-                                    </Stack>
-                                </CardContent>
-                                <CardActions>
-                                    <Button
-                                        size="small"
-                                        color="error"
-                                        startIcon={<DeleteIcon />}
-                                        onClick={() => handleDeleteClick(image)}
-                                    >
-                                        Delete
-                                    </Button>
-                                </CardActions>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
-            )}
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Add photos of your storage boxes and items
+                </Typography>
+
+                {hasCamera ? (
+                    // Device has camera: Show separate Camera and Gallery buttons
+                    <Stack direction="row" spacing={2} mt={2}>
+                        <input
+                            accept="image/*"
+                            capture="user"
+                            style={{ display: 'none' }}
+                            id="camera-upload"
+                            type="file"
+                            onChange={handleFileUpload}
+                            disabled={uploading}
+                        />
+                        <label htmlFor="camera-upload" style={{ flex: 1 }}>
+                            <Button
+                                variant="contained"
+                                component="span"
+                                fullWidth
+                                disabled={uploading}
+                                startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CameraAltIcon />}
+                            >
+                                {uploading ? 'Uploading...' : 'Take Photo'}
+                            </Button>
+                        </label>
+
+                        <input
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            id="gallery-upload"
+                            type="file"
+                            onChange={handleFileUpload}
+                            disabled={uploading}
+                        />
+                        <label htmlFor="gallery-upload" style={{ flex: 1 }}>
+                            <Button
+                                variant="outlined"
+                                component="span"
+                                fullWidth
+                                disabled={uploading}
+                                startIcon={<PhotoLibraryIcon />}
+                            >
+                                Choose File
+                            </Button>
+                        </label>
+                    </Stack>
+                ) : (
+                    // No camera: Show single upload button
+                    <>
+                        <input
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            id="desktop-upload"
+                            type="file"
+                            onChange={handleFileUpload}
+                            disabled={uploading}
+                        />
+                        <label htmlFor="desktop-upload">
+                            <Button
+                                variant="contained"
+                                component="span"
+                                disabled={uploading}
+                                startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
+                                sx={{ mt: 2 }}
+                            >
+                                {uploading ? 'Uploading...' : 'Upload Image'}
+                            </Button>
+                        </label>
+                    </>
+                )}
+            </Paper>
+
+            {/* Images Gallery Section */}
+            <Box>
+                <Typography variant="h5" gutterBottom>
+                    Your Uploaded Images
+                </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom mb={2}>
+                    Select from these images when adding or editing boxes and items
+                </Typography>
+
+                {loading ? (
+                    <Box textAlign="center" py={4}>
+                        <CircularProgress />
+                    </Box>
+                ) : images.length === 0 ? (
+                    <Typography variant="body1" color="text.secondary" textAlign="center" py={4}>
+                        No images uploaded yet. Upload your first image to get started.
+                    </Typography>
+                ) : (
+                    <Grid container spacing={2}>
+                        {images.map((image) => (
+                            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={image.imageId}>
+                                <Card>
+                                    <Box height={200} display="flex" alignItems="center" justifyContent="center" bgcolor="grey.100">
+                                        <AuthenticatedImage
+                                            src={image.url}
+                                            alt={image.fileName}
+                                            style={{ width: '100%', height: '200px', objectFit: 'contain' }}
+                                        />
+                                    </Box>
+                                    <CardContent>
+                                        <Typography variant="body2" noWrap title={image.fileName}>
+                                            {image.fileName}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary" display="block">
+                                            {formatFileSize(image.sizeInBytes)} • {formatDate(image.uploadedAt)}
+                                        </Typography>
+                                        <Stack direction="row" spacing={0.5} mt={1} flexWrap="wrap" gap={0.5}>
+                                            {image.boxReferenceCount > 0 && (
+                                                <Chip
+                                                    label={`${image.boxReferenceCount} box${image.boxReferenceCount > 1 ? 'es' : ''}`}
+                                                    size="small"
+                                                    color="primary"
+                                                    variant="outlined"
+                                                />
+                                            )}
+                                            {image.itemReferenceCount > 0 && (
+                                                <Chip
+                                                    label={`${image.itemReferenceCount} item${image.itemReferenceCount > 1 ? 's' : ''}`}
+                                                    size="small"
+                                                    color="secondary"
+                                                    variant="outlined"
+                                                />
+                                            )}
+                                        </Stack>
+                                    </CardContent>
+                                    <CardActions>
+                                        <Button
+                                            size="small"
+                                            color="error"
+                                            startIcon={<DeleteIcon />}
+                                            onClick={() => handleDeleteClick(image)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                )}
+            </Box>
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>

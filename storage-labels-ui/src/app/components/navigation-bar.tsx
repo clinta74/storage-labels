@@ -47,6 +47,7 @@ export const NavigationBar: React.FC = () => {
         { label: 'Locations', path: '/locations' },
         { label: 'Images', path: '/images' },
         { label: 'Common Locations', path: '/common-locations' },
+        { label: 'Preferences', path: '/preferences' },
     ];
 
     return (

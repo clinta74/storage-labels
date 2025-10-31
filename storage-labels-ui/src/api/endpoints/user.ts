@@ -14,4 +14,10 @@ export const getUserEndpoints = (client: AxiosInstance) => ({
 
     createUser: (user: NewUser) =>
         client.post<UserResponse>(`user`, user),
+
+    getUserPreferences: () =>
+        client.get<UserPreferences>(`user/preferences`),
+
+    updateUserPreferences: (preferences: UserPreferences) =>
+        client.put<UserPreferences>(`user/preferences`, preferences),
 });

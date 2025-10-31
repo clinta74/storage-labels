@@ -11,5 +11,6 @@ public record User(
     [EmailAddress] string EmailAddress,
     DateTimeOffset Created)
 {
+    public string? Preferences { get; set; }
     public ICollection<UserLocation> UserLocations { get; } = [];
 }

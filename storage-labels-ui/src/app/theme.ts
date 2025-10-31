@@ -1,22 +1,29 @@
-import { createTheme } from '@mui/material';
+import { createTheme, PaletteMode } from '@mui/material';
 
-export const theme = createTheme({
+export const getTheme = (mode: PaletteMode) => createTheme({
     palette: {
+        mode,
         primary: {
             main: '#8B4513', // Brown to match storage box theme
             light: '#A0522D',
             dark: '#654321',
         },
         secondary: {
-            main: '#757575', // Medium gray for better visibility
-            light: '#9E9E9E',
+            main: mode === 'dark' ? '#9E9E9E' : '#757575', // Lighter gray for dark mode
+            light: '#BDBDBD',
             dark: '#616161',
         },
-        background: {
+        background: mode === 'dark' ? {
+            default: '#1a1a1a',
+            paper: '#2d2d2d',
+        } : {
             default: '#F5F5F0', // Off-white background
             paper: '#FFFFFF',
         },
-        text: {
+        text: mode === 'dark' ? {
+            primary: '#E0E0E0',
+            secondary: '#B0B0B0',
+        } : {
             primary: '#1a1a1a',
             secondary: '#666666',
         },
@@ -57,6 +64,16 @@ export const theme = createTheme({
                 },
             },
         },
+        MuiAppBar: {
+            styleOverrides: {
+                root: {
+                    backgroundImage: 'none',
+                },
+            },
+        },
     },
     spacing: (factor: number) => `${8 * factor}px`,
 });
+
+// Default light theme for backward compatibility
+export const theme = getTheme('light');

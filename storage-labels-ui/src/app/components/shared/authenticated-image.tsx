@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { CircularProgress, Box } from '@mui/material';
+import { CircularProgress, Box, Typography } from '@mui/material';
+import ImageIcon from '@mui/icons-material/Image';
 import { useApi } from '../../../api';
 import { CONFIG } from '../../../config';
+import { useUser } from '../../providers/user-provider';
 
 interface AuthenticatedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
     src: string;
@@ -10,12 +12,16 @@ interface AuthenticatedImageProps extends React.ImgHTMLAttributes<HTMLImageEleme
 
 export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt, style, ...props }) => {
     const { Api } = useApi();
+    const { user } = useUser();
     const [imageUrl, setImageUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
+    // Default to true if undefined or null
+    const showImages = user?.preferences?.showImages !== false;
+
     useEffect(() => {
-        if (!src) {
+        if (!src || !showImages) {
             setLoading(false);
             return;
         }
@@ -70,7 +76,28 @@ export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt
                 URL.revokeObjectURL(objectUrl);
             }
         };
-    }, [src, Api]);
+    }, [src, Api, showImages]);
+
+    // If images are disabled, show a placeholder
+    if (!showImages) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: 'action.hover',
+                    color: 'text.secondary',
+                    minHeight: 100,
+                    ...style,
+                }}
+            >
+                <ImageIcon sx={{ fontSize: 48, mb: 1, opacity: 0.5 }} />
+                <Typography variant="caption">Images disabled</Typography>
+            </Box>
+        );
+    }
 
     if (loading) {
         return (

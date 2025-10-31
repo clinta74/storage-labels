@@ -6,11 +6,23 @@ interface UserResponse {
     lastName: string;
     emailAddress: string;
     created: string;
+    preferences?: UserPreferences;
 }
 interface NewUser {
     firstName: string;
     lastName: string;
     emailAddress: string;
+}
+
+interface UserPreferences {
+    theme: string;
+    showImages: boolean;
+    codeColorPattern: string;
+}
+
+interface CodeColorSegment {
+    length: number;
+    color: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' | 'default';
 }
 
 interface LocationRequest {

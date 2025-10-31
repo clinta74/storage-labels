@@ -41,6 +41,17 @@ internal static partial class EndpointsMapper
             .Produces(StatusCodes.Status400BadRequest)
             .WithName("Add User");
 
+        routeBuilder.MapGet("/preferences", GetUserPreferences)
+            .Produces<UserPreferencesDto>(StatusCodes.Status200OK)
+            .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
+            .WithName("Get User Preferences");
+
+        routeBuilder.MapPut("/preferences", UpdateUserPreferences)
+            .Produces<UserPreferencesDto>(StatusCodes.Status200OK)
+            .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithName("Update User Preferences");
+
         return routeBuilder;
     }
 
@@ -78,5 +89,25 @@ internal static partial class EndpointsMapper
         return user
             .Map(user => new UserResponse(user))
             .ToMinimalApiResult(); ;
+    }
+
+    private static async Task<IResult> GetUserPreferences(HttpContext context, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var preferences = await mediator.Send(new GetUserPreferences(userId), cancellationToken);
+        
+        return preferences.ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> UpdateUserPreferences(
+        HttpContext context, 
+        UserPreferencesDto request, 
+        [FromServices] IMediator mediator, 
+        CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var preferences = await mediator.Send(new Handlers.Users.UpdateUserPreferences(userId, request), cancellationToken);
+        
+        return preferences.ToMinimalApiResult();
     }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Container, CssBaseline, ThemeProvider } from '@mui/material';
+import { Box, Container, ThemeProvider } from '@mui/material';
 import { BrowserRouter as Router } from 'react-router';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { Auth0ProviderWithHistory } from '../auth/auth0-provider-with-history';
@@ -13,7 +13,6 @@ import { theme } from './theme';
 export const App: React.FC = () => {
     return (
         <React.Fragment>
-            <CssBaseline />
             <ThemeProvider theme={theme}>
                 <ConfirmProvider>
                     <Box position="relative" minHeight="100vh" zIndex={1}>

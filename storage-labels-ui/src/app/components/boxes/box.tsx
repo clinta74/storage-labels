@@ -43,7 +43,7 @@ import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { useSearch } from '../../providers/search-provider';
 import { useLocation } from '../../providers/location-provider';
-import { AuthenticatedImage, SearchBar, SearchResults, Breadcrumbs, EmptyState } from '../shared';
+import { AuthenticatedImage, SearchBar, SearchResults, Breadcrumbs, EmptyState, FormattedCode } from '../shared';
 
 type Params = Record<'boxId', string>;
 
@@ -327,8 +327,8 @@ export const BoxComponent: React.FC = () => {
                     <Box margin={2} pb={2}>
                         <Grid container spacing={2}>
                             <Grid size={{ xs: 12, md: 6 }}>
-                                <Typography variant="h6" gutterBottom>
-                                    Code: <Typography component="span" variant="h6" fontWeight="bold">{box.code}</Typography>
+                                <Typography variant="h6" gutterBottom component="div">
+                                    Code: <FormattedCode code={box.code} variant="h6" />
                                 </Typography>
                                 <Typography variant="body1">{box.description || 'No description provided.'}</Typography>
                             </Grid>

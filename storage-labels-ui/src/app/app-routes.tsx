@@ -10,6 +10,9 @@ import { NewUserRoutes } from './components/new-user/new-user-routes';
 import { LocationRoutes } from './components/locations/locations-routes';
 import { ImagesRoutes } from './components/images/images-routes';
 import { CommonLocationsRoutes } from './components/common-locations/common-locations-routes';
+import { Preferences } from './components/user/preferences';
+import { UserProvider } from './providers/user-provider';
+import { AppThemeProvider } from './providers/theme-provider';
 
 export const AppRoutes: React.FunctionComponent = () => {
     const { isAuthenticated, isLoading } = useAuth0();
@@ -28,15 +31,20 @@ export const AppRoutes: React.FunctionComponent = () => {
         return (
             <Box>
                 <ApiProvider>
-                    <Routes>
-                        <Route path="/legal/*" element={<LegalRoutes />} />
-                        <Route path="/new-user/*" element={<NewUserRoutes />} />
-                        <Route path="/locations/*" element={<LocationRoutes />} />
-                        <Route path="/images/*" element={<ImagesRoutes />} />
-                        <Route path="/common-locations/*" element={<CommonLocationsRoutes />} />
-                        <Route index element={<Navigate to="/locations" />} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
+                    <UserProvider>
+                        <AppThemeProvider>
+                            <Routes>
+                                <Route path="/legal/*" element={<LegalRoutes />} />
+                                <Route path="/new-user/*" element={<NewUserRoutes />} />
+                                <Route path="/locations/*" element={<LocationRoutes />} />
+                                <Route path="/images/*" element={<ImagesRoutes />} />
+                                <Route path="/common-locations/*" element={<CommonLocationsRoutes />} />
+                                <Route path="/preferences" element={<Preferences />} />
+                                <Route index element={<Navigate to="/locations" />} />
+                                <Route path="*" element={<Navigate to="/" replace />} />
+                            </Routes>
+                        </AppThemeProvider>
+                    </UserProvider>
                 </ApiProvider>
             </Box>
         );

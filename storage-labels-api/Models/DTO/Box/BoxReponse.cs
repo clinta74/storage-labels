@@ -1,6 +1,6 @@
-using StorageLabelsApi.DataLayer.Models;
+using BoxModel = StorageLabelsApi.DataLayer.Models.Box;
 
-namespace StorageLabelsApi.Models.DTO;
+namespace StorageLabelsApi.Models.DTO.Box;
 
 public record BoxResponse(
     Guid BoxId,
@@ -14,7 +14,7 @@ public record BoxResponse(
     DateTimeOffset Updated,
     DateTimeOffset LastAccessed)
 {
-    public BoxResponse(Box box) : this(
+    public BoxResponse(BoxModel box) : this(
         box.BoxId,
         box.Code,
         box.Name,

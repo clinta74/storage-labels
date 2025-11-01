@@ -1,7 +1,7 @@
 using System.Text.Json;
-using StorageLabelsApi.DataLayer.Models;
+using UserModel = StorageLabelsApi.DataLayer.Models.User;
 
-namespace StorageLabelsApi.Models.DTO;
+namespace StorageLabelsApi.Models.DTO.User;
 
 public record UserResponse(
     string UserId, 
@@ -9,9 +9,9 @@ public record UserResponse(
     string LastName, 
     string EmailAddress, 
     DateTimeOffset created, 
-    UserPreferencesDto? Preferences)
+    UserPreferencesResponse? Preferences)
 {
-    public UserResponse(User user) : this(
+    public UserResponse(UserModel user) : this(
         user.UserId, 
         user.FirstName, 
         user.LastName, 
@@ -20,20 +20,20 @@ public record UserResponse(
         ParsePreferences(user.Preferences)) 
     { }
 
-    private static UserPreferencesDto? ParsePreferences(string? preferencesJson)
+    private static UserPreferencesResponse? ParsePreferences(string? preferencesJson)
     {
         if (string.IsNullOrWhiteSpace(preferencesJson))
         {
-            return new UserPreferencesDto();
+            return new UserPreferencesResponse();
         }
 
         try
         {
-            return JsonSerializer.Deserialize<UserPreferencesDto>(preferencesJson) ?? new UserPreferencesDto();
+            return JsonSerializer.Deserialize<UserPreferencesResponse>(preferencesJson) ?? new UserPreferencesResponse();
         }
         catch (JsonException)
         {
-            return new UserPreferencesDto();
+            return new UserPreferencesResponse();
         }
     }
 }

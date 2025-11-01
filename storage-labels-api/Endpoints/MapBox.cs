@@ -3,7 +3,7 @@ using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Boxes;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.Box;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace StorageLabelsApi.Endpoints;

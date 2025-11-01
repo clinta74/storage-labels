@@ -1,6 +1,7 @@
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Handlers.Locations;
-namespace StorageLabelsApi.Models.DTO;
+
+namespace StorageLabelsApi.Models.DTO.Location;
 
 public record LocationResponse(
     long LocationId,

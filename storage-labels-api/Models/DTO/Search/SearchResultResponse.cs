@@ -1,4 +1,4 @@
-namespace StorageLabelsApi.Models.DTO;
+namespace StorageLabelsApi.Models.DTO.Search;
 
 public class SearchResultResponse
 {

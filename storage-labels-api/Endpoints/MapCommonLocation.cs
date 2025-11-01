@@ -1,9 +1,9 @@
+using System.Runtime.CompilerServices;
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
-using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Handlers.CommonLocations;
 using StorageLabelsApi.Models;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.CommonLocation;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace StorageLabelsApi.Endpoints;
@@ -21,11 +21,11 @@ internal static partial class EndpointsMapper
     {
         routeBuilder.MapPost("/", CreateCommonLocation)
             .RequireAuthorization(Policies.Write_CommonLocations)
-            .Produces<CommonLocation>(StatusCodes.Status201Created)
+            .Produces<CommonLocationResponse>(StatusCodes.Status201Created)
             .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest);
 
         routeBuilder.MapGet("/", GetCommonLocations)
-            .Produces<CommonLocation>(StatusCodes.Status200OK);
+            .Produces<CommonLocationResponse>(StatusCodes.Status200OK);
 
         routeBuilder.MapDelete("{commonlocationid}", DeleteCommonLocation)
             .RequireAuthorization(Policies.Write_CommonLocations)
@@ -42,11 +42,20 @@ internal static partial class EndpointsMapper
         ), cancellationToken);
 
         return commonLocation
+            .Map(cl => new CommonLocationResponse(cl))
             .ToMinimalApiResult();
     }
 
-    private static IAsyncEnumerable<CommonLocation> GetCommonLocations([FromServices] IMediator mediator, CancellationToken cancellationToken) => 
-        mediator.CreateStream(new GetCommonLocation(), cancellationToken);
+    private static async IAsyncEnumerable<CommonLocationResponse> GetCommonLocations([FromServices] IMediator mediator, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var commonLocations = mediator.CreateStream(new GetCommonLocation(), cancellationToken);
+
+        await foreach (var commonLocation in commonLocations)
+        {
+            if (cancellationToken.IsCancellationRequested) break;
+            yield return new CommonLocationResponse(commonLocation);
+        }
+    }
 
     private static async Task<IResult> DeleteCommonLocation(int commonLocationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {

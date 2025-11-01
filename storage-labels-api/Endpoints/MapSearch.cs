@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Search;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.Search;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace StorageLabelsApi.Endpoints;

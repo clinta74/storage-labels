@@ -1,6 +1,6 @@
-using StorageLabelsApi.DataLayer.Models;
+using ItemModel = StorageLabelsApi.DataLayer.Models.Item;
 
-namespace StorageLabelsApi.Models.DTO;
+namespace StorageLabelsApi.Models.DTO.Item;
 
 public record ItemResponse(
     Guid ItemId,
@@ -12,7 +12,7 @@ public record ItemResponse(
     DateTimeOffset Created,
     DateTimeOffset Updated)
 {
-    public ItemResponse(Item item) : this(
+    public ItemResponse(ItemModel item) : this(
         item.ItemId,
         item.BoxId,
         item.Name,

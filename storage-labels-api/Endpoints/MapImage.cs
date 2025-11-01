@@ -3,7 +3,7 @@ using MediatR;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Images;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.Image;
 
 namespace StorageLabelsApi.Endpoints;
 

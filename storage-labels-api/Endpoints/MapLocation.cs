@@ -2,7 +2,8 @@ using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Locations;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.Location;
+using StorageLabelsApi.Models.DTO.User;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace StorageLabelsApi.Endpoints;

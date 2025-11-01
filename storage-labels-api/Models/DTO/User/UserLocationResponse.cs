@@ -1,6 +1,6 @@
 using StorageLabelsApi.DataLayer.Models;
 
-namespace StorageLabelsApi.Models.DTO;
+namespace StorageLabelsApi.Models.DTO.User;
 
 public record UserLocationResponse(
     string UserId,

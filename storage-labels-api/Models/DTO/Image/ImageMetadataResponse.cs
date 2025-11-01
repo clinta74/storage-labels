@@ -1,6 +1,6 @@
 using StorageLabelsApi.DataLayer.Models;
 
-namespace StorageLabelsApi.Models.DTO;
+namespace StorageLabelsApi.Models.DTO.Image;
 
 public record ImageMetadataResponse(
     Guid ImageId,

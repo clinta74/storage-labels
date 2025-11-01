@@ -1,18 +1,18 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.User;
 
 namespace StorageLabelsApi.Handlers.Users;
 
-public record UpdateUserPreferences(string UserId, UserPreferencesDto Preferences) : IRequest<Result<UserPreferencesDto>>;
+public record UpdateUserPreferences(string UserId, UserPreferencesResponse Preferences) : IRequest<Result<UserPreferencesResponse>>;
 
 public class UpdateUserPreferencesHandler(
     StorageLabelsDbContext dbContext,
     ILogger<UpdateUserPreferencesHandler> logger) 
-    : IRequestHandler<UpdateUserPreferences, Result<UserPreferencesDto>>
+    : IRequestHandler<UpdateUserPreferences, Result<UserPreferencesResponse>>
 {
-    public async Task<Result<UserPreferencesDto>> Handle(UpdateUserPreferences request, CancellationToken cancellationToken)
+    public async Task<Result<UserPreferencesResponse>> Handle(UpdateUserPreferences request, CancellationToken cancellationToken)
     {
         var userExists = await dbContext.Users
             .AsNoTracking()
@@ -21,7 +21,7 @@ public class UpdateUserPreferencesHandler(
 
         if (!userExists)
         {
-            return Result<UserPreferencesDto>.NotFound($"User with id {request.UserId} not found.");
+            return Result<UserPreferencesResponse>.NotFound($"User with id {request.UserId} not found.");
         }
 
         var preferencesJson = JsonSerializer.Serialize(request.Preferences);
@@ -34,6 +34,6 @@ public class UpdateUserPreferencesHandler(
 
         logger.LogInformation("Updated preferences for user {UserId}", request.UserId);
 
-        return Result<UserPreferencesDto>.Success(request.Preferences);
+        return Result<UserPreferencesResponse>.Success(request.Preferences);
     }
 }

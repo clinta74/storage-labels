@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.Search;
 
 namespace StorageLabelsApi.Handlers.Search;
 

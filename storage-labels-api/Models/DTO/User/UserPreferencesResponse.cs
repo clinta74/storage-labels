@@ -1,6 +1,6 @@
-namespace StorageLabelsApi.Models.DTO;
+namespace StorageLabelsApi.Models.DTO.User;
 
-public record UserPreferencesDto
+public record UserPreferencesResponse
 {
     public string Theme { get; init; } = "light";
     public bool ShowImages { get; init; } = true;

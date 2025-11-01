@@ -1,8 +1,8 @@
-using Auth0.ManagementApi.Models;
+using Auth0User = Auth0.ManagementApi.Models.User;
 
 namespace StorageLabelsApi.Models.DTO.NewUser;
 
 public record GetNewUserResponse(string FirstName, string LastName, string EmailAddress)
 {
-    public GetNewUserResponse(User user) : this(user.FirstName, user.LastName, user.Email) { }
+    public GetNewUserResponse(Auth0User user) : this(user.FirstName, user.LastName, user.Email) { }
 }

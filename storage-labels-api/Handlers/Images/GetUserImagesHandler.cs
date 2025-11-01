@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.Image;
 using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Handlers.Images;

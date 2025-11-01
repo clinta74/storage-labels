@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace StorageLabelsApi.Models.DTO;
+namespace StorageLabelsApi.Models.DTO.Box;
 
 public record BoxRequest(
     [Required] string Code, 

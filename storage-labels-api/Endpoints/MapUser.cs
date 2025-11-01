@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Users;
 using StorageLabelsApi.Models;
-using StorageLabelsApi.Models.DTO;
+using StorageLabelsApi.Models.DTO.User;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace StorageLabelsApi.Endpoints;
@@ -42,12 +42,12 @@ internal static partial class EndpointsMapper
             .WithName("Add User");
 
         routeBuilder.MapGet("/preferences", GetUserPreferences)
-            .Produces<UserPreferencesDto>(StatusCodes.Status200OK)
+            .Produces<UserPreferencesResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
             .WithName("Get User Preferences");
 
         routeBuilder.MapPut("/preferences", UpdateUserPreferences)
-            .Produces<UserPreferencesDto>(StatusCodes.Status200OK)
+            .Produces<UserPreferencesResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .WithName("Update User Preferences");
@@ -101,7 +101,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<IResult> UpdateUserPreferences(
         HttpContext context, 
-        UserPreferencesDto request, 
+        UserPreferencesResponse request, 
         [FromServices] IMediator mediator, 
         CancellationToken cancellationToken)
     {

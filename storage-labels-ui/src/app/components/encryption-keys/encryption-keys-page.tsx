@@ -29,10 +29,10 @@ import {
     CheckCircle as CheckCircleIcon,
     Block as BlockIcon,
     Info as InfoIcon,
-    Refresh as RefreshIcon,
     History as HistoryIcon,
     LockOpen as LockOpenIcon,
 } from '@mui/icons-material';
+import { Fab } from '@mui/material';
 import { useApi } from '../../../api';
 import { Authorized } from '../../providers/user-permission-provider';
 import { Breadcrumbs } from '../shared';
@@ -160,43 +160,44 @@ export const EncryptionKeysPage: React.FC = () => {
             <Breadcrumbs items={[{ label: 'Encryption Keys' }]} />
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                 <Typography variant="h4">Encryption Key Management</Typography>
-                <Box>
-                    <Tooltip title="Refresh">
-                        <IconButton onClick={loadKeys} sx={{ mr: 1 }}>
-                            <RefreshIcon />
-                        </IconButton>
-                    </Tooltip>
+                <Stack direction="row" spacing={1}>
                     <Authorized permissions="read:encryption-keys">
-                        <Button
-                            variant="outlined"
-                            startIcon={<HistoryIcon />}
-                            onClick={() => navigate('/encryption-keys/rotations')}
-                            sx={{ mr: 1 }}
-                        >
-                            View Rotations
-                        </Button>
+                        <Tooltip title="View Rotations">
+                            <IconButton
+                                onClick={() => navigate('/encryption-keys/rotations')}
+                                color="primary"
+                            >
+                                <HistoryIcon />
+                            </IconButton>
+                        </Tooltip>
                     </Authorized>
                     <Authorized permissions="write:encryption-keys">
-                        <Button
-                            variant="outlined"
-                            startIcon={<LockOpenIcon />}
-                            onClick={() => setMigrateDialogOpen(true)}
-                            sx={{ mr: 1 }}
-                        >
-                            Migrate Unencrypted
-                        </Button>
+                        <Tooltip title="Migrate Unencrypted Images">
+                            <IconButton
+                                onClick={() => setMigrateDialogOpen(true)}
+                                color="primary"
+                            >
+                                <LockOpenIcon />
+                            </IconButton>
+                        </Tooltip>
                     </Authorized>
-                    <Authorized permissions="write:encryption-keys">
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={() => setCreateDialogOpen(true)}
-                        >
-                            Create New Key
-                        </Button>
-                    </Authorized>
-                </Box>
+                </Stack>
             </Box>
+
+            <Box position="relative">
+                <Authorized permissions="write:encryption-keys">
+                    <Box position="absolute" right={(theme) => theme.spacing(1)} top={(theme) => theme.spacing(1)} sx={{ zIndex: 1 }}>
+                        <Tooltip title="Create New Key" placement="left">
+                            <Fab
+                                color="primary"
+                                aria-label="create new key"
+                                onClick={() => setCreateDialogOpen(true)}
+                            >
+                                <AddIcon />
+                            </Fab>
+                        </Tooltip>
+                    </Box>
+                </Authorized>
 
             <TableContainer component={Paper}>
                 <Table>
@@ -282,6 +283,7 @@ export const EncryptionKeysPage: React.FC = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            </Box>
 
             {/* Create Key Dialog */}
             <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)}>

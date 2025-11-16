@@ -31,8 +31,9 @@ import {
     Info as InfoIcon,
     History as HistoryIcon,
     LockOpen as LockOpenIcon,
+    MoreVert as MoreVertIcon,
 } from '@mui/icons-material';
-import { Fab } from '@mui/material';
+import { Fab, Menu, MenuItem, useTheme } from '@mui/material';
 import { useApi } from '../../../api';
 import { Authorized } from '../../providers/user-permission-provider';
 import { Breadcrumbs } from '../shared';
@@ -55,6 +56,7 @@ const formatDate = (dateString: string | undefined): string => {
 export const EncryptionKeysPage: React.FC = () => {
     const { Api } = useApi();
     const navigate = useNavigate();
+    const theme = useTheme();
     const [keys, setKeys] = useState<EncryptionKey[]>([]);
     const [loading, setLoading] = useState(true);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -63,6 +65,7 @@ export const EncryptionKeysPage: React.FC = () => {
     const [keyStats, setKeyStats] = useState<Record<number, EncryptionKeyStats>>({});
     const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
     const [migrateBatchSize, setMigrateBatchSize] = useState<number>(100);
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
     const loadKeys = async () => {
         try {
@@ -158,35 +161,10 @@ export const EncryptionKeysPage: React.FC = () => {
     return (
         <Box p={3}>
             <Breadcrumbs items={[{ label: 'Encryption Keys' }]} />
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h4">Encryption Key Management</Typography>
-                <Stack direction="row" spacing={1}>
-                    <Authorized permissions="read:encryption-keys">
-                        <Tooltip title="View Rotations">
-                            <IconButton
-                                onClick={() => navigate('/encryption-keys/rotations')}
-                                color="primary"
-                            >
-                                <HistoryIcon />
-                            </IconButton>
-                        </Tooltip>
-                    </Authorized>
-                    <Authorized permissions="write:encryption-keys">
-                        <Tooltip title="Migrate Unencrypted Images">
-                            <IconButton
-                                onClick={() => setMigrateDialogOpen(true)}
-                                color="primary"
-                            >
-                                <LockOpenIcon />
-                            </IconButton>
-                        </Tooltip>
-                    </Authorized>
-                </Stack>
-            </Box>
-
+            
             <Box position="relative">
                 <Authorized permissions="write:encryption-keys">
-                    <Box position="absolute" right={(theme) => theme.spacing(1)} top={(theme) => theme.spacing(1)} sx={{ zIndex: 1 }}>
+                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                         <Tooltip title="Create New Key" placement="left">
                             <Fab
                                 color="primary"
@@ -199,7 +177,64 @@ export const EncryptionKeysPage: React.FC = () => {
                     </Box>
                 </Authorized>
 
-            <TableContainer component={Paper}>
+                <Paper>
+                    <Box position="relative">
+                        <Box 
+                            margin={1} 
+                            textAlign="center"
+                            position="relative"
+                            sx={{
+                                px: { xs: 6, sm: 2 }, // Extra horizontal padding on mobile to avoid menu button overlap
+                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                            }}
+                        >
+                            <IconButton
+                                aria-label="encryption settings"
+                                title="Encryption Settings"
+                                onClick={(e) => setMenuAnchor(e.currentTarget)}
+                                sx={{
+                                    position: 'absolute',
+                                    left: theme.spacing(1),
+                                    top: theme.spacing(1)
+                                }}
+                            >
+                                <MoreVertIcon />
+                            </IconButton>
+                            
+                            <Typography variant='h4' sx={{ 
+                                fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
+                            }}>
+                                Encryption Key Management
+                            </Typography>
+                        </Box>
+
+                        <Menu
+                            anchorEl={menuAnchor}
+                            open={Boolean(menuAnchor)}
+                            onClose={() => setMenuAnchor(null)}
+                        >
+                            <Authorized permissions="read:encryption-keys">
+                                <MenuItem onClick={() => {
+                                    setMenuAnchor(null);
+                                    navigate('/encryption-keys/rotations');
+                                }}>
+                                    <HistoryIcon sx={{ mr: 1 }} fontSize="small" />
+                                    View Rotations
+                                </MenuItem>
+                            </Authorized>
+                            <Authorized permissions="write:encryption-keys">
+                                <MenuItem onClick={() => {
+                                    setMenuAnchor(null);
+                                    setMigrateDialogOpen(true);
+                                }}>
+                                    <LockOpenIcon sx={{ mr: 1 }} fontSize="small" />
+                                    Migrate Unencrypted Images
+                                </MenuItem>
+                            </Authorized>
+                        </Menu>
+                    </Box>
+
+                    <TableContainer>
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -283,6 +318,7 @@ export const EncryptionKeysPage: React.FC = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
+                </Paper>
             </Box>
 
             {/* Create Key Dialog */}

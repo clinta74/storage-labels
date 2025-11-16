@@ -136,6 +136,7 @@ builder.Services.AddScoped<UserExistsEndpointFilter>();
 
 var app = builder.Build();
 
+// Apply migrations
 using (var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
 {
     using (var context = serviceScope.ServiceProvider.GetRequiredService<StorageLabelsDbContext>())

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StorageLabelsApi.Datalayer;
@@ -11,9 +12,11 @@ using StorageLabelsApi.Datalayer;
 namespace StorageLabelsApi.Migrations
 {
     [DbContext(typeof(StorageLabelsDbContext))]
-    partial class StorageLabelsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251116023950_InitialPostgreSQL")]
+    partial class InitialPostgreSQL
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

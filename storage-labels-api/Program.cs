@@ -99,6 +99,9 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddTransient<IAuth0ManagementApiClient>(provider => new Auth0ManagementApiClient(auth0.ApiClientId, auth0.ClientSecret, auth0.Domain));
 
+// Register file system abstraction
+builder.Services.AddSingleton<System.IO.Abstractions.IFileSystem, System.IO.Abstractions.FileSystem>();
+
 // Register encryption services
 builder.Services.AddScoped<IImageEncryptionService, ImageEncryptionService>();
 builder.Services.AddSingleton<IKeyRotationService, KeyRotationService>();

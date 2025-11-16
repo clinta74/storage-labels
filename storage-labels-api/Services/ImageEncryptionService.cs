@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
+using System.IO.Abstractions;
 using System.Security.Cryptography;
 
 namespace StorageLabelsApi.Services;
@@ -12,6 +13,7 @@ public class ImageEncryptionService : IImageEncryptionService
 {
     private readonly StorageLabelsDbContext _context;
     private readonly ILogger<ImageEncryptionService> _logger;
+    private readonly IFileSystem _fileSystem;
     private const int KeySizeBytes = 32; // AES-256
     private const int IVSizeBytes = 12; // AES-GCM recommended IV size
     private const int TagSizeBytes = 16; // AES-GCM authentication tag size
@@ -19,10 +21,12 @@ public class ImageEncryptionService : IImageEncryptionService
 
     public ImageEncryptionService(
         StorageLabelsDbContext context,
-        ILogger<ImageEncryptionService> logger)
+        ILogger<ImageEncryptionService> logger,
+        IFileSystem fileSystem)
     {
         _context = context;
         _logger = logger;
+        _fileSystem = fileSystem;
     }
 
     public async Task<EncryptionResult> EncryptAsync(
@@ -133,12 +137,12 @@ public class ImageEncryptionService : IImageEncryptionService
         }
 
         // Use the StoragePath from metadata (already contains the full path)
-        if (!File.Exists(metadata.StoragePath))
+        if (!_fileSystem.File.Exists(metadata.StoragePath))
         {
             throw new FileNotFoundException($"Image file not found: {metadata.StoragePath}");
         }
 
-        var encryptedData = await File.ReadAllBytesAsync(metadata.StoragePath, cancellationToken);
+        var encryptedData = await _fileSystem.File.ReadAllBytesAsync(metadata.StoragePath, cancellationToken);
 
         return await DecryptAsync(
             encryptedData,
@@ -281,12 +285,12 @@ public class ImageEncryptionService : IImageEncryptionService
         }
 
         // Read the unencrypted file
-        if (!File.Exists(metadata.StoragePath))
+        if (!_fileSystem.File.Exists(metadata.StoragePath))
         {
             throw new FileNotFoundException($"Image file not found: {metadata.StoragePath}");
         }
 
-        var unencryptedData = await File.ReadAllBytesAsync(metadata.StoragePath, cancellationToken);
+        var unencryptedData = await _fileSystem.File.ReadAllBytesAsync(metadata.StoragePath, cancellationToken);
 
         // Get the target key
         var targetKey = await _context.EncryptionKeys
@@ -318,7 +322,7 @@ public class ImageEncryptionService : IImageEncryptionService
         aesGcm.Encrypt(iv, unencryptedData, encryptedData, authTag);
 
         // Write encrypted data back to the same file
-        await File.WriteAllBytesAsync(metadata.StoragePath, encryptedData, cancellationToken);
+        await _fileSystem.File.WriteAllBytesAsync(metadata.StoragePath, encryptedData, cancellationToken);
 
         // Update metadata
         metadata.IsEncrypted = true;
@@ -356,7 +360,7 @@ public class ImageEncryptionService : IImageEncryptionService
         var encryptionResult = await EncryptAsync(decryptedStream, cancellationToken);
 
         // Write encrypted data back to file using the metadata's storage path
-        await File.WriteAllBytesAsync(metadata.StoragePath, encryptionResult.EncryptedData, cancellationToken);
+        await _fileSystem.File.WriteAllBytesAsync(metadata.StoragePath, encryptionResult.EncryptedData, cancellationToken);
 
         // Update metadata
         metadata.EncryptionKeyId = encryptionResult.EncryptionKeyId;
@@ -394,10 +398,10 @@ public class ImageEncryptionService : IImageEncryptionService
         long totalSize = 0;
         foreach (var image in key.Images)
         {
-            var filePath = Path.Combine("/app/data/images", image.FileName);
-            if (File.Exists(filePath))
+            var filePath = _fileSystem.Path.Combine("/app/data/images", image.FileName);
+            if (_fileSystem.File.Exists(filePath))
             {
-                var fileInfo = new FileInfo(filePath);
+                var fileInfo = _fileSystem.FileInfo.New(filePath);
                 totalSize += fileInfo.Length;
             }
         }

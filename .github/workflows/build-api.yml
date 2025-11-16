@@ -30,6 +30,20 @@ jobs:
           fetch-depth: 0  # Fetch all history for git describe
           token: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for pushing tags
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore storage-labels-api.sln
+
+      - name: Build
+        run: dotnet build storage-labels-api.sln --no-restore --configuration Release
+
+      - name: Run tests
+        run: dotnet test storage-labels-api.sln --no-build --configuration Release --verbosity normal
+
       - name: Get latest tag
         id: get_tag
         run: |

@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_DB=StorageLabels
+      - POSTGRES_USER=storage_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U storage_user -d StorageLabels"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  storage-labels-api:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - Auth0Settings:ClientSecret=${AUTH0_CLIENT_SECRET}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=StorageLabels
+      - POSTGRES_USERNAME=storage_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_SSL_MODE=Prefer
+    image: candrews74/storage-labels-api:v2.0.0
+    ports:
+      - '5002:8080'
+    pull_policy: always
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+
+  storage-labels-ui:
+    depends_on:
+      - storage-labels-api
+    image: candrews74/storage-labels-ui:stable
+    ports:
+      - '3002:80'
+    pull_policy: always
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

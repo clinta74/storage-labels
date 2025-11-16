@@ -102,11 +102,13 @@ The API uses the following environment variables for configuration:
 ASPNETCORE_ENVIRONMENT=Production
 ASPNETCORE_URLS=http://+:8080
 
-# Database Configuration (used to build connection string)
-DATA_SOURCE=localhost  # SQL Server hostname or IP address
-INITIAL_CATALOG=StorageLabels
-DB_USERNAME=sa
-DB_PASSWORD=YourStrong@Password
+# PostgreSQL Database Configuration
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DATABASE=StorageLabels
+POSTGRES_USERNAME=storage_user
+POSTGRES_PASSWORD=your_secure_password
+POSTGRES_SSL_MODE=Prefer
 
 # Auth0 Configuration
 # Note: Domain, Audience, ClientId, and ApiClientId are configured in appsettings.json
@@ -115,13 +117,15 @@ Auth0Settings__ClientSecret=your-client-secret
 ```
 
 **Variable Descriptions:**
-- `DATA_SOURCE`: SQL Server hostname/IP (e.g., `localhost`, `db`, `sqlserver.example.com`)
-- `INITIAL_CATALOG`: Database name
-- `DB_USERNAME`: Database user (default: `sa` for SQL Server)
-- `DB_PASSWORD`: Database password
+- `POSTGRES_HOST`: PostgreSQL hostname/IP (e.g., `localhost`, `postgres`, `db.example.com`)
+- `POSTGRES_PORT`: PostgreSQL port (default: `5432`)
+- `POSTGRES_DATABASE`: Database name (default: `StorageLabels`)
+- `POSTGRES_USERNAME`: Database user (e.g., `storage_user`)
+- `POSTGRES_PASSWORD`: Database password
+- `POSTGRES_SSL_MODE`: SSL connection mode (`Disable`, `Prefer`, `Require`) - default: `Prefer`
 - `Auth0Settings__ClientSecret`: Your Auth0 client secret (other Auth0 settings are in appsettings.json)
 
-**Note:** The connection string is built from these individual variables with `IntegratedSecurity=false` and `TrustServerCertificate=true`.
+**Note:** As of v2.0.0, the API uses PostgreSQL exclusively. MSSQL support has been removed.
 
 ## Local Development
 
@@ -144,28 +148,64 @@ docker build -t storage-labels-api:local -f Dockerfile ..
 docker run -p 5000:8080 \
   -v $(pwd)/data:/app/data \
   -e ASPNETCORE_ENVIRONMENT=Production \
-  -e DATA_SOURCE=localhost \  # SQL Server hostname or IP address
-  -e INITIAL_CATALOG=StorageLabels \
-  -e DB_USERNAME=sa \
-  -e DB_PASSWORD=YourStrong@Password \
+  -e POSTGRES_HOST=localhost \
+  -e POSTGRES_PORT=5432 \
+  -e POSTGRES_DATABASE=StorageLabels \
+  -e POSTGRES_USERNAME=storage_user \
+  -e POSTGRES_PASSWORD=your_secure_password \
+  -e POSTGRES_SSL_MODE=Prefer \
   -e Auth0Settings__ClientSecret=your-client-secret \
   storage-labels-api:local
 ```
 
 **Note:** The `-v $(pwd)/data:/app/data` volume mount persists uploaded images between container restarts.
-  storage-labels-api:local
-```
 
 ## Docker Compose (Optional)
 
 You can create a `docker-compose.yml` file in the root to run both services:
 
 ```yaml
-version: '3.8'
-
 services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_DB=StorageLabels
+      - POSTGRES_USER=storage_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U storage_user -d StorageLabels"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: {username}/storage-labels-api:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=StorageLabels
+      - POSTGRES_USERNAME=storage_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_SSL_MODE=Prefer
+      - Auth0Settings__ClientSecret=${AUTH0_CLIENT_SECRET}
+    volumes:
+      - ./data:/app/data
+
   ui:
     image: {username}/storage-labels-ui:latest
+    depends_on:
+      - api
     ports:
       - "3000:80"
     environment:
@@ -173,77 +213,38 @@ services:
       - REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com
       - REACT_APP_AUTH0_CLIENT_ID=your-client-id
       - REACT_APP_AUTH0_AUDIENCE=https://your-api-audience
-    depends_on:
-      - api
-
-  api:
-    image: {username}/storage-labels-api:latest
-    ports:
-      - "5000:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - DATA_SOURCE=db  # SQL Server hostname (docker service name) or IP address
-      - INITIAL_CATALOG=StorageLabels
-      - DB_USERNAME=sa
-      - DB_PASSWORD=YourStrong@Password
-      - Auth0Settings__ClientSecret=your-client-secret
-    depends_on:
-      - db
-    volumes:
-      - ./data:/app/data
-
-  db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Password
-    ports:
-      - "1433:1433"
-    volumes:
-      - sqldata:/var/opt/mssql
 
 volumes:
-  sqldata:
+  postgres-data:
 ```
 
-**Important:** The API uses a volume mount (`./data:/app/data`) to persist uploaded images. This directory will be created on your host machine and contains:
-- `/app/data/images/` - Uploaded image files organized by user
+**Important:** 
+- The API uses a volume mount (`./data:/app/data`) to persist uploaded images. This directory will be created on your host machine and contains uploaded image files organized by user.
+- PostgreSQL data is persisted in a named volume (`postgres-data`)
+- Use environment variables for secrets (see `.env` file example below)
 
-Without this volume mount, all uploaded images will be lost when the container is stopped or recreated.
+**Version Note:** As of v2.0.0, this application uses PostgreSQL instead of Microsoft SQL Server.
 
 ### Using Environment Files
 
-For easier management, create `.env` files:
+For easier management, create a `.env` file in the root:
 
-**`.env.ui`:**
+**`.env`:**
 ```env
+# UI Environment Variables
 API_URL=http://localhost:5000
 REACT_APP_AUTH0_DOMAIN=your-tenant.auth0.com
 REACT_APP_AUTH0_CLIENT_ID=your-client-id
 REACT_APP_AUTH0_AUDIENCE=https://your-api-audience
+
+# Database Credentials
+POSTGRES_PASSWORD=your_secure_password
+
+# Auth0 API Secret
+AUTH0_CLIENT_SECRET=your-client-secret
 ```
 
-**`.env.api`:**
-```env
-ASPNETCORE_ENVIRONMENT=Production
-DATA_SOURCE=db  # SQL Server hostname (docker service name) or IP address
-INITIAL_CATALOG=StorageLabels
-DB_USERNAME=sa
-DB_PASSWORD=YourStrong@Password
-Auth0Settings__ClientSecret=your-client-secret
-```
-
-Then update docker-compose.yml:
-```yaml
-services:
-  ui:
-    env_file: .env.ui
-    # ... rest of config
-  
-  api:
-    env_file: .env.api
-    # ... rest of config
-```
+Docker Compose will automatically load environment variables from the `.env` file.
 
 ## Image Tags
 

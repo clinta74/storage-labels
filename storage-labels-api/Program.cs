@@ -4,7 +4,6 @@ global using StorageLabelsApi.Extensions;
 
 using System.Reflection;
 using System.Text.Json.Serialization;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using StorageLabelsApi.Datalayer;
@@ -42,60 +41,28 @@ builder.Services
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-// Database configuration
-var dbType = builder.Configuration["DB_TYPE"] ?? "MSSQL"; // Default to MSSQL for backward compatibility
+// Configure Npgsql to handle DateTime mapping
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-if (dbType.Equals("POSTGRES", StringComparison.OrdinalIgnoreCase))
+// PostgreSQL Database configuration
+var postgresBuilder = new NpgsqlConnectionStringBuilder()
 {
-    // Configure Npgsql to handle DateTime mapping
-    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-    
-    // PostgreSQL Configuration
-    var postgresBuilder = new NpgsqlConnectionStringBuilder()
-    {
-        Host = builder.Configuration["POSTGRES_HOST"] ?? throw new ArgumentException("POSTGRES_HOST not configured"),
-        Database = builder.Configuration["POSTGRES_DATABASE"] ?? throw new ArgumentException("POSTGRES_DATABASE not configured"),
-        Username = builder.Configuration["POSTGRES_USERNAME"] ?? throw new ArgumentException("POSTGRES_USERNAME not configured"),
-        Password = builder.Configuration["POSTGRES_PASSWORD"] ?? throw new ArgumentException("POSTGRES_PASSWORD not configured"),
-        Port = int.Parse(builder.Configuration["POSTGRES_PORT"] ?? "5432"),
-        SslMode = Enum.Parse<SslMode>(builder.Configuration["POSTGRES_SSL_MODE"] ?? "Prefer"),
-        Timezone = "UTC",
-    };
+    Host = builder.Configuration["POSTGRES_HOST"] ?? throw new ArgumentException("POSTGRES_HOST not configured"),
+    Database = builder.Configuration["POSTGRES_DATABASE"] ?? throw new ArgumentException("POSTGRES_DATABASE not configured"),
+    Username = builder.Configuration["POSTGRES_USERNAME"] ?? throw new ArgumentException("POSTGRES_USERNAME not configured"),
+    Password = builder.Configuration["POSTGRES_PASSWORD"] ?? throw new ArgumentException("POSTGRES_PASSWORD not configured"),
+    Port = int.Parse(builder.Configuration["POSTGRES_PORT"] ?? "5432"),
+    SslMode = Enum.Parse<SslMode>(builder.Configuration["POSTGRES_SSL_MODE"] ?? "Prefer"),
+    Timezone = "UTC",
+};
 
-    builder.Services.AddDbContext<StorageLabelsDbContext>(options =>
-    {
-        options.UseNpgsql(
-            postgresBuilder.ConnectionString,
-            npgsqlOptions => npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
-        );
-    }, ServiceLifetime.Transient);
-}
-else
+builder.Services.AddDbContext<StorageLabelsDbContext>(options =>
 {
-    // MSSQL Configuration (default)
-    var dataSource = builder.Configuration["DATA_SOURCE"];
-    var initialCatalog = builder.Configuration["INITIAL_CATALOG"];
-    var dbPassword = builder.Configuration["DB_PASSWORD"];
-    var userID = builder.Configuration["DB_USERNAME"];
-
-    var sqlBuilder = new SqlConnectionStringBuilder()
-    {
-        DataSource = dataSource,
-        InitialCatalog = initialCatalog,
-        Password = dbPassword,
-        UserID = userID,
-        IntegratedSecurity = false,
-        TrustServerCertificate = true,
-    };
-
-    builder.Services.AddDbContext<StorageLabelsDbContext>(options =>
-    {
-        options.UseSqlServer(
-            sqlBuilder.ConnectionString,
-            sqlOptions => sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
-        );
-    }, ServiceLifetime.Transient);
-}
+    options.UseNpgsql(
+        postgresBuilder.ConnectionString,
+        npgsqlOptions => npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+    );
+}, ServiceLifetime.Transient);
 
 var auth0 = builder.Configuration.GetSection(nameof(Auth0Settings)).Get<Auth0Settings>()
     ?? throw new ArgumentException("Auth0 settings not found.");

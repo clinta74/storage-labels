@@ -18,10 +18,33 @@ The **storage-labels** project is a full-stack application suite designed to str
 
 ## Architecture
 
-- **Backend**: .NET 9.0, MediatR, Ardalis.Result, Entity Framework Core, RESTful endpoints
+- **Backend**: .NET 9.0, MediatR, Ardalis.Result, Entity Framework Core, PostgreSQL, RESTful endpoints
 - **Frontend**: React 18, Parcel, Material-UI v7, @yudiel/react-qr-scanner, React Context API
+- **Database**: PostgreSQL 17 (as of v2.0.0)
 - **Testing**: k6 for load testing, ESLint for code quality
+
+## Database Migration (v2.0.0)
+
+Version 2.0.0 introduces a breaking change by migrating from Microsoft SQL Server to PostgreSQL. This change provides:
+- Better Docker/container support
+- Easier deployment on platforms like TrueNAS SCALE
+- Open-source database with no licensing concerns
+- Lowercase table naming convention for PostgreSQL best practices
+
+**Note**: If you're upgrading from v1.x, you'll need to migrate your data. See [VERSIONING.md](VERSIONING.md) for details.
 
 ## Getting Started
 
-See the individual folders (`storage-labels-api`, `storage-labels-ui`, `storage-labels-k6`) for setup and usage instructions.
+### Using Docker Compose
+
+1. Copy `docker-compose-custom-config.yaml` to `docker-compose.yml`
+2. Create a `.env` file with your secrets:
+   ```env
+   POSTGRES_PASSWORD=your_secure_password
+   AUTH0_CLIENT_SECRET=your_auth0_secret
+   ```
+3. Run: `docker-compose up -d`
+
+### Development Setup
+
+See the individual folders (`storage-labels-api`, `storage-labels-ui`, `storage-labels-k6`) for detailed setup and usage instructions.

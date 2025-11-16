@@ -1,1 +1,3 @@
 /storage-labels-migrator
+.env
+docker-compose.yml

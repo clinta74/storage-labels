@@ -18,6 +18,16 @@ import { AppThemeProvider } from './providers/theme-provider';
 export const AppRoutes: React.FunctionComponent = () => {
     const { isAuthenticated, isLoading } = useAuth0();
 
+    // Legal routes are public and don't require authentication
+    return (
+        <Routes>
+            <Route path="/legal/*" element={<LegalRoutes />} />
+            <Route path="/*" element={<AuthenticatedRoutes isLoading={isLoading} isAuthenticated={isAuthenticated} />} />
+        </Routes>
+    );
+}
+
+const AuthenticatedRoutes: React.FC<{ isLoading: boolean; isAuthenticated: boolean }> = ({ isLoading, isAuthenticated }) => {
     if (isLoading) {
         return (
             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="50vh">
@@ -33,7 +43,6 @@ export const AppRoutes: React.FunctionComponent = () => {
             <Box>
                 <ApiProvider>
                     <Routes>
-                        <Route path="/legal/*" element={<LegalRoutes />} />
                         <Route path="/new-user/*" element={<NewUserRoutes />} />
                         <Route path="/*" element={
                             <UserProvider>

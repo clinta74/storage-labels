@@ -13,7 +13,9 @@ public class GetNewUserHandler(IAuth0ManagementApiClient auth0ManagementApiClien
             return Result.CriticalError("Auth0ManagementApiClient not initialized.");
         }
 
-        var userData = await auth0ManagementApiClient.Client.Users.GetAsync(request.userId, string.Empty, true, cancellationToken);
+        // Retrieve user with all standard fields
+        var fields = "user_id,email,email_verified,name,nickname,picture,created_at,updated_at,identities,app_metadata,user_metadata";
+        var userData = await auth0ManagementApiClient.Client.Users.GetAsync(request.userId, fields, true, cancellationToken);
 
         if (userData is null)
         {

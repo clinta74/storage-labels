@@ -40,7 +40,8 @@ public class ImageAccessFilter : IEndpointFilter
         { 
             "http://localhost:4000", 
             "https://storage-labels.pollyspeople.net",
-            hostValue // Also allow the API's own host
+            $"http://{hostValue}",  // Allow the API's own host with http
+            $"https://{hostValue}"  // Allow the API's own host with https
         };
         
         if (!string.IsNullOrEmpty(referer) && !IsAllowedOrigin(referer, allowedOrigins))

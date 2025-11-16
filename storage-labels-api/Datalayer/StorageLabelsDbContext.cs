@@ -13,11 +13,20 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<UserLocation> UserLocations { get; set; } = null!;
     public DbSet<ImageMetadata> Images { get; set; } = null!;
+    public DbSet<EncryptionKey> EncryptionKeys { get; set; } = null!;
+    public DbSet<EncryptionKeyRotation> EncryptionKeyRotations { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Configure table names to use lowercase (PostgreSQL convention)
         modelBuilder.Entity<Box>().ToTable("boxes");
+        modelBuilder.Entity<CommonLocation>().ToTable("commonlocations");
+        modelBuilder.Entity<Item>().ToTable("items");
+        modelBuilder.Entity<Location>().ToTable("locations");
+        modelBuilder.Entity<User>().ToTable("users");
+        modelBuilder.Entity<UserLocation>().ToTable("userlocations");
+        modelBuilder.Entity<ImageMetadata>().ToTable("images");
+        modelBuilder.Entity<EncryptionKey>().ToTable("encryptionkeys");
         modelBuilder.Entity<CommonLocation>().ToTable("commonlocations");
         modelBuilder.Entity<Item>().ToTable("items");
         modelBuilder.Entity<Location>().ToTable("locations");
@@ -90,5 +99,38 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
             .HasMany(img => img.ReferencedByItems)
             .WithOne(item => item.ImageMetadata)
             .HasForeignKey(item => item.ImageMetadataId);
+
+        modelBuilder.Entity<EncryptionKey>()
+            .HasKey(key => key.Kid);
+
+        modelBuilder.Entity<EncryptionKey>()
+            .HasIndex(key => new { key.Status, key.Version });
+
+        modelBuilder.Entity<EncryptionKey>()
+            .HasMany(key => key.Images)
+            .WithOne(img => img.EncryptionKey)
+            .HasForeignKey(img => img.EncryptionKeyId)
+            .OnDelete(DeleteBehavior.Restrict); // Prevent key deletion if images exist
+
+        modelBuilder.Entity<ImageMetadata>()
+            .HasOne(img => img.EncryptionKey)
+            .WithMany(key => key.Images)
+            .HasForeignKey(img => img.EncryptionKeyId);
+
+        // Configure EncryptionKeyRotation relationships
+        modelBuilder.Entity<EncryptionKeyRotation>()
+            .HasOne(r => r.FromKey)
+            .WithMany()
+            .HasForeignKey(r => r.FromKeyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<EncryptionKeyRotation>()
+            .HasOne(r => r.ToKey)
+            .WithMany()
+            .HasForeignKey(r => r.ToKeyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<EncryptionKeyRotation>()
+            .HasIndex(r => r.Status);
     }
 }

@@ -25,7 +25,9 @@ public class CreateNewUserHandler(StorageLabelsDbContext dbContext, TimeProvider
             return Result.CriticalError("Auth0ManagementApiClient not initialized.");
         }
 
-        var auth0User = await auth0ManagementApiClient.Client.Users.GetAsync(request.UserId, string.Empty, true, cancellationToken);
+        // Retrieve user with standard fields - we only need email but Auth0 requires valid field list
+        var fields = "user_id,email,email_verified,name,nickname,picture,created_at,updated_at,identities,app_metadata,user_metadata";
+        var auth0User = await auth0ManagementApiClient.Client.Users.GetAsync(request.UserId, fields, true, cancellationToken);
 
         if (auth0User is null || string.IsNullOrEmpty(auth0User.Email))
         {

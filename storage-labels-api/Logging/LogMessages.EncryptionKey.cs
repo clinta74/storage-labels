@@ -37,7 +37,7 @@ public static partial class LogMessages
 
     // StartKeyRotationHandler
     [LoggerMessage(Message = "User {userId} started manual rotation {rotationId}: {fromKid} -> {toKid}", Level = LogLevel.Information)]
-    public static partial void ManualRotationStarted(this ILogger logger, string userId, Guid rotationId, int fromKid, int toKid);
+    public static partial void ManualRotationStarted(this ILogger logger, string userId, Guid rotationId, int? fromKid, int toKid);
 
     [LoggerMessage(Message = "Failed to start key rotation", Level = LogLevel.Error)]
     public static partial void KeyRotationStartFailed(this ILogger logger, Exception ex);

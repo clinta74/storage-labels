@@ -5,7 +5,7 @@ using StorageLabelsApi.Services;
 namespace StorageLabelsApi.Handlers.EncryptionKeys;
 
 public record StartKeyRotation(
-    int FromKeyId,
+    int? FromKeyId,
     int ToKeyId,
     int BatchSize,
     string UserId

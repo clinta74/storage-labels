@@ -10,6 +10,7 @@ import { NewUserRoutes } from './components/new-user/new-user-routes';
 import { LocationRoutes } from './components/locations/locations-routes';
 import { ImagesRoutes } from './components/images/images-routes';
 import { CommonLocationsRoutes } from './components/common-locations/common-locations-routes';
+import { EncryptionKeysRoutes } from './components/encryption-keys/encryption-keys-routes';
 import { Preferences } from './components/user/preferences';
 import { UserProvider } from './providers/user-provider';
 import { AppThemeProvider } from './providers/theme-provider';
@@ -41,6 +42,7 @@ export const AppRoutes: React.FunctionComponent = () => {
                                         <Route path="/locations/*" element={<LocationRoutes />} />
                                         <Route path="/images/*" element={<ImagesRoutes />} />
                                         <Route path="/common-locations/*" element={<CommonLocationsRoutes />} />
+                                        <Route path="/encryption-keys/*" element={<EncryptionKeysRoutes />} />
                                         <Route path="/preferences" element={<Preferences />} />
                                         <Route index element={<Navigate to="/locations" />} />
                                         <Route path="*" element={<Navigate to="/" replace />} />

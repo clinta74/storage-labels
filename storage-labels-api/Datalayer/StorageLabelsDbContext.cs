@@ -1,16 +1,20 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.DataLayer.Models;
+using StorageLabelsApi.Datalayer.Models;
 
 namespace StorageLabelsApi.Datalayer;
 
-public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbContext(options)
+public class StorageLabelsDbContext([NotNull] DbContextOptions options) : IdentityDbContext<ApplicationUser, ApplicationRole, string>(options)
 {
     public DbSet<Box> Boxes { get; set; } = null!;
     public DbSet<CommonLocation> CommonLocations { get; set; } = null!;
     public DbSet<Item> Items { get; set; } = null!;
     public DbSet<Location> Locations { get; set; } = null!;
-    public DbSet<User> Users { get; set; } = null!;
+    
+    // Legacy Auth0 users table - hiding base.Users intentionally for backward compatibility
+    public new DbSet<User> Users { get; set; } = null!;
     public DbSet<UserLocation> UserLocations { get; set; } = null!;
     public DbSet<ImageMetadata> Images { get; set; } = null!;
     public DbSet<EncryptionKey> EncryptionKeys { get; set; } = null!;
@@ -18,6 +22,18 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbCont
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Call base to configure Identity tables
+        base.OnModelCreating(modelBuilder);
+
+        // Configure Identity table names to use lowercase (PostgreSQL convention)
+        modelBuilder.Entity<ApplicationUser>().ToTable("aspnetusers");
+        modelBuilder.Entity<ApplicationRole>().ToTable("aspnetroles");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<string>>().ToTable("aspnetuserroles");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<string>>().ToTable("aspnetuserclaims");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<string>>().ToTable("aspnetuserlogins");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<string>>().ToTable("aspnetusertokens");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>>().ToTable("aspnetroleclaims");
+
         // Configure table names to use lowercase (PostgreSQL convention)
         modelBuilder.Entity<Box>().ToTable("boxes");
         modelBuilder.Entity<CommonLocation>().ToTable("commonlocations");

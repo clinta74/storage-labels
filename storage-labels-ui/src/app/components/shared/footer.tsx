@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
         <Box
             component="footer"
             sx={{
-                py: 3,
+                py: { xs: 1.5, sm: 2 },
                 px: 2,
                 mt: 'auto',
                 backgroundColor: (theme) =>
@@ -24,19 +24,20 @@ export const Footer: React.FC = () => {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         flexWrap: 'wrap',
-                        gap: 2,
+                        gap: { xs: 1, sm: 2 },
                     }}
                 >
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                         © {currentYear} Storage Labels. All rights reserved.
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 3 }}>
+                    <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 } }}>
                         <Link
                             href="/legal/privacy"
                             target="_blank"
                             rel="noopener noreferrer"
                             underline="hover"
                             color="text.secondary"
+                            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                         >
                             Privacy Policy
                         </Link>
@@ -46,6 +47,7 @@ export const Footer: React.FC = () => {
                             rel="noopener noreferrer"
                             underline="hover"
                             color="text.secondary"
+                            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                         >
                             Terms of Service
                         </Link>

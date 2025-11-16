@@ -6,7 +6,7 @@ namespace StorageLabelsApi.Services;
 /// Options for key rotation
 /// </summary>
 public record RotationOptions(
-    int FromKeyId,
+    int? FromKeyId,
     int ToKeyId,
     int BatchSize = 100,
     string? InitiatedBy = null,

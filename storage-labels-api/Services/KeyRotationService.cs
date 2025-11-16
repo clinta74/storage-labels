@@ -30,8 +30,8 @@ public class KeyRotationService : IKeyRotationService
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<StorageLabelsDbContext>();
 
-        // Special case: fromKeyId = 0 means encrypting unencrypted images
-        if (options.FromKeyId == 0)
+        // Special case: fromKeyId = null or 0 means encrypting unencrypted images
+        if (!options.FromKeyId.HasValue || options.FromKeyId == 0)
         {
             var toKey = await context.EncryptionKeys.FindAsync([options.ToKeyId], cancellationToken);
             if (toKey == null)
@@ -45,10 +45,10 @@ public class KeyRotationService : IKeyRotationService
                 .Where(img => !img.IsEncrypted)
                 .CountAsync(cancellationToken);
 
-            // Create rotation record (fromKeyId=0 indicates migration from unencrypted)
+            // Create rotation record (fromKeyId=null indicates migration from unencrypted)
             var rotation = new EncryptionKeyRotation
             {
-                FromKeyId = 0,
+                FromKeyId = null,
                 ToKeyId = options.ToKeyId,
                 Status = RotationStatus.InProgress,
                 TotalImages = totalImages,
@@ -74,7 +74,7 @@ public class KeyRotationService : IKeyRotationService
         }
 
         // Standard rotation between two encrypted keys
-        var fromKey = await context.EncryptionKeys.FindAsync([options.FromKeyId], cancellationToken);
+        var fromKey = await context.EncryptionKeys.FindAsync([options.FromKeyId.Value], cancellationToken);
         var toKey2 = await context.EncryptionKeys.FindAsync([options.ToKeyId], cancellationToken);
 
         if (fromKey == null)
@@ -84,7 +84,7 @@ public class KeyRotationService : IKeyRotationService
 
         // Count images to rotate
         var totalImages2 = await context.Images
-            .Where(img => img.IsEncrypted && img.EncryptionKeyId == options.FromKeyId)
+            .Where(img => img.IsEncrypted && img.EncryptionKeyId == options.FromKeyId.Value)
             .CountAsync(cancellationToken);
 
         // Create rotation record

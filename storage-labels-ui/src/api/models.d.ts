@@ -202,7 +202,7 @@ interface CreateEncryptionKeyRequest {
 }
 
 interface StartRotationRequest {
-    fromKeyId: number;
+    fromKeyId?: number | null;
     toKeyId: number;
     batchSize: number;
 }

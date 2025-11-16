@@ -43,8 +43,9 @@ public class EncryptionKeyRotation
 
     /// <summary>
     /// ID of the key being rotated FROM (references EncryptionKey.Kid)
+    /// Null indicates migration from unencrypted images
     /// </summary>
-    public int FromKeyId { get; set; }
+    public int? FromKeyId { get; set; }
 
     /// <summary>
     /// Navigation property to the source key

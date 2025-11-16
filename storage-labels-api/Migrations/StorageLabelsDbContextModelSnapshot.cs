@@ -156,7 +156,7 @@ namespace StorageLabelsApi.Migrations
                     b.Property<int>("FailedImages")
                         .HasColumnType("integer");
 
-                    b.Property<int>("FromKeyId")
+                    b.Property<int?>("FromKeyId")
                         .HasColumnType("integer");
 
                     b.Property<string>("InitiatedBy")
@@ -374,8 +374,7 @@ namespace StorageLabelsApi.Migrations
                     b.HasOne("StorageLabelsApi.DataLayer.Models.EncryptionKey", "FromKey")
                         .WithMany()
                         .HasForeignKey("FromKeyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("StorageLabelsApi.DataLayer.Models.EncryptionKey", "ToKey")
                         .WithMany()

@@ -131,9 +131,9 @@ export const EncryptionKeysPage: React.FC = () => {
                 return;
             }
 
-            // Start migration using fromKeyId=0 to indicate unencrypted images
+            // Start migration using fromKeyId=null to indicate unencrypted images
             const rotationId = await Api.EncryptionKey.startKeyRotation({
-                fromKeyId: 0,
+                fromKeyId: null,
                 toKeyId: activeKey.kid,
                 batchSize: migrateBatchSize,
             });

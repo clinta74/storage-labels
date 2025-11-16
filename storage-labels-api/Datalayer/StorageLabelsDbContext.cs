@@ -6,16 +6,25 @@ namespace StorageLabelsApi.Datalayer;
 
 public class StorageLabelsDbContext([NotNull] DbContextOptions options) : DbContext(options)
 {
-    public required DbSet<Box> Boxes { get; set; }
-    public required DbSet<CommonLocation> CommonLocations { get; set; }
-    public required DbSet<Item> Items { get; set; }
-    public required DbSet<Location> Locations { get; set; }
-    public required DbSet<User> Users { get; set; }
-    public required DbSet<UserLocation> UserLocations { get; set; }
-    public required DbSet<ImageMetadata> Images { get; set; }
+    public DbSet<Box> Boxes { get; set; } = null!;
+    public DbSet<CommonLocation> CommonLocations { get; set; } = null!;
+    public DbSet<Item> Items { get; set; } = null!;
+    public DbSet<Location> Locations { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<UserLocation> UserLocations { get; set; } = null!;
+    public DbSet<ImageMetadata> Images { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Configure table names to use lowercase (PostgreSQL convention)
+        modelBuilder.Entity<Box>().ToTable("boxes");
+        modelBuilder.Entity<CommonLocation>().ToTable("commonlocations");
+        modelBuilder.Entity<Item>().ToTable("items");
+        modelBuilder.Entity<Location>().ToTable("locations");
+        modelBuilder.Entity<User>().ToTable("users");
+        modelBuilder.Entity<UserLocation>().ToTable("userlocations");
+        modelBuilder.Entity<ImageMetadata>().ToTable("images");
+
         modelBuilder.Entity<Box>()
             .HasKey(box => box.BoxId);
 

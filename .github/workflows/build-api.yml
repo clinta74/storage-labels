@@ -36,13 +36,13 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore storage-labels-api.sln
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build storage-labels-api.sln --no-restore --configuration Release
+        run: dotnet build --no-restore --configuration Release
 
       - name: Run tests
-        run: dotnet test storage-labels-api.sln --no-build --configuration Release --verbosity normal
+        run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Get latest tag
         id: get_tag

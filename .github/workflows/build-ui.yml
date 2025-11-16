@@ -31,10 +31,10 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
-          # Get the latest semver tag, or default to v0.0.0
-          LATEST_TAG=$(git tag -l "v*" --sort=-v:refname | head -n 1)
+          # Get the latest semver tag for UI, or default to v0.0.0
+          LATEST_TAG=$(git tag -l "ui-v*" --sort=-v:refname | head -n 1)
           if [ -z "$LATEST_TAG" ]; then
-            LATEST_TAG="v0.0.0"
+            LATEST_TAG="ui-v0.0.0"
           fi
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_OUTPUT
           echo "Latest tag: $LATEST_TAG"
@@ -44,7 +44,7 @@ jobs:
         run: |
           # Parse the latest tag
           LATEST_TAG=${{ steps.get_tag.outputs.LATEST_TAG }}
-          VERSION=${LATEST_TAG#v}  # Remove 'v' prefix
+          VERSION=${LATEST_TAG#ui-v}  # Remove 'ui-v' prefix
           
           # Split into major.minor.patch
           IFS='.' read -ra PARTS <<< "$VERSION"
@@ -56,7 +56,7 @@ jobs:
           PATCH=$((PATCH + 1))
           
           # Create new version
-          NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+          NEW_VERSION="ui-v$MAJOR.$MINOR.$PATCH"
           VERSION_NUMBER="$MAJOR.$MINOR.$PATCH"
           
           echo "VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -87,7 +87,7 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/storage-labels-ui
           tags: |
-            type=raw,value=${{ steps.version.outputs.VERSION }}
+            type=raw,value=v${{ steps.version.outputs.VERSION_NUMBER }}
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=stable,enable={{is_default_branch}}
             type=sha,prefix=sha-
@@ -114,6 +114,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.version.outputs.VERSION }}
-          name: Release ${{ steps.version.outputs.VERSION }}
+          name: UI Release ${{ steps.version.outputs.VERSION }}
           generateReleaseNotes: true
           makeLatest: true

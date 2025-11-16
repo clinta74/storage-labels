@@ -211,7 +211,7 @@ public class KeyRotationService : IKeyRotationService
                 return;
             }
 
-            var isEncryptionMigration = rotation.FromKeyId == 0;
+            var isEncryptionMigration = !rotation.FromKeyId.HasValue;
 
             _logger.LogInformation(
                 "Beginning {Operation} {RotationId}: {FromKey} -> {ToKey}",
@@ -243,7 +243,7 @@ public class KeyRotationService : IKeyRotationService
                         .Take(rotation.BatchSize)
                         .ToListAsync()
                     : await context.Images
-                        .Where(img => img.IsEncrypted && img.EncryptionKeyId == rotation.FromKeyId)
+                        .Where(img => img.IsEncrypted && img.EncryptionKeyId == rotation.FromKeyId!.Value)
                         .Take(rotation.BatchSize)
                         .ToListAsync();
 

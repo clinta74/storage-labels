@@ -54,7 +54,7 @@ export const getEncryptionKeyEndpoints = (client: AxiosInstance): EncryptionKeyE
     streamRotationProgress: async (rotationId: string, onProgress: (progress: RotationProgress) => void, getAccessToken: () => Promise<string>) => {
         const baseURL = client.defaults.baseURL || '';
         const token = await getAccessToken();
-        const url = `${baseURL}/admin/encryption-keys/rotations/${rotationId}/stream`;
+        const url = `${baseURL}admin/encryption-keys/rotations/${rotationId}/stream`;
         
         const abortController = new AbortController();
 

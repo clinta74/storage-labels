@@ -9,19 +9,24 @@ namespace StorageLabelsApi.DataLayer.Models;
 public enum EncryptionKeyStatus
 {
     /// <summary>
+    /// Key has been created but not yet activated
+    /// </summary>
+    Created,
+    
+    /// <summary>
     /// Key is active and used for new encryptions
     /// </summary>
     Active,
     
     /// <summary>
-    /// Key is retired but still available for decryption
+    /// Key is deprecated but still available for decryption (being rotated out)
     /// </summary>
-    Retired,
+    Deprecated,
     
     /// <summary>
-    /// Key is marked for deletion (no longer used)
+    /// Key is retired but still available for decryption
     /// </summary>
-    Deprecated
+    Retired
 }
 
 /// <summary>

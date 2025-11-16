@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StorageLabelsApi.Datalayer;
@@ -21,7 +21,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImage, Result>
         _logger = logger;
     }
 
-    public async Task<Result> Handle(DeleteImage request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(DeleteImage request, CancellationToken cancellationToken)
     {
         var image = await _dbContext.Images
             .AsNoTracking()

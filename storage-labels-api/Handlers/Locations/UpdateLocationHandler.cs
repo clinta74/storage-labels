@@ -8,7 +8,7 @@ public record UpdateLocation(string UserId, long LocationId, string Name) : IReq
 
 public class UpdateLocationHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider) : IRequestHandler<UpdateLocation, Result<LocationWithAccess>>
 {
-    public async Task<Result<LocationWithAccess>> Handle(UpdateLocation request, CancellationToken cancellationToken)
+    public async ValueTask<Result<LocationWithAccess>> Handle(UpdateLocation request, CancellationToken cancellationToken)
     {
         var location = await dbContext.Locations
             .AsNoTracking()

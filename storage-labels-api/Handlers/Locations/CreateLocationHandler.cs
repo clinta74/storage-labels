@@ -6,7 +6,7 @@ namespace StorageLabelsApi.Handlers.Locations;
 public record CreateLocation(string UserId, string Name) : IRequest<Result<LocationWithAccess>>;
 public class CreateLocationHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider) : IRequestHandler<CreateLocation, Result<LocationWithAccess>>
 {
-    public async Task<Result<LocationWithAccess>> Handle(CreateLocation request, CancellationToken cancellationToken)
+    public async ValueTask<Result<LocationWithAccess>> Handle(CreateLocation request, CancellationToken cancellationToken)
     {
         var dateTime = timeProvider.GetUtcNow();
 

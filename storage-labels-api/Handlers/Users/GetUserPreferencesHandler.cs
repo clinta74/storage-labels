@@ -10,7 +10,7 @@ public record GetUserPreferences(string UserId) : IRequest<Result<UserPreference
 public class GetUserPreferencesHandler(StorageLabelsDbContext dbContext) 
     : IRequestHandler<GetUserPreferences, Result<UserPreferencesResponse>>
 {
-    public async Task<Result<UserPreferencesResponse>> Handle(GetUserPreferences request, CancellationToken cancellationToken)
+    public async ValueTask<Result<UserPreferencesResponse>> Handle(GetUserPreferences request, CancellationToken cancellationToken)
     {
         var user = await dbContext.Users
             .AsNoTracking()

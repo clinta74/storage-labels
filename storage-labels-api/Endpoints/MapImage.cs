@@ -1,5 +1,5 @@
 using Ardalis.Result.AspNetCore;
-using MediatR;
+using Mediator;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Images;

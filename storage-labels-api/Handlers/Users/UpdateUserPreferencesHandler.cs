@@ -12,7 +12,7 @@ public class UpdateUserPreferencesHandler(
     ILogger<UpdateUserPreferencesHandler> logger) 
     : IRequestHandler<UpdateUserPreferences, Result<UserPreferencesResponse>>
 {
-    public async Task<Result<UserPreferencesResponse>> Handle(UpdateUserPreferences request, CancellationToken cancellationToken)
+    public async ValueTask<Result<UserPreferencesResponse>> Handle(UpdateUserPreferences request, CancellationToken cancellationToken)
     {
         var userExists = await dbContext.Users
             .AsNoTracking()

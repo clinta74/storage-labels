@@ -12,7 +12,7 @@ public class MoveBoxHandler(
     TimeProvider timeProvider,
     ILogger<MoveBoxHandler> logger) : IRequestHandler<MoveBox, Result<Box>>
 {
-    public async Task<Result<Box>> Handle(MoveBox request, CancellationToken cancellationToken)
+    public async ValueTask<Result<Box>> Handle(MoveBox request, CancellationToken cancellationToken)
     {
         // Check if the box exists and user has edit access to the source location
         var userCanAccessSourceLocation = await dbContext.Boxes

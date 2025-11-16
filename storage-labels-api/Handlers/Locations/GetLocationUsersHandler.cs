@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
@@ -9,7 +9,7 @@ public record GetLocationUsers(string UserId, long LocationId) : IRequest<Result
 
 public class GetLocationUsersHandler(StorageLabelsDbContext dbContext) : IRequestHandler<GetLocationUsers, Result<List<UserLocation>>>
 {
-    public async Task<Result<List<UserLocation>>> Handle(GetLocationUsers request, CancellationToken cancellationToken)
+    public async ValueTask<Result<List<UserLocation>>> Handle(GetLocationUsers request, CancellationToken cancellationToken)
     {
         // Verify the user has access to this location
         var hasAccess = await dbContext.UserLocations

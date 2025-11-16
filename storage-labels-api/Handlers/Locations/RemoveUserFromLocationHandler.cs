@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
@@ -9,7 +9,7 @@ public record RemoveUserFromLocation(string UserId, long LocationId, string Targ
 
 public class RemoveUserFromLocationHandler(StorageLabelsDbContext dbContext) : IRequestHandler<RemoveUserFromLocation, Result>
 {
-    public async Task<Result> Handle(RemoveUserFromLocation request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(RemoveUserFromLocation request, CancellationToken cancellationToken)
     {
         // Verify the requesting user has owner access to this location
         var hasOwnerAccess = await dbContext.UserLocations

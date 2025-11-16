@@ -1,4 +1,4 @@
-global using MediatR;
+global using Mediator;
 global using Ardalis.Result;
 global using StorageLabelsApi.Extensions;
 
@@ -25,7 +25,7 @@ const string OpenApiDocumentName = "storage-labels-api";
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .Configure<Auth0Settings>(builder.Configuration.GetSection(nameof(Auth0Settings)))
-    .AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()))
+    .AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped)
     .AddLogging()
     .AddOpenApi(OpenApiDocumentName, options =>
     {

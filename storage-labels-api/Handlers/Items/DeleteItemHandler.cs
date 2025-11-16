@@ -9,7 +9,7 @@ public record DeleteItem(Guid ItemId, string? UserId) : IRequest<Result>;
 
 public class DeleteItemHandler(StorageLabelsDbContext dbContext) : IRequestHandler<DeleteItem, Result>
 {
-    public async Task<Result> Handle(DeleteItem request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(DeleteItem request, CancellationToken cancellationToken)
     {
         var hasAccess = await dbContext.Items
             .AsNoTracking()

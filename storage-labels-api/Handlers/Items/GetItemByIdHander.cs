@@ -9,7 +9,7 @@ public record GetItemById(Guid ItemId, string? UserId) : IRequest<Result<Item>>;
 
 public class GetItemByIdHandler(StorageLabelsDbContext dbContext) : IRequestHandler<GetItemById, Result<Item>>
 {
-    public async Task<Result<Item>> Handle(GetItemById request, CancellationToken cancellationToken)
+    public async ValueTask<Result<Item>> Handle(GetItemById request, CancellationToken cancellationToken)
     {
         var item = await dbContext.Items
             .Where(i => i.ItemId == request.ItemId)

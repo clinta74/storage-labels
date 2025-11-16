@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.Models.DTO.Image;
@@ -17,7 +17,7 @@ public class GetUserImagesHandler : IRequestHandler<GetUserImages, Result<List<I
         _dbContext = dbContext;
     }
 
-    public async Task<Result<List<ImageMetadata>>> Handle(GetUserImages request, CancellationToken cancellationToken)
+    public async ValueTask<Result<List<ImageMetadata>>> Handle(GetUserImages request, CancellationToken cancellationToken)
     {
         var images = await _dbContext.Images
             .AsNoTracking()

@@ -9,7 +9,7 @@ public record GetUserById(string UserId) : IRequest<Result<User>>;
 public class GetUserByIdHandler(StorageLabelsDbContext dbContext) : IRequestHandler<GetUserById, Result<User>>
 {
 
-    public async Task<Result<User>> Handle(GetUserById request, CancellationToken cancellationToken)
+    public async ValueTask<Result<User>> Handle(GetUserById request, CancellationToken cancellationToken)
     {
         var user = await dbContext.Users
             .AsNoTracking()

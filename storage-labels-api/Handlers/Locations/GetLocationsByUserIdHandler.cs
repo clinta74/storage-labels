@@ -7,7 +7,7 @@ namespace StorageLabelsApi.Handlers.Locations;
 public record GetLocationsByUserId(string UserId) : IRequest<Result<List<LocationWithAccess>>>;
 public class GetLocationsByUserIdHandler(StorageLabelsDbContext dbContext) : IRequestHandler<GetLocationsByUserId, Result<List<LocationWithAccess>>>
 {
-    public async Task<Result<List<LocationWithAccess>>> Handle(GetLocationsByUserId request, CancellationToken cancellationToken)
+    public async ValueTask<Result<List<LocationWithAccess>>> Handle(GetLocationsByUserId request, CancellationToken cancellationToken)
     {
         var locations = await dbContext.UserLocations
             .AsNoTracking()

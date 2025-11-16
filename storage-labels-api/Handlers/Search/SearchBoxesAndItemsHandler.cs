@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
@@ -18,7 +18,7 @@ public class SearchBoxesAndItemsHandler : IRequestHandler<SearchBoxesAndItemsQue
         this.dbContext = dbContext;
     }
 
-    public async Task<Result<SearchResultsResponse>> Handle(SearchBoxesAndItemsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<SearchResultsResponse>> Handle(SearchBoxesAndItemsQuery request, CancellationToken cancellationToken)
     {
         var searchTerm = request.Query.ToLower();
         var results = new List<SearchResultResponse>();

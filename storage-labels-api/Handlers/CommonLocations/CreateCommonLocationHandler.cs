@@ -7,7 +7,7 @@ public record CreateCommonLocation(string Name) : IRequest<Result<CommonLocation
 
 public class CreateCommonLocationHandler(StorageLabelsDbContext dbContext) : IRequestHandler<CreateCommonLocation, Result<CommonLocation>>
 {
-    public async Task<Result<CommonLocation>> Handle(CreateCommonLocation request, CancellationToken cancellationToken)
+    public async ValueTask<Result<CommonLocation>> Handle(CreateCommonLocation request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(request.Name))
         {

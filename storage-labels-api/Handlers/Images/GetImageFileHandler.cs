@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StorageLabelsApi.Datalayer;
@@ -23,7 +23,7 @@ public class GetImageFileHandler : IRequestHandler<GetImageFile, Result<ImageMet
         _logger = logger;
     }
 
-    public async Task<Result<ImageMetadata>> Handle(GetImageFile request, CancellationToken cancellationToken)
+    public async ValueTask<Result<ImageMetadata>> Handle(GetImageFile request, CancellationToken cancellationToken)
     {
         var image = await _dbContext.Images
             .Include(img => img.ReferencedByBoxes)

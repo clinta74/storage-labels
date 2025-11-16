@@ -22,7 +22,7 @@ public class UpdateBoxHandler(
     TimeProvider timeProvider,
     ILogger<UpdateBoxHandler> logger) : IRequestHandler<UpdateBox, Result<Box>>
 {
-    public async Task<Result<Box>> Handle(UpdateBox request, CancellationToken cancellationToken)
+    public async ValueTask<Result<Box>> Handle(UpdateBox request, CancellationToken cancellationToken)
     {
         var validation = await new UpdateBoxValidator()
             .ValidateAsync(request);

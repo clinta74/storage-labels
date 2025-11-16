@@ -17,7 +17,7 @@ public record CreateItem(
 
 public class CreateItemHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, ILogger<CreateItemHandler> logger) : IRequestHandler<CreateItem, Result<Item>>
 {
-    public async Task<Result<Item>> Handle(CreateItem request, CancellationToken cancellationToken)
+    public async ValueTask<Result<Item>> Handle(CreateItem request, CancellationToken cancellationToken)
     {
         var userCanEditBox = await dbContext.UserLocations
             .Where(ul => ul.UserId == request.UserId)

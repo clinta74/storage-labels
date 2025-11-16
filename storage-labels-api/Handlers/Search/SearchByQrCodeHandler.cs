@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
@@ -18,7 +18,7 @@ public class SearchByQrCodeHandler : IRequestHandler<SearchByQrCodeQuery, Result
         this.dbContext = dbContext;
     }
 
-    public async Task<Result<SearchResultResponse>> Handle(SearchByQrCodeQuery request, CancellationToken cancellationToken)
+    public async ValueTask<Result<SearchResultResponse>> Handle(SearchByQrCodeQuery request, CancellationToken cancellationToken)
     {
         // Search for exact match in boxes the user has access to
         var box = await dbContext.Boxes

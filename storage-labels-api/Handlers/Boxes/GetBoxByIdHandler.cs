@@ -7,7 +7,7 @@ namespace StorageLabelsApi.Handlers.Boxes;
 public record GetBoxById(Guid BoxId, string UserId) : IRequest<Result<Box>>;
 public class GetBoxByIdHandler(StorageLabelsDbContext dbContext) : IRequestHandler<GetBoxById, Result<Box>>
 {
-    public async Task<Result<Box>> Handle(GetBoxById request, CancellationToken cancellationToken)
+    public async ValueTask<Result<Box>> Handle(GetBoxById request, CancellationToken cancellationToken)
     {
         var box = await dbContext.Boxes
             .AsNoTracking()

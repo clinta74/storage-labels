@@ -10,7 +10,7 @@ public record DeleteLocation(string UserId, long LocationId, bool Force = false)
 
 public class DeleteLocationHandler(StorageLabelsDbContext dbContext, ILogger<DeleteLocationHandler> logger) : IRequestHandler<DeleteLocation, Result>
 {
-    public async Task<Result> Handle(DeleteLocation request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(DeleteLocation request, CancellationToken cancellationToken)
     {
 
         var location = await dbContext.Locations

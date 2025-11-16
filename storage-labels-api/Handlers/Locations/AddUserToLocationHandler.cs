@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
@@ -9,7 +9,7 @@ public record AddUserToLocation(string UserId, long LocationId, string EmailAddr
 
 public class AddUserToLocationHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider) : IRequestHandler<AddUserToLocation, Result<UserLocation>>
 {
-    public async Task<Result<UserLocation>> Handle(AddUserToLocation request, CancellationToken cancellationToken)
+    public async ValueTask<Result<UserLocation>> Handle(AddUserToLocation request, CancellationToken cancellationToken)
     {
         // Verify the requesting user has owner access to this location
         var hasOwnerAccess = await dbContext.UserLocations

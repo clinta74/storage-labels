@@ -8,7 +8,7 @@ public record DeleteCommonLocation(int CommonLocationId) : IRequest<Result>;
 
 public class DeleteCommonLocationHandler(StorageLabelsDbContext dbContext) : IRequestHandler<DeleteCommonLocation, Result>
 {
-    public async Task<Result> Handle(DeleteCommonLocation request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(DeleteCommonLocation request, CancellationToken cancellationToken)
     {
         var exists = await dbContext.CommonLocations
             .AsNoTracking()

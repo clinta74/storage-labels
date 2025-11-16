@@ -9,7 +9,7 @@ public record CreateBox(string Code, string Name, string UserId, long LocationId
 
 public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, ILogger<CreateBoxHandler> logger) : IRequestHandler<CreateBox, Result<Box>>
 {
-    public async Task<Result<Box>> Handle(CreateBox request, CancellationToken cancellationToken)
+    public async ValueTask<Result<Box>> Handle(CreateBox request, CancellationToken cancellationToken)
     {
         var validation = await new CreateBoxValidator().ValidateAsync(request);
         if (!validation.IsValid)

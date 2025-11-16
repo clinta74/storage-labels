@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -30,7 +30,7 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
         Directory.CreateDirectory(_storagePath);
     }
 
-    public async Task<Result<ImageMetadata>> Handle(UploadImage request, CancellationToken cancellationToken)
+    public async ValueTask<Result<ImageMetadata>> Handle(UploadImage request, CancellationToken cancellationToken)
     {
         const long maxFileSizeInBytes = 10 * 1024 * 1024; // 10 MB
 

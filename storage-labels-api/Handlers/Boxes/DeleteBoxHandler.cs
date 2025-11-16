@@ -9,7 +9,7 @@ public record DeleteBox(Guid BoxId, string UserId, bool Force = false) : IReques
 
 public class DeleteBoxHandler(StorageLabelsDbContext dbContext, ILogger<DeleteBoxHandler> logger) : IRequestHandler<DeleteBox, Result>
 {
-    public async Task<Result> Handle(DeleteBox request, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(DeleteBox request, CancellationToken cancellationToken)
     {
         var box = await dbContext.Boxes
             .AsNoTracking()

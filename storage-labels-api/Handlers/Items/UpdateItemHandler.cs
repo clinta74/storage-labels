@@ -17,7 +17,7 @@ public record UpdateItem(
 
 public class UpdateItemHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider) : IRequestHandler<UpdateItem, Result<Item>>
 {
-    public async Task<Result<Item>> Handle(UpdateItem request, CancellationToken cancellationToken)
+    public async ValueTask<Result<Item>> Handle(UpdateItem request, CancellationToken cancellationToken)
     {
         var item = await dbContext.Items
             .AsNoTracking()

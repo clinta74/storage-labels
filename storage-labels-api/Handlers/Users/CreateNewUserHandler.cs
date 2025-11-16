@@ -7,7 +7,7 @@ namespace StorageLabelsApi.Handlers.Users;
 public record CreateNewUser(string UserId, string FirstName, string LastName) : IRequest<Result<User>>;
 public class CreateNewUserHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, IAuth0ManagementApiClient auth0ManagementApiClient) : IRequestHandler<CreateNewUser, Result<User>>
 {
-    public async Task<Result<User>> Handle(CreateNewUser request, CancellationToken cancellationToken)
+    public async ValueTask<Result<User>> Handle(CreateNewUser request, CancellationToken cancellationToken)
     {
         var hasBoxCode = await dbContext.Users
             .AsNoTracking()
@@ -25,7 +25,7 @@ public class CreateNewUserHandler(StorageLabelsDbContext dbContext, TimeProvider
             return Result.CriticalError("Auth0ManagementApiClient not initialized.");
         }
 
-        var auth0User = await auth0ManagementApiClient.Client.Users.GetAsync(request.UserId, null, true, cancellationToken);
+        var auth0User = await auth0ManagementApiClient.Client.Users.GetAsync(request.UserId, string.Empty, true, cancellationToken);
 
         if (auth0User is null || string.IsNullOrEmpty(auth0User.Email))
         {

@@ -4,9 +4,10 @@ namespace StorageLabelsApi.Models.DTO.EncryptionKey;
 
 public record StartRotationRequest
 {
-    [Required]
-    [Range(1, int.MaxValue)]
-    public required int FromKeyId { get; init; }
+    /// <summary>
+    /// Source key ID to rotate from. Null indicates encrypting unencrypted images.
+    /// </summary>
+    public int? FromKeyId { get; init; }
 
     [Required]
     [Range(1, int.MaxValue)]

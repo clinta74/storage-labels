@@ -99,6 +99,11 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddTransient<IAuth0ManagementApiClient>(provider => new Auth0ManagementApiClient(auth0.ApiClientId, auth0.ClientSecret, auth0.Domain));
 
+// Register encryption services
+builder.Services.AddScoped<IImageEncryptionService, ImageEncryptionService>();
+builder.Services.AddSingleton<IKeyRotationService, KeyRotationService>();
+builder.Services.AddSingleton<IRotationProgressNotifier, RotationProgressNotifier>();
+
 builder.Services.AddScoped<UserExistsEndpointFilter>();
 
 var app = builder.Build();

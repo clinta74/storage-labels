@@ -1,73 +1,138 @@
 import React from "react"
+import { Box, Container, Paper, Typography, Link } from '@mui/material';
 
 export const PrivacyPolicy: React.FC = () => {
     return (
-        <React.Fragment>
-            <h1>Privacy Policy for Your Meal Tracker</h1>
-            <p>
-                At Your Meal Tracker, accessible from app.yourmealtracker.com, one of our main priorities is
-                the privacy of our visitors. This Privacy Policy document contains types of information that
-                is collected and recorded by Your Meal Tracker and how we use it.
-            </p>
-            <p>
-                If you have additional questions or require more information about our Privacy Policy, do not
-                hesitate to contact us. Our Privacy Policy was created with the help of
-                the <a href="https://www.generateprivacypolicy.com/">Privacy Policy Generator</a>.
-            </p>
-            <h2>Log Files</h2>
-            <p>
-                Your Meal Tracker follows a standard procedure of using log files. These files log visitors when
-                they visit websites. All hosting companies do this and a part of hosting services&apos; analytics. The
-                information collected by log files include internet protocol (IP) addresses, browser type, Internet
-                Service Provider (ISP), date and time stamp, referring/exit pages, and possibly the number of clicks.
-                These are not linked to any information that is personally identifiable. The purpose of the information
-                is for analyzing trends, administering the site, tracking users&apos; movement on the website.
-            </p>
-            <h2>Cookies and Web Beacons</h2>
-            <p>
-                Like any other website, Your Meal Tracker uses &apos;cookies&apos;. These cookies are used to store information
-                including visitors&apos; preferences, and the pages on the website that the visitor accessed or visited. The
-                information is used to optimize the users&apos; experience by customizing our web page content based on visitors&apos;
-                browser type and/or other information.
-            </p>
-            <p>
-                Third-party ad servers or ad networks uses technologies like cookies, JavaScript, or Web Beacons that are
-                used in their respective advertisements and links that appear on Your Meal Tracker, which are sent directly
-                to users&apos; browser. They automatically receive your IP address when this occurs. These technologies are used
-                to measure the effectiveness of their advertising campaigns and/or to personalize the advertising content
-                that you see on websites that you visit.
-            </p>
-            <p>
-                Note that Your Meal Tracker has no access to or control over these cookies that are used by third-party advertisers.
-            </p>
-            <h2>Third Party Privacy Policies</h2>
-            <p>
-                Your Meal Tracker&apos;s Privacy Policy does not apply to other advertisers or websites. Thus, we are advising you
-                to consult the respective Privacy Policies of these third-party ad servers for more detailed information. It may
-                include their practices and instructions about how to opt-out of certain options.
-            </p>
-            <p>
-                You can choose to disable cookies through your individual browser options. To know more detailed information
-                about cookie management with specific web browsers, it can be found at the browsers&apos; respective websites.
-            </p>
-            <h2>Children&apos;s Information</h2>
-            <p>
-                Another part of our priority is adding protection for children while using the internet. We encourage parents
-                and guardians to observe, participate in, and/or monitor and guide their online activity.
-            </p>
-            <p>
-                Your Meal Tracker does not knowingly collect any Personal Identifiable Information from children under the
-                age of 13. If you think that your child provided this kind of information on our website, we strongly encourage
-                you to contact us immediately and we will do our best efforts to promptly remove such information from our records.
-            </p>
-            <h2>Online Privacy Policy Only</h2>
-            <p>
-                This Privacy Policy applies only to our online activities and is valid for visitors to our website with
-                regards to the information that they shared and/or collect in Your Meal Tracker. This policy is not applicable
-                to any information collected offline or via channels other than this website.
-            </p>
-            <h2>Consent</h2>
-            <p>By using our website, you hereby consent to our Privacy Policy and agree to its Terms and Conditions.</p>
-        </React.Fragment>
+        <Container maxWidth="md" sx={{ py: 4 }}>
+            <Paper elevation={3} sx={{ p: 4 }}>
+                <Typography variant="h3" component="h1" gutterBottom>
+                    Privacy Policy for Storage Labels
+                </Typography>
+                
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Last updated: {new Date().toLocaleDateString()}
+                </Typography>
+
+                <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" gutterBottom>
+                        Information We Collect
+                    </Typography>
+                    <Typography paragraph>
+                        We collect the following information when you use Storage Labels:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>Email address (from Google OAuth authentication)</li>
+                        <li>Profile information (name, profile picture from your Google account)</li>
+                        <li>Storage box and item data that you create and manage</li>
+                        <li>Images that you upload for your items</li>
+                    </Box>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        How We Use Your Information
+                    </Typography>
+                    <Typography paragraph>
+                        We use the collected information for:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>Authentication and authorization to access your account</li>
+                        <li>Storing and managing your box and item inventory</li>
+                        <li>Image storage and retrieval for your items</li>
+                        <li>Providing the core functionality of the Storage Labels application</li>
+                    </Box>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Data Storage and Security
+                    </Typography>
+                    <Typography paragraph>
+                        Your data security is important to us:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>All data is stored in a secure PostgreSQL database</li>
+                        <li>Images are encrypted at rest using AES-256-GCM encryption</li>
+                        <li>All data is transmitted over HTTPS</li>
+                        <li>Hosted on secure, monitored servers</li>
+                    </Box>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Third-Party Services
+                    </Typography>
+                    <Typography paragraph>
+                        We use the following third-party services:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>Google OAuth for authentication</li>
+                        <li>Auth0 for identity and access management</li>
+                    </Box>
+                    <Typography paragraph>
+                        These services have their own privacy policies. We recommend reviewing them:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>
+                            <Link href="https://policies.google.com/privacy" target="_blank" rel="noopener">
+                                Google Privacy Policy
+                            </Link>
+                        </li>
+                        <li>
+                            <Link href="https://auth0.com/privacy" target="_blank" rel="noopener">
+                                Auth0 Privacy Policy
+                            </Link>
+                        </li>
+                    </Box>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Your Rights
+                    </Typography>
+                    <Typography paragraph>
+                        You have the right to:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>Access your personal data</li>
+                        <li>Request deletion of your data</li>
+                        <li>Export your data</li>
+                        <li>Opt out of the service at any time</li>
+                    </Box>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Data Retention
+                    </Typography>
+                    <Typography paragraph>
+                        We retain your data for as long as your account is active. If you choose to delete your account, 
+                        we will delete all your personal data within 30 days, except where we are required to retain it by law.
+                    </Typography>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Children's Privacy
+                    </Typography>
+                    <Typography paragraph>
+                        Storage Labels is not intended for use by children under the age of 13. We do not knowingly 
+                        collect personal information from children under 13. If you believe we have collected information 
+                        from a child under 13, please contact us immediately.
+                    </Typography>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Contact Us
+                    </Typography>
+                    <Typography paragraph>
+                        If you have any questions about this Privacy Policy, please contact us at:{' '}
+                        <Link href="mailto:privacy@pollyspeople.net">privacy@pollyspeople.net</Link>
+                    </Typography>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Changes to This Policy
+                    </Typography>
+                    <Typography paragraph>
+                        We may update this Privacy Policy from time to time. We will notify you of any changes by updating 
+                        the "Last updated" date at the top of this policy. Your continued use of Storage Labels after any 
+                        changes constitutes acceptance of the updated policy.
+                    </Typography>
+                </Box>
+
+                <Box sx={{ mt: 4, textAlign: 'center' }}>
+                    <Link href="/" underline="hover">
+                        Return to Storage Labels
+                    </Link>
+                </Box>
+            </Paper>
+        </Container>
     );
 }

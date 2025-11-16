@@ -8,6 +8,7 @@ import { AlertMessage, AlertProvider } from './providers/alert-provider';
 import { UserPermissionProvider } from './providers/user-permission-provider';
 import { NavigationBar } from './components/navigation-bar';
 import { SnackbarProvider } from './providers/snackbar-provider';
+import { Footer } from './components/shared/footer';
 import { theme } from './theme';
 
 export const App: React.FC = () => {
@@ -15,8 +16,8 @@ export const App: React.FC = () => {
         <React.Fragment>
             <ThemeProvider theme={theme}>
                 <ConfirmProvider>
-                    <Box position="relative" minHeight="100vh" zIndex={1}>
-                        <Box position="relative" zIndex={2}>
+                    <Box display="flex" flexDirection="column" minHeight="100vh">
+                        <Box position="relative" zIndex={2} flex="1">
                             <AlertProvider>
                                 <SnackbarProvider>
                                     <AlertMessage />
@@ -33,6 +34,7 @@ export const App: React.FC = () => {
                                 </SnackbarProvider>
                             </AlertProvider>
                         </Box>
+                        <Footer />
                     </Box>
                 </ConfirmProvider>
             </ThemeProvider>

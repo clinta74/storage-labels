@@ -14,6 +14,7 @@ internal static partial class EndpointsMapper
         api.MapUser();
         api.MapImageEndpoints();
         api.MapSearch();
+        api.MapEncryptionKeyEndpoints();
 
         routeBuilder.MapGet("health", () => Results.Ok("Hello world."));
 

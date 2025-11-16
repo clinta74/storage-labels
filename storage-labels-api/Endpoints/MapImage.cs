@@ -4,6 +4,7 @@ using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Images;
 using StorageLabelsApi.Models.DTO.Image;
+using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints;
 
@@ -91,6 +92,7 @@ public static class MapImage
         Guid imageId,
         IMediator mediator,
         HttpContext context,
+        IImageEncryptionService encryptionService,
         CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
@@ -98,7 +100,27 @@ public static class MapImage
         
         if (result.IsSuccess)
         {
-            return Results.File(result.Value.StoragePath, result.Value.ContentType, result.Value.FileName);
+            var metadata = result.Value;
+            
+            // If image is encrypted, decrypt it before serving
+            if (metadata.IsEncrypted)
+            {
+                try
+                {
+                    var decryptedStream = await encryptionService.DecryptImageAsync(metadata, cancellationToken);
+                    return Results.Stream(decryptedStream, metadata.ContentType, metadata.FileName);
+                }
+                catch (Exception ex)
+                {
+                    // Log error and fall back to error response
+                    context.RequestServices.GetRequiredService<ILogger<IImageEncryptionService>>()
+                        .LogError(ex, "Failed to decrypt image {ImageId}", imageId);
+                    return Results.Problem("Failed to decrypt image", statusCode: 500);
+                }
+            }
+            
+            // Serve unencrypted image directly from file
+            return Results.File(metadata.StoragePath, metadata.ContentType, metadata.FileName);
         }
         
         return result.ToMinimalApiResult();

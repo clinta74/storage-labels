@@ -10,6 +10,7 @@ import { ItemEndpoints, getItemEndpoints } from './endpoints/item';
 import { ImageEndpoints, getImageEndpoints } from './endpoints/image';
 import { CommonLocationEndpoints, getCommonLocationEndpoints } from './endpoints/common-location';
 import { SearchEndpoints, getSearchEndpoints } from './endpoints/search';
+import { EncryptionKeyEndpoints, getEncryptionKeyEndpoints } from './endpoints/encryption-key';
 
 const createAxiosInstance = (): AxiosInstance => {
     return axios.create({
@@ -32,6 +33,7 @@ interface IApiContext {
     Image: ImageEndpoints;
     CommonLocation: CommonLocationEndpoints;
     Search: SearchEndpoints;
+    EncryptionKey: EncryptionKeyEndpoints;
     getAccessToken: () => Promise<string>;
 }
 
@@ -59,6 +61,7 @@ export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
             Image: getImageEndpoints(client),
             CommonLocation: getCommonLocationEndpoints(client),
             Search: getSearchEndpoints(client),
+            EncryptionKey: getEncryptionKeyEndpoints(client),
             getAccessToken: getAccessTokenSilently,
         }
 

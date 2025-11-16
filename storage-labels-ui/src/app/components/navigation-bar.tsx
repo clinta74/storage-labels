@@ -16,7 +16,7 @@ import { useUserPermission } from '../providers/user-permission-provider';
 
 export const NavigationBar: React.FC = () => {
     const { logout, isAuthenticated } = useAuth0();
-    const { } = useUserPermission();
+    const { hasPermission } = useUserPermission();
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -48,6 +48,11 @@ export const NavigationBar: React.FC = () => {
         { label: 'Common Locations', path: '/common-locations' },
         { label: 'Preferences', path: '/preferences' },
     ];
+
+    // Add Encryption Keys menu item if user has permission
+    if (hasPermission('read:encryption-keys')) {
+        menuItems.splice(3, 0, { label: 'Encryption Keys', path: '/encryption-keys' });
+    }
 
     return (
         <AppBar position="static" sx={{ mb: 3 }}>

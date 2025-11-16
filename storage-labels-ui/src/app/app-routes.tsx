@@ -10,6 +10,7 @@ import { NewUserRoutes } from './components/new-user/new-user-routes';
 import { LocationRoutes } from './components/locations/locations-routes';
 import { ImagesRoutes } from './components/images/images-routes';
 import { CommonLocationsRoutes } from './components/common-locations/common-locations-routes';
+import { EncryptionKeysRoutes } from './components/encryption-keys/encryption-keys-routes';
 import { Preferences } from './components/user/preferences';
 import { UserProvider } from './providers/user-provider';
 import { AppThemeProvider } from './providers/theme-provider';
@@ -17,6 +18,16 @@ import { AppThemeProvider } from './providers/theme-provider';
 export const AppRoutes: React.FunctionComponent = () => {
     const { isAuthenticated, isLoading } = useAuth0();
 
+    // Legal routes are public and don't require authentication
+    return (
+        <Routes>
+            <Route path="/legal/*" element={<LegalRoutes />} />
+            <Route path="/*" element={<AuthenticatedRoutes isLoading={isLoading} isAuthenticated={isAuthenticated} />} />
+        </Routes>
+    );
+}
+
+const AuthenticatedRoutes: React.FC<{ isLoading: boolean; isAuthenticated: boolean }> = ({ isLoading, isAuthenticated }) => {
     if (isLoading) {
         return (
             <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="50vh">
@@ -32,7 +43,6 @@ export const AppRoutes: React.FunctionComponent = () => {
             <Box>
                 <ApiProvider>
                     <Routes>
-                        <Route path="/legal/*" element={<LegalRoutes />} />
                         <Route path="/new-user/*" element={<NewUserRoutes />} />
                         <Route path="/*" element={
                             <UserProvider>
@@ -41,6 +51,7 @@ export const AppRoutes: React.FunctionComponent = () => {
                                         <Route path="/locations/*" element={<LocationRoutes />} />
                                         <Route path="/images/*" element={<ImagesRoutes />} />
                                         <Route path="/common-locations/*" element={<CommonLocationsRoutes />} />
+                                        <Route path="/encryption-keys/*" element={<EncryptionKeysRoutes />} />
                                         <Route path="/preferences" element={<Preferences />} />
                                         <Route index element={<Navigate to="/locations" />} />
                                         <Route path="*" element={<Navigate to="/" replace />} />

@@ -139,3 +139,70 @@ interface SearchResultResponse {
 interface SearchResultsResponse {
     results: SearchResultResponse[];
 }
+
+// Encryption Key Management Models
+type EncryptionKeyStatus = 'Created' | 'Active' | 'Deprecated' | 'Retired';
+type RotationStatus = 'InProgress' | 'Completed' | 'Failed' | 'Cancelled';
+
+interface EncryptionKey {
+    kid: number;
+    version: number;
+    status: EncryptionKeyStatus;
+    createdAt: string;
+    activatedAt?: string;
+    retiredAt?: string;
+    deprecatedAt?: string;
+    description?: string;
+    createdBy?: string;
+    algorithm: string;
+}
+
+interface EncryptionKeyStats {
+    kid: number;
+    version: number;
+    status: EncryptionKeyStatus;
+    imageCount: number;
+    totalSizeBytes: number;
+    createdAt: string;
+    activatedAt?: string;
+}
+
+interface EncryptionKeyRotation {
+    id: string;
+    fromKeyId: number;
+    toKeyId: number;
+    status: RotationStatus;
+    totalImages: number;
+    processedImages: number;
+    failedImages: number;
+    batchSize: number;
+    startedAt: string;
+    completedAt?: string;
+    initiatedBy?: string;
+    errorMessage?: string;
+    isAutomatic: boolean;
+}
+
+interface RotationProgress {
+    rotationId: string;
+    fromKeyId: number;
+    toKeyId: number;
+    status: RotationStatus;
+    totalImages: number;
+    processedImages: number;
+    failedImages: number;
+    percentComplete: number;
+    startedAt: string;
+    completedAt?: string;
+    errorMessage?: string;
+}
+
+interface CreateEncryptionKeyRequest {
+    description?: string;
+}
+
+interface StartRotationRequest {
+    fromKeyId: number;
+    toKeyId: number;
+    batchSize: number;
+}

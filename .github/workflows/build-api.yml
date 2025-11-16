@@ -7,6 +7,8 @@ on:
     paths:
       - 'storage-labels-api/**'
       - '.github/workflows/build-api.yml'
+    tags:
+      - 'api-v*.*.*'  # Trigger on manual API version tags
   pull_request:
     branches:
       - main
@@ -31,6 +33,16 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
+          # Check if this is a manual tag push
+          if [[ "${{ github.ref }}" == refs/tags/api-v* ]]; then
+            echo "MANUAL_TAG=true" >> $GITHUB_OUTPUT
+            CURRENT_TAG="${{ github.ref_name }}"
+            echo "CURRENT_TAG=$CURRENT_TAG" >> $GITHUB_OUTPUT
+            echo "Manual tag detected: $CURRENT_TAG"
+          else
+            echo "MANUAL_TAG=false" >> $GITHUB_OUTPUT
+          fi
+          
           # Get the latest semver tag for API, or default to v0.0.0
           LATEST_TAG=$(git tag -l "api-v*" --sort=-v:refname | head -n 1)
           if [ -z "$LATEST_TAG" ]; then
@@ -42,34 +54,34 @@ jobs:
       - name: Generate version number
         id: version
         run: |
-          # Parse the latest tag
-          LATEST_TAG=${{ steps.get_tag.outputs.LATEST_TAG }}
-          VERSION=${LATEST_TAG#api-v}  # Remove 'api-v' prefix
-          
-          # Split into major.minor.patch
-          IFS='.' read -ra PARTS <<< "$VERSION"
-          MAJOR=${PARTS[0]:-0}
-          MINOR=${PARTS[1]:-0}
-          PATCH=${PARTS[2]:-0}
-          
-          # Auto-increment patch version
-          PATCH=$((PATCH + 1))
-          
-          # Create new version
-          NEW_VERSION="api-v$MAJOR.$MINOR.$PATCH"
-          VERSION_NUMBER="$MAJOR.$MINOR.$PATCH"
+          # If manual tag was pushed, use it
+          if [[ "${{ steps.get_tag.outputs.MANUAL_TAG }}" == "true" ]]; then
+            NEW_VERSION="${{ steps.get_tag.outputs.CURRENT_TAG }}"
+            VERSION_NUMBER="${NEW_VERSION#api-v}"
+            echo "Using manual tag: $NEW_VERSION"
+          else
+            # Parse the latest tag and auto-increment patch
+            LATEST_TAG=${{ steps.get_tag.outputs.LATEST_TAG }}
+            VERSION=${LATEST_TAG#api-v}  # Remove 'api-v' prefix
+            
+            # Split into major.minor.patch
+            IFS='.' read -ra PARTS <<< "$VERSION"
+            MAJOR=${PARTS[0]:-0}
+            MINOR=${PARTS[1]:-0}
+            PATCH=${PARTS[2]:-0}
+            
+            # Auto-increment patch version
+            PATCH=$((PATCH + 1))
+            
+            # Create new version
+            NEW_VERSION="api-v$MAJOR.$MINOR.$PATCH"
+            VERSION_NUMBER="$MAJOR.$MINOR.$PATCH"
+            echo "Auto-generated version: $NEW_VERSION"
+          fi
           
           echo "VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "VERSION_NUMBER=$VERSION_NUMBER" >> $GITHUB_OUTPUT
-          echo "Generated version: $NEW_VERSION"
-
-      - name: Create and push tag
-        if: github.event_name != 'pull_request'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ steps.version.outputs.VERSION }}
-          git push origin ${{ steps.version.outputs.VERSION }}
+          echo "Final version: $NEW_VERSION"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -108,6 +120,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
+
+      - name: Create and push tag
+        if: github.event_name != 'pull_request' && steps.get_tag.outputs.MANUAL_TAG == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.VERSION }}
+          git push origin ${{ steps.version.outputs.VERSION }}
 
       - name: Create GitHub Release
         if: github.event_name != 'pull_request'

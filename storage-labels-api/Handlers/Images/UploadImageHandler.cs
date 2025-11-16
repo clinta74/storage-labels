@@ -5,24 +5,28 @@ using Microsoft.Extensions.Logging;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Logging;
+using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Handlers.Images;
 
-public record UploadImage(IFormFile File, string UserId) : IRequest<Result<ImageMetadata>>;
+public record UploadImage(IFormFile File, string UserId, bool Encrypt = true) : IRequest<Result<ImageMetadata>>;
 
 public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetadata>>
 {
     private readonly StorageLabelsDbContext _dbContext;
     private readonly ILogger<UploadImageHandler> _logger;
+    private readonly IImageEncryptionService _encryptionService;
     private readonly string _storagePath;
 
     public UploadImageHandler(
         StorageLabelsDbContext dbContext,
         ILogger<UploadImageHandler> logger,
+        IImageEncryptionService encryptionService,
         IConfiguration configuration)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _encryptionService = encryptionService;
         
         // Use configured path or default to /app/data/images for Docker compatibility
         var basePath = configuration["ImageStoragePath"] ?? "/app/data/images";
@@ -54,10 +58,61 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
         Directory.CreateDirectory(userDir);
         var storagePath = Path.Combine(userDir, $"{fileGuid}{Path.GetExtension(fileName)}");
 
-        // Save the file
-        await using (var fileStream = File.Create(storagePath))
+        long fileSizeBytes;
+        int? encryptionKeyId = null;
+        byte[]? iv = null;
+        byte[]? authTag = null;
+
+        // Encrypt and save the file
+        if (request.Encrypt)
         {
+            try
+            {
+                // Check if an active encryption key exists
+                var activeKey = await _encryptionService.GetActiveKeyAsync(cancellationToken);
+                if (activeKey == null)
+                {
+                    _logger.LogWarning("No active encryption key found. Saving image unencrypted.");
+                    // Fall back to unencrypted storage
+                    await using var fileStream = File.Create(storagePath);
+                    await request.File.CopyToAsync(fileStream, cancellationToken);
+                    fileSizeBytes = request.File.Length;
+                }
+                else
+                {
+                    // Encrypt the image
+                    using var inputStream = request.File.OpenReadStream();
+                    var encryptionResult = await _encryptionService.EncryptAsync(inputStream, cancellationToken);
+
+                    // Save encrypted data to disk
+                    await File.WriteAllBytesAsync(storagePath, encryptionResult.EncryptedData, cancellationToken);
+                    
+                    fileSizeBytes = encryptionResult.EncryptedData.Length;
+                    encryptionKeyId = encryptionResult.EncryptionKeyId;
+                    iv = encryptionResult.InitializationVector;
+                    authTag = encryptionResult.AuthenticationTag;
+
+                    _logger.LogInformation(
+                        "Image {ImageId} encrypted with key {Kid}",
+                        imageId,
+                        activeKey.Kid);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to encrypt image {ImageId}. Saving unencrypted.", imageId);
+                // Fall back to unencrypted storage
+                await using var fileStream = File.Create(storagePath);
+                await request.File.CopyToAsync(fileStream, cancellationToken);
+                fileSizeBytes = request.File.Length;
+            }
+        }
+        else
+        {
+            // Save unencrypted
+            await using var fileStream = File.Create(storagePath);
             await request.File.CopyToAsync(fileStream, cancellationToken);
+            fileSizeBytes = request.File.Length;
         }
 
         var metadata = new ImageMetadata
@@ -68,7 +123,11 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
             ContentType = request.File.ContentType,
             StoragePath = storagePath,
             UploadedAt = DateTime.UtcNow,
-            SizeInBytes = request.File.Length
+            SizeInBytes = fileSizeBytes,
+            IsEncrypted = encryptionKeyId.HasValue,
+            EncryptionKeyId = encryptionKeyId,
+            InitializationVector = iv,
+            AuthenticationTag = authTag
         };
 
         _dbContext.Images.Add(metadata);
@@ -79,3 +138,4 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
         return Result.Success(metadata);
     }
 }
+

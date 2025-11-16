@@ -5,6 +5,7 @@ import {
     Box,
     Button,
     Checkbox,
+    Chip,
     Dialog,
     DialogActions,
     DialogContent,
@@ -37,6 +38,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import LabelIcon from '@mui/icons-material/Label';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
+import ImageIcon from '@mui/icons-material/Image';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
 import { useSearch } from '../../providers/search-provider';
@@ -409,8 +411,18 @@ export const BoxComponent: React.FC = () => {
                                                 slotProps={{
                                                     primary: { noWrap: true }
                                                 }}
-                                                sx={{ pr: 3, overflow: 'hidden' }}
+                                                sx={{ pr: 1, overflow: 'hidden' }}
                                             />
+                                            {item.imageUrl && (
+                                                <Chip
+                                                    icon={<ImageIcon />}
+                                                    label="Image"
+                                                    size="small"
+                                                    color="primary"
+                                                    variant="outlined"
+                                                    sx={{ mr: 1 }}
+                                                />
+                                            )}
                                         </ListItemButton>
                                     </ListItem>
                                 ))}

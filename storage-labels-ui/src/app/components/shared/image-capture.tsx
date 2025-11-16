@@ -18,6 +18,8 @@ import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import FlipCameraIosIcon from '@mui/icons-material/FlipCameraIos';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import FlashlightOnIcon from '@mui/icons-material/FlashlightOn';
+import FlashlightOffIcon from '@mui/icons-material/FlashlightOff';
 
 interface ImageCaptureProps {
     open: boolean;
@@ -41,6 +43,8 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+    const [torchOn, setTorchOn] = useState(false);
+    const [torchSupported, setTorchSupported] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,6 +87,15 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
             if (videoRef.current) {
                 videoRef.current.srcObject = mediaStream;
             }
+
+            // Check if torch is supported
+            const videoTrack = mediaStream.getVideoTracks()[0];
+            const capabilities = videoTrack.getCapabilities() as any;
+            const torchAvailable = capabilities && 'torch' in capabilities;
+            setTorchSupported(torchAvailable);
+            
+            // Reset torch state when camera changes
+            setTorchOn(false);
         } catch (err: unknown) {
             console.error('Error accessing camera:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to access camera';
@@ -92,8 +105,38 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
 
     const stopCamera = () => {
         if (stream) {
+            // Turn off torch before stopping
+            if (torchOn) {
+                const videoTrack = stream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.applyConstraints({
+                        // @ts-ignore - torch is not in the standard types yet
+                        advanced: [{ torch: false }]
+                    }).catch(err => console.error('Error turning off torch:', err));
+                }
+            }
             stream.getTracks().forEach(track => track.stop());
             setStream(null);
+        }
+        setTorchOn(false);
+        setTorchSupported(false);
+    };
+
+    const toggleTorch = async () => {
+        if (!stream || !torchSupported) return;
+
+        try {
+            const videoTrack = stream.getVideoTracks()[0];
+            const newTorchState = !torchOn;
+            
+            await videoTrack.applyConstraints({
+                // @ts-ignore - torch is not in the standard types yet
+                advanced: [{ torch: newTorchState }]
+            });
+            
+            setTorchOn(newTorchState);
+        } catch (err) {
+            console.error('Error toggling torch:', err);
         }
     };
 
@@ -256,6 +299,24 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
                                         }}
                                     >
                                         <FlipCameraIosIcon />
+                                    </IconButton>
+                                )}
+                                {torchSupported && (
+                                    <IconButton
+                                        onClick={toggleTorch}
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: hasMultipleCameras ? 64 : 8,
+                                            backgroundColor: torchOn ? 'rgba(255, 193, 7, 0.8)' : 'rgba(0, 0, 0, 0.5)',
+                                            color: 'white',
+                                            '&:hover': {
+                                                backgroundColor: torchOn ? 'rgba(255, 193, 7, 1)' : 'rgba(0, 0, 0, 0.7)',
+                                            },
+                                        }}
+                                        title={torchOn ? 'Turn off flashlight' : 'Turn on flashlight'}
+                                    >
+                                        {torchOn ? <FlashlightOnIcon /> : <FlashlightOffIcon />}
                                     </IconButton>
                                 )}
                                 <canvas ref={canvasRef} style={{ display: 'none' }} />

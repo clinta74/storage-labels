@@ -223,10 +223,13 @@ export const RotationsPage: React.FC = () => {
 
     return (
         <Box p={3}>
-            <Breadcrumbs items={[
-                { label: 'Encryption Keys', path: '/encryption-keys' },
-                { label: 'Rotations' }
-            ]} />
+            <Breadcrumbs 
+                items={[
+                    { label: 'Rotations' }
+                ]} 
+                homeLabel="Encryption Keys"
+                homePath="/encryption-keys"
+            />
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                 <Typography variant="h4">Key Rotation History</Typography>
                 <Box>
@@ -276,7 +279,7 @@ export const RotationsPage: React.FC = () => {
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        {rotation.fromKeyId === 0 ? 'Unencrypted' : `kid ${rotation.fromKeyId}`}
+                                        {rotation.fromKeyId === null || rotation.fromKeyId === 0 ? 'Unencrypted' : `kid ${rotation.fromKeyId}`}
                                     </TableCell>
                                     <TableCell>kid {rotation.toKeyId}</TableCell>
                                     <TableCell>
@@ -428,7 +431,7 @@ export const RotationsPage: React.FC = () => {
                                         From Key
                                     </Typography>
                                     <Typography variant="h6">
-                                        {rotationProgress.fromKeyId === 0 ? 'Unencrypted' : `kid ${rotationProgress.fromKeyId}`}
+                                        {rotationProgress.fromKeyId === null || rotationProgress.fromKeyId === 0 ? 'Unencrypted' : `kid ${rotationProgress.fromKeyId}`}
                                     </Typography>
                                 </Box>
                                 <Box flex={1}>

@@ -160,7 +160,11 @@ export const EncryptionKeysPage: React.FC = () => {
 
     return (
         <Box p={3}>
-            <Breadcrumbs items={[{ label: 'Encryption Keys' }]} />
+            <Breadcrumbs 
+                items={[]} 
+                homeLabel="Encryption Keys"
+                homePath="/encryption-keys"
+            />
             
             <Box position="relative">
                 <Authorized permissions="write:encryption-keys">
@@ -249,8 +253,13 @@ export const EncryptionKeysPage: React.FC = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {keys.map((key) => (
-                            <TableRow key={key.kid}>
+                        {keys.map((key, index) => (
+                            <TableRow 
+                                key={key.kid}
+                                sx={{
+                                    '&:last-child td, &:last-child th': { border: 0 }
+                                }}
+                            >
                                 <TableCell>{key.kid}</TableCell>
                                 <TableCell>v{key.version}</TableCell>
                                 <TableCell>

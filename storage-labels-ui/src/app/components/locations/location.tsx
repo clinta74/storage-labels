@@ -190,23 +190,24 @@ export const Location: React.FC = () => {
                 />
             </Box>
 
-            <Paper>
-                <Box position="relative">
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
-                        <Fab color="primary" title="Add a Box" aria-label="add" component={Link} to={`box/add`}>
-                            <AddIcon />
-                        </Fab>
-                    </Box>
-                    <Box 
-                        margin={1} 
-                        textAlign="center" 
-                        pb={2}
-                        position="relative"
-                        sx={{
-                            px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
-                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                        }}
-                    >
+            <Box position="relative">
+                <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
+                    <Fab color="primary" title="Add a Box" aria-label="add" component={Link} to={`box/add`}>
+                        <AddIcon />
+                    </Fab>
+                </Box>
+                <Paper>
+                    <Box position="relative">
+                        <Box 
+                            margin={1} 
+                            textAlign="center" 
+                            pb={2}
+                            position="relative"
+                            sx={{
+                                px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
+                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                            }}
+                        >
                         <IconButton
                             aria-label="location settings"
                             title="Location Settings"
@@ -260,7 +261,8 @@ export const Location: React.FC = () => {
                         )}
                     </Box>
                 </Box>
-            </Paper>
+                </Paper>
+            </Box>
 
             {/* Delete Confirmation Dialog */}
             <Dialog

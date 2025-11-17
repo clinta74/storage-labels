@@ -287,17 +287,18 @@ export const BoxComponent: React.FC = () => {
                 />
             </Box>
 
-            <Paper>
-                <Box position="relative">
-                    <Box 
-                        margin={1} 
-                        textAlign="center"
-                        position="relative"
-                        sx={{
-                            px: { xs: 6, sm: 2 }, // Extra horizontal padding on mobile to avoid menu button overlap
-                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                        }}
-                    >
+            <Box position="relative">
+                <Paper>
+                    <Box position="relative">
+                        <Box 
+                            margin={1} 
+                            textAlign="center" 
+                            pb={2}
+                            sx={{
+                                px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
+                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                            }}
+                        >
                         <IconButton
                             aria-label="box settings"
                             title="Box Settings"
@@ -347,23 +348,25 @@ export const BoxComponent: React.FC = () => {
                     </Box>
                 </Box>
             </Paper>
+            </Box>
 
-            <Paper sx={{ mt: 2 }}>
-                <Box position="relative">
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
-                        <Fab color="primary" title="Add an Item" aria-label="add" component={Link} to="item/add">
-                            <AddIcon />
-                        </Fab>
-                    </Box>
-                    <Box 
-                        margin={1} 
-                        textAlign="center" 
-                        pb={2}
-                        sx={{
-                            px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
-                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                        }}
-                    >
+            <Box position="relative">
+                <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
+                    <Fab color="primary" title="Add an Item" aria-label="add" component={Link} to="item/add">
+                        <AddIcon />
+                    </Fab>
+                </Box>
+                <Paper>
+                    <Box position="relative">
+                        <Box 
+                            margin={1} 
+                            textAlign="center" 
+                            pb={2}
+                            sx={{
+                                px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
+                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
+                            }}
+                        >
                         <Typography variant="h4" sx={{ 
                             fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
                         }}>
@@ -397,7 +400,6 @@ export const BoxComponent: React.FC = () => {
                                                 <MoreVertIcon />
                                             </IconButton>
                                         }
-                                        disablePadding
                                     >
                                         <ListItemButton onClick={() => handleItemClick(item)}>
                                             <ListItemAvatar sx={{ display: { xs: 'none', sm: 'flex' } }}>
@@ -430,7 +432,8 @@ export const BoxComponent: React.FC = () => {
                         )}
                     </Box>
                 </Box>
-            </Paper>
+                </Paper>
+            </Box>
 
             {/* Item Detail Modal */}
             <Modal

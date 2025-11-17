@@ -11,9 +11,15 @@ interface BreadcrumbItem {
 
 interface BreadcrumbsProps {
     items: BreadcrumbItem[];
+    homeLabel?: string;
+    homePath?: string;
 }
 
-export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
+export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ 
+    items, 
+    homeLabel = 'Locations', 
+    homePath = '/locations' 
+}) => {
     return (
         <MuiBreadcrumbs 
             separator={<NavigateNextIcon fontSize="small" />}
@@ -22,7 +28,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
         >
             <Link
                 component={RouterLink}
-                to="/locations"
+                to={homePath}
                 underline="hover"
                 color="inherit"
                 sx={{ 
@@ -34,7 +40,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
                 }}
             >
                 <HomeIcon sx={{ mr: 0.5 }} fontSize="small" />
-                Locations
+                {homeLabel}
             </Link>
             {items.map((item, index) => {
                 const isLast = index === items.length - 1;

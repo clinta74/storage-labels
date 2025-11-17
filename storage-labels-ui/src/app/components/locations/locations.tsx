@@ -73,7 +73,7 @@ export const Locations: React.FC = () => {
     return (
         <React.Fragment>
             <Box margin={2} mb={2}>
-                <Breadcrumbs items={[{ label: 'Locations' }]} />
+                <Breadcrumbs items={[]} />
             </Box>
 
             <Box margin={2} mb={2} position="relative">

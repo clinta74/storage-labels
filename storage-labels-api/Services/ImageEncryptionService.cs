@@ -394,17 +394,8 @@ public class ImageEncryptionService : IImageEncryptionService
 
         var imageCount = key.Images.Count;
         
-        // Calculate total size by reading file sizes
-        long totalSize = 0;
-        foreach (var image in key.Images)
-        {
-            var filePath = _fileSystem.Path.Combine("/app/data/images", image.FileName);
-            if (_fileSystem.File.Exists(filePath))
-            {
-                var fileInfo = _fileSystem.FileInfo.New(filePath);
-                totalSize += fileInfo.Length;
-            }
-        }
+        // Calculate total size from database SizeInBytes field
+        long totalSize = key.Images.Sum(img => img.SizeInBytes);
 
         return new EncryptionKeyStats(
             Kid: key.Kid,

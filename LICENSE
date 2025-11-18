@@ -1,21 +1,57 @@
-MIT License
+Storage Labels - Proprietary License
 
-Copyright (c) 2025 IsNotNullException
+Copyright (c) 2025 Clint Anderson (clinta74). All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software and associated documentation files (the "Software") are the exclusive 
+property of Clint Anderson.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+GRANT OF LICENSE
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of 
+this software to use, copy, and modify the Software for personal, non-commercial 
+purposes, subject to the following conditions:
+
+RESTRICTIONS
+
+1. COMMERCIAL USE: You may NOT sell, rent, lease, or otherwise commercially 
+   exploit the Software or any modified versions without explicit written 
+   permission from the copyright holder.
+
+2. DISTRIBUTION: You may NOT distribute, publish, sublicense, or transfer copies 
+   of the Software or modified versions to third parties without explicit written 
+   permission from the copyright holder.
+
+3. ATTRIBUTION: Any use of the Software must retain this copyright notice and 
+   license in all copies or substantial portions of the Software.
+
+4. OWNERSHIP: All intellectual property rights, including patents, copyrights, 
+   trademarks, and trade secrets, remain the exclusive property of Clint Anderson.
+
+PERMITTED USES
+
+- Personal use and self-hosting for individual or family purposes
+- Internal use within a single organization (non-commercial)
+- Modification for personal use (modifications may not be distributed)
+- Educational and learning purposes
+
+PROHIBITED USES
+
+- Selling the Software or modified versions
+- Offering the Software as a hosted service for others (SaaS)
+- Distributing copies to third parties
+- Removing or altering copyright notices
+- Using the Software for commercial purposes without a commercial license
+
+COMMERCIAL LICENSING
+
+For commercial use, hosting services, or distribution rights, please contact:
+Clint Anderson - clinta74@gmail.com
+
+DISCLAIMER
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

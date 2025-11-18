@@ -17,6 +17,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import { useAuth } from '../../auth/auth-provider';
 import { useUserPermission } from '../providers/user-permission-provider';
 import { useUser } from '../providers/user-provider';
+import { Permissions } from '../constants/permissions';
 
 export const NavigationBar: React.FC = () => {
     const { logout, isAuthenticated, authMode } = useAuth();
@@ -62,14 +63,6 @@ export const NavigationBar: React.FC = () => {
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         Storage Labels
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button color="inherit" component={Link} to="/login">
-                            Login
-                        </Button>
-                        <Button color="inherit" component={Link} to="/register">
-                            Register
-                        </Button>
-                    </Box>
                 </Toolbar>
             </AppBar>
         );
@@ -81,17 +74,17 @@ export const NavigationBar: React.FC = () => {
     ];
 
     // Add Common Locations menu item if user has permission
-    if (hasPermission('read:common-locations')) {
+    if (hasPermission(Permissions.Read_CommonLocations)) {
         menuItems.push({ label: 'Common Locations', path: '/common-locations' });
     }
 
     // Add Encryption Keys menu item if user has permission
-    if (hasPermission('read:encryption-keys')) {
+    if (hasPermission(Permissions.Read_EncryptionKeys)) {
         menuItems.push({ label: 'Encryption Keys', path: '/encryption-keys' });
     }
 
     // Add User Management menu item if user has write:user permission
-    if (hasPermission('write:user')) {
+    if (hasPermission(Permissions.Write_User)) {
         menuItems.push({ label: 'Users', path: '/users' });
     }
 

@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
         <Box
             component="footer"
             sx={{
-                py: { xs: 1.5, sm: 2 },
+                py: { xs: .75, sm: 1 },
                 px: 2,
                 mt: 'auto',
                 backgroundColor: (theme) =>

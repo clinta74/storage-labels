@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router';
 import {
     Box,
     Button,
-    Card,
-    CardContent,
     Chip,
     CircularProgress,
     Dialog,
@@ -37,6 +35,7 @@ import { Fab, Menu, MenuItem, useTheme } from '@mui/material';
 import { useApi } from '../../../api';
 import { Authorized } from '../../providers/user-permission-provider';
 import { Breadcrumbs } from '../shared';
+import { Permissions } from '../../constants/permissions';
 
 const getStatusColor = (status: EncryptionKeyStatus): 'success' | 'primary' | 'warning' | 'default' => {
     switch (status) {
@@ -135,7 +134,7 @@ export const EncryptionKeysPage: React.FC = () => {
             }
 
             // Start migration using fromKeyId=null to indicate unencrypted images
-            const rotationId = await Api.EncryptionKey.startKeyRotation({
+            await Api.EncryptionKey.startKeyRotation({
                 fromKeyId: null,
                 toKeyId: activeKey.kid,
                 batchSize: migrateBatchSize,
@@ -167,7 +166,7 @@ export const EncryptionKeysPage: React.FC = () => {
             />
             
             <Box position="relative">
-                <Authorized permissions="write:encryption-keys">
+                <Authorized permissions={Permissions.Write_EncryptionKeys}>
                     <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
                         <Tooltip title="Create New Key" placement="left">
                             <Fab
@@ -217,7 +216,7 @@ export const EncryptionKeysPage: React.FC = () => {
                             open={Boolean(menuAnchor)}
                             onClose={() => setMenuAnchor(null)}
                         >
-                            <Authorized permissions="read:encryption-keys">
+                            <Authorized permissions={Permissions.Read_EncryptionKeys}>
                                 <MenuItem onClick={() => {
                                     setMenuAnchor(null);
                                     navigate('/encryption-keys/rotations');
@@ -226,7 +225,7 @@ export const EncryptionKeysPage: React.FC = () => {
                                     View Rotations
                                 </MenuItem>
                             </Authorized>
-                            <Authorized permissions="write:encryption-keys">
+                            <Authorized permissions={Permissions.Write_EncryptionKeys}>
                                 <MenuItem onClick={() => {
                                     setMenuAnchor(null);
                                     setMigrateDialogOpen(true);
@@ -253,7 +252,7 @@ export const EncryptionKeysPage: React.FC = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {keys.map((key, index) => (
+                        {keys.map((key) => (
                             <TableRow 
                                 key={key.kid}
                                 sx={{
@@ -276,7 +275,7 @@ export const EncryptionKeysPage: React.FC = () => {
                                 <TableCell>{formatDate(key.createdAt)}</TableCell>
                                 <TableCell>{formatDate(key.activatedAt)}</TableCell>
                                 <TableCell align="right">
-                                    <Authorized permissions="write:encryption-keys">
+                                    <Authorized permissions={Permissions.Write_EncryptionKeys}>
                                         {key.status === 'Created' && (
                                             <>
                                                 <Tooltip title="Activate (with auto-rotation)">
@@ -311,7 +310,7 @@ export const EncryptionKeysPage: React.FC = () => {
                                             </Tooltip>
                                         )}
                                     </Authorized>
-                                    <Authorized permissions="read:encryption-keys">
+                                    <Authorized permissions={Permissions.Read_EncryptionKeys}>
                                         <Tooltip title="View Stats">
                                             <IconButton
                                                 size="small"

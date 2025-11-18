@@ -61,14 +61,14 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
                         });
                         setUser(userResponse.data);
                         setIsAuthenticated(true);
-                    } catch (error) {
+                    } catch {
                         // Token invalid, clear it
                         localStorage.removeItem(TOKEN_KEY);
                         setToken(null);
                     }
                 }
             } catch (error) {
-                console.error('Failed to initialize auth:', error);
+                console.log('Failed to initialize auth:', error);
             } finally {
                 setIsLoading(false);
             }

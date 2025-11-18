@@ -6,7 +6,7 @@ export const PrivacyPolicy: React.FC = () => {
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Paper elevation={3} sx={{ p: 4 }}>
                 <Typography variant="h3" component="h1" gutterBottom>
-                    Privacy Policy for Storage Labels
+                    Privacy Notice for Storage Labels
                 </Typography>
                 
                 <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -15,115 +15,165 @@ export const PrivacyPolicy: React.FC = () => {
 
                 <Box sx={{ mt: 4 }}>
                     <Typography variant="h5" gutterBottom>
-                        Information We Collect
+                        Important: Self-Hosted Software
                     </Typography>
                     <Typography paragraph>
-                        We collect the following information when you use Storage Labels:
+                        Storage Labels is self-hosted software that you install and operate on your own infrastructure. 
+                        <strong> The software developers do not collect, store, or have access to any of your data.</strong>
+                    </Typography>
+                    <Typography paragraph>
+                        This notice describes how the software handles data locally in your installation. As the operator, 
+                        you are the data controller and are responsible for compliance with applicable privacy laws.
+                    </Typography>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Data Stored Locally
+                    </Typography>
+                    <Typography paragraph>
+                        Your installation of Storage Labels stores the following data in your database:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
-                        <li>Email address (from Google OAuth authentication)</li>
-                        <li>Profile information (name, profile picture from your Google account)</li>
-                        <li>Storage box and item data that you create and manage</li>
-                        <li>Images that you upload for your items</li>
+                        <li>User accounts (email, username, name, password hashes)</li>
+                        <li>Inventory data (locations, boxes, items)</li>
+                        <li>Uploaded images (encrypted at rest)</li>
+                        <li>User preferences and settings</li>
                     </Box>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
-                        How We Use Your Information
+                        How Data is Used
                     </Typography>
                     <Typography paragraph>
-                        We use the collected information for:
+                        The software uses locally stored data to:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
-                        <li>Authentication and authorization to access your account</li>
-                        <li>Storing and managing your box and item inventory</li>
-                        <li>Image storage and retrieval for your items</li>
-                        <li>Providing the core functionality of the Storage Labels application</li>
+                        <li>Authenticate users (Local Authentication mode)</li>
+                        <li>Manage inventory (locations, boxes, items)</li>
+                        <li>Store and display images</li>
+                        <li>Track user preferences</li>
+                        <li>Generate QR codes for items</li>
                     </Box>
+                    <Typography paragraph>
+                        All data processing happens within your self-hosted instance. No data is transmitted to 
+                        external services or the software developers.
+                    </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Data Storage and Security
                     </Typography>
                     <Typography paragraph>
-                        Your data security is important to us:
+                        The software implements the following security measures:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
-                        <li>All data is stored in a secure PostgreSQL database</li>
+                        <li>Passwords are hashed using industry-standard algorithms</li>
                         <li>Images are encrypted at rest using AES-256-GCM encryption</li>
-                        <li>All data is transmitted over HTTPS</li>
-                        <li>Hosted on secure, monitored servers</li>
+                        <li>Optional JWT token-based authentication</li>
+                        <li>Role-based access control (Admin, Auditor, User)</li>
+                    </Box>
+                    <Typography paragraph>
+                        <strong>As the operator, you are responsible for:</strong>
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>Securing your database and file storage</li>
+                        <li>Configuring HTTPS/TLS for network traffic</li>
+                        <li>Implementing network security (firewalls, VPNs, etc.)</li>
+                        <li>Regular security updates and patches</li>
+                        <li>Access control to your infrastructure</li>
                     </Box>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Third-Party Services
                     </Typography>
                     <Typography paragraph>
-                        We use the following third-party services:
+                        The software does not use any external third-party services by default. All data remains 
+                        within your self-hosted environment.
                     </Typography>
-                    <Box component="ul" sx={{ pl: 3 }}>
-                        <li>Google OAuth for authentication</li>
-                        <li>Auth0 for identity and access management</li>
-                    </Box>
                     <Typography paragraph>
-                        These services have their own privacy policies. We recommend reviewing them:
+                        If you choose to integrate additional services (email providers, external authentication, 
+                        cloud storage, etc.), you are responsible for understanding and complying with their privacy policies.
                     </Typography>
-                    <Box component="ul" sx={{ pl: 3 }}>
-                        <li>
-                            <Link href="https://policies.google.com/privacy" target="_blank" rel="noopener">
-                                Google Privacy Policy
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="https://auth0.com/privacy" target="_blank" rel="noopener">
-                                Auth0 Privacy Policy
-                            </Link>
-                        </li>
-                    </Box>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
-                        Your Rights
+                        User Rights and Data Control
                     </Typography>
                     <Typography paragraph>
-                        You have the right to:
+                        As a self-hosted solution, you (as the operator) have complete control over all data:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
-                        <li>Access your personal data</li>
-                        <li>Request deletion of your data</li>
-                        <li>Export your data</li>
-                        <li>Opt out of the service at any time</li>
+                        <li>Direct database access for data export or deletion</li>
+                        <li>Ability to backup and restore all data</li>
+                        <li>Complete audit trail through database logs</li>
+                        <li>User management through admin interface</li>
                     </Box>
+                    <Typography paragraph>
+                        Users of your installation should contact you (the operator) for any data access, 
+                        modification, or deletion requests.
+                    </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Data Retention
                     </Typography>
                     <Typography paragraph>
-                        We retain your data for as long as your account is active. If you choose to delete your account, 
-                        we will delete all your personal data within 30 days, except where we are required to retain it by law.
+                        Data is retained in your installation until you (the operator) choose to delete it. 
+                        The software provides:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>User deletion functionality (removes user and associated data)</li>
+                        <li>Manual database cleanup if needed</li>
+                        <li>Soft-delete options for some data types</li>
+                    </Box>
+                    <Typography paragraph>
+                        You are responsible for implementing data retention policies that comply with applicable laws 
+                        in your jurisdiction (GDPR, CCPA, etc.).
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Children's Privacy
                     </Typography>
                     <Typography paragraph>
-                        Storage Labels is not intended for use by children under the age of 13. We do not knowingly 
-                        collect personal information from children under 13. If you believe we have collected information 
-                        from a child under 13, please contact us immediately.
+                        The software does not include age verification. As the operator, you are responsible for:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>Determining appropriate age restrictions for your installation</li>
+                        <li>Obtaining parental consent if required by law</li>
+                        <li>Complying with children's privacy laws (COPPA, etc.) in your jurisdiction</li>
+                    </Box>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Your Responsibilities as Operator
+                    </Typography>
+                    <Typography paragraph>
+                        By operating this software, you become the data controller and are responsible for:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>Creating and publishing your own privacy policy for your users</li>
+                        <li>Complying with applicable privacy laws (GDPR, CCPA, etc.)</li>
+                        <li>Implementing required user consent mechanisms</li>
+                        <li>Handling data subject requests (access, deletion, portability)</li>
+                        <li>Reporting data breaches as required by law</li>
+                        <li>Maintaining appropriate security measures</li>
+                    </Box>
+
+                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
+                        Questions and Support
+                    </Typography>
+                    <Typography paragraph>
+                        For questions about the software's data handling:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 3 }}>
+                        <li>Review the source code (open-source)</li>
+                        <li>Check documentation in the repository</li>
+                        <li>Ask in community discussions</li>
+                    </Box>
+                    <Typography paragraph>
+                        <strong>For privacy concerns about a specific installation, contact that installation's operator.</strong>
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
-                        Contact Us
+                        Changes to This Notice
                     </Typography>
                     <Typography paragraph>
-                        If you have any questions about this Privacy Policy, please contact us at:{' '}
-                        <Link href="mailto:privacy@pollyspeople.net">privacy@pollyspeople.net</Link>
-                    </Typography>
-
-                    <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
-                        Changes to This Policy
-                    </Typography>
-                    <Typography paragraph>
-                        We may update this Privacy Policy from time to time. We will notify you of any changes by updating 
-                        the "Last updated" date at the top of this policy. Your continued use of Storage Labels after any 
-                        changes constitutes acceptance of the updated policy.
+                        This privacy notice may be updated with new software versions. Check the documentation when 
+                        updating the software for any changes to data handling practices.
                     </Typography>
                 </Box>
 

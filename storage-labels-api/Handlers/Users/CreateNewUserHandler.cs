@@ -1,49 +1,38 @@
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
-using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Handlers.Users;
-public record CreateNewUser(string UserId, string FirstName, string LastName) : IRequest<Result<User>>;
-public class CreateNewUserHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider, IAuth0ManagementApiClient auth0ManagementApiClient) : IRequestHandler<CreateNewUser, Result<User>>
+
+/// <summary>
+/// Creates a new user record - typically called during registration.
+/// This handler is now primarily for admin-created users.
+/// </summary>
+public record CreateNewUser(string UserId, string FirstName, string LastName, string EmailAddress) : IRequest<Result<User>>;
+
+public class CreateNewUserHandler(StorageLabelsDbContext dbContext, TimeProvider timeProvider) : IRequestHandler<CreateNewUser, Result<User>>
 {
     public async ValueTask<Result<User>> Handle(CreateNewUser request, CancellationToken cancellationToken)
     {
-        var hasBoxCode = await dbContext.Users
+        var existingUser = await dbContext.Users
             .AsNoTracking()
             .Where(user => user.UserId == request.UserId)
             .AnyAsync(cancellationToken);
 
-        if (hasBoxCode)
+        if (existingUser)
         {
             return Result.Conflict([$"User with the Id {request.UserId} already exists."]);
         }
-
-        // Get email from Auth0
-        if (auth0ManagementApiClient.Client is null)
-        {
-            return Result.CriticalError("Auth0ManagementApiClient not initialized.");
-        }
-
-        // Retrieve user with standard fields - we only need email but Auth0 requires valid field list
-        var fields = "user_id,email,email_verified,name,nickname,picture,created_at,updated_at,identities,app_metadata,user_metadata";
-        var auth0User = await auth0ManagementApiClient.Client.Users.GetAsync(request.UserId, fields, true, cancellationToken);
-
-        if (auth0User is null || string.IsNullOrEmpty(auth0User.Email))
-        {
-            return Result.NotFound("User email not found in Auth0.");
-        }
         
-        var result = dbContext
-            .Users
-            .Add(new User(
-                UserId: request.UserId,
-                FirstName: request.FirstName,
-                LastName: request.LastName,
-                EmailAddress: auth0User.Email,
-                Created: timeProvider.GetUtcNow())
-            );
+        var user = new User(
+            UserId: request.UserId,
+            FirstName: request.FirstName,
+            LastName: request.LastName,
+            EmailAddress: request.EmailAddress,
+            Created: timeProvider.GetUtcNow()
+        );
 
+        var result = dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return Result.Success(result.Entity);

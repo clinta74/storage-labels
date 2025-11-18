@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Container, ThemeProvider } from '@mui/material';
 import { BrowserRouter as Router } from 'react-router';
 import { ConfirmProvider } from 'material-ui-confirm';
-import { Auth0ProviderWithHistory } from '../auth/auth0-provider-with-history';
+import { AuthProvider } from '../auth/auth-provider';
 import { AppRoutes } from './app-routes';
 import { AlertMessage, AlertProvider } from './providers/alert-provider';
 import { UserPermissionProvider } from './providers/user-permission-provider';
@@ -22,14 +22,14 @@ export const App: React.FC = () => {
                                 <SnackbarProvider>
                                     <AlertMessage />
                                     <Router>
-                                        <Auth0ProviderWithHistory>
+                                        <AuthProvider>
                                             <UserPermissionProvider>
                                                 <NavigationBar />
                                                 <Container maxWidth="lg" style={{ paddingBottom: 8 }}>
                                                     <AppRoutes />
                                                 </Container>
                                             </UserPermissionProvider>
-                                        </Auth0ProviderWithHistory>
+                                        </AuthProvider>
                                     </Router>
                                 </SnackbarProvider>
                             </AlertProvider>

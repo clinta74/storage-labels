@@ -1,5 +1,5 @@
 import React, { createContext, PropsWithChildren, useEffect, useState } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '../../auth/auth-provider';
 import { jwtDecode, JwtPayload } from "jwt-decode";
 
 
@@ -11,28 +11,40 @@ interface UserPermissionContext {
 }
 
 type Auth0JwtPayload = JwtPayload & {
-  permissions: string[];
+  permission: string[];
 };
 
 export const UserPermissionContext = createContext<UserPermissionContext | null>(null);
 
 export const UserPermissionProvider: React.FC<PropsWithChildren> = ({ children }) => {
-    const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
+    const { isAuthenticated, getAccessToken, authMode, user } = useAuth();
     const [permissions, setPermissions] = useState<string[]>([]);
 
     useEffect(() => {
+        if (authMode === 'None') {
+            // In NoAuth mode, grant all permissions (will be handled server-side)
+            setPermissions([]);
+            return;
+        }
+
         if (isAuthenticated) {
-            getAccessTokenSilently()
+            getAccessToken()
                 .then(token => {
-                    const jwt = jwtDecode<Auth0JwtPayload>(token);
-                    setPermissions(jwt.permissions);
+                    if (token) {
+                        const jwt = jwtDecode<Auth0JwtPayload>(token);
+                        setPermissions(jwt.permission || []);
+                    }
                 })
                 .catch(console.error);
-
         }
-    }, [isAuthenticated, user]);
+    }, [isAuthenticated, authMode, user]);
 
     const hasPermission: HasPermissionHandler = (permissionList) => {
+        // In NoAuth mode, always return true
+        if (authMode === 'None') {
+            return true;
+        }
+
         if (Array.isArray(permissionList)) {
             return permissionList.some(p => permissions.includes(p));
         }

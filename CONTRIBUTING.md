@@ -1,0 +1,1013 @@
+# Contributing to Storage Labels
+
+Thank you for your interest in contributing to Storage Labels! This document provides guidelines and patterns to maintain consistency and quality across the codebase.
+
+## Table of Contents
+
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Environment](#development-environment)
+- [Architecture & Patterns](#architecture--patterns)
+  - [API (Backend)](#api-backend)
+  - [UI (Frontend)](#ui-frontend)
+- [Code Style Guidelines](#code-style-guidelines)
+- [Testing Requirements](#testing-requirements)
+- [Pull Request Process](#pull-request-process)
+- [Commit Message Format](#commit-message-format)
+
+---
+
+## Code of Conduct
+
+- Be respectful and constructive
+- Focus on the code, not the person
+- Welcome newcomers and help them learn
+- Follow the established patterns and conventions
+
+---
+
+## Getting Started
+
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/storage-labels.git`
+3. Create a feature branch: `git checkout -b feature/your-feature-name`
+4. Make your changes following the guidelines below
+5. Test thoroughly
+6. Submit a pull request
+
+---
+
+## Development Environment
+
+### Prerequisites
+
+**Backend (API):**
+- .NET 9.0 SDK
+- PostgreSQL 17
+- Visual Studio 2022 or VS Code with C# extensions
+
+**Frontend (UI):**
+- Node.js 18+ with npm
+- Modern browser with developer tools
+
+### Setup
+
+```bash
+# Clone repository
+git clone https://github.com/clinta74/storage-labels.git
+cd storage-labels
+
+# Backend setup
+cd storage-labels-api
+dotnet restore
+dotnet ef database update
+
+# Frontend setup
+cd ../storage-labels-ui
+npm install
+
+# Run development servers
+# Terminal 1 (API):
+cd storage-labels-api
+dotnet watch run
+
+# Terminal 2 (UI):
+cd storage-labels-ui
+npm start
+```
+
+---
+
+## Architecture & Patterns
+
+### API (Backend)
+
+The API follows **Clean Architecture** principles with a focus on testability, maintainability, and domain-driven design.
+
+#### Required Patterns
+
+##### 1. Mediator Pattern (MediatR)
+
+**All business logic must use the Mediator pattern** for separation of concerns and testability.
+
+**Pattern:**
+```csharp
+using Mediator;
+using Ardalis.Result;
+
+namespace StorageLabelsApi.Handlers.YourFeature;
+
+// Request record
+public record YourRequest(string Parameter) : IRequest<Result<YourResponse>>;
+
+// Handler class
+public class YourRequestHandler(
+    Dependency1 dep1,
+    Dependency2 dep2,
+    ILogger<YourRequestHandler> logger) 
+    : IRequestHandler<YourRequest, Result<YourResponse>>
+{
+    public async ValueTask<Result<YourResponse>> Handle(
+        YourRequest request, 
+        CancellationToken cancellationToken)
+    {
+        // Validate using FluentValidation
+        var validation = await new YourRequestValidator()
+            .ValidateAsync(request, cancellationToken);
+        
+        if (!validation.IsValid)
+        {
+            return Result<YourResponse>.Invalid(validation.AsErrors());
+        }
+
+        // Business logic here
+        logger.LogInformation("Processing request...");
+        
+        try
+        {
+            // ... implementation
+            return Result<YourResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to process request");
+            return Result<YourResponse>.Error("Error message");
+        }
+    }
+}
+```
+
+**✅ DO:**
+- Use `IRequest<Result<T>>` for all requests
+- Return `Result<T>` from Ardalis.Result for consistent error handling
+- Use primary constructors for dependency injection
+- Use `ValueTask<Result<T>>` for handler return types
+- Place handlers in `Handlers/FeatureName/` folder
+- Use descriptive record names (e.g., `CreateBox`, `UpdateItem`, `DeleteLocation`)
+
+**❌ DON'T:**
+- Put business logic directly in controllers/endpoints
+- Use exceptions for expected validation failures
+- Mix concerns (keep handlers focused on single responsibility)
+
+---
+
+##### 2. FluentValidation
+
+**All input validation must use FluentValidation** for consistency and clarity.
+
+**Pattern:**
+```csharp
+using FluentValidation;
+
+public class YourRequestValidator : AbstractValidator<YourRequest>
+{
+    public YourRequestValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .WithMessage("Name is required")
+            .MaximumLength(100)
+            .WithMessage("Name cannot exceed 100 characters");
+
+        RuleFor(x => x.Email)
+            .NotEmpty()
+            .EmailAddress()
+            .When(x => !string.IsNullOrEmpty(x.Email));
+
+        RuleFor(x => x.Quantity)
+            .GreaterThan(0)
+            .WithMessage("Quantity must be greater than 0");
+    }
+}
+```
+
+**✅ DO:**
+- Create a separate validator class for each request
+- Use descriptive error messages
+- Use `.When()` for conditional validation
+- Validate all user input at the handler level
+- Use built-in validators when possible (NotEmpty, EmailAddress, etc.)
+
+**❌ DON'T:**
+- Validate in multiple places (only in validators)
+- Use magic strings for error messages
+- Skip validation for "simple" inputs
+
+---
+
+##### 3. DTOs with Records
+
+**Use records for all DTOs** (Data Transfer Objects) for immutability and conciseness.
+
+**Pattern:**
+```csharp
+namespace StorageLabelsApi.Models.DTO.YourFeature;
+
+// Request DTOs
+public record CreateItemRequest(
+    string Name,
+    string? Description,
+    int BoxId,
+    int Quantity = 1
+);
+
+// Response DTOs
+public record ItemResponse(
+    int Id,
+    string Name,
+    string? Description,
+    int BoxId,
+    string BoxCode,
+    int Quantity,
+    DateTime Created,
+    DateTime? Updated
+);
+
+// Use positional parameters for simple DTOs
+// Use property syntax for complex DTOs with many optional fields
+public record UpdateItemRequest
+{
+    public string? Name { get; init; }
+    public string? Description { get; init; }
+    public int? Quantity { get; init; }
+}
+```
+
+**✅ DO:**
+- Use records for immutability
+- Use nullable reference types appropriately
+- Provide default values where sensible
+- Place DTOs in `Models/DTO/FeatureName/` folder
+- Include all necessary data (don't make clients call multiple endpoints)
+
+**❌ DON'T:**
+- Use classes for DTOs unless mutability is required
+- Expose database entities directly in API responses
+- Include unnecessary fields (e.g., sensitive data, internal IDs)
+
+---
+
+##### 4. Structured Logging with LoggerMessage
+
+**Use LoggerMessage source generators** for high-performance, structured logging.
+
+**Pattern:**
+```csharp
+// Create a partial class in Logging/LogMessages.YourFeature.cs
+namespace StorageLabelsApi.Logging;
+
+public static partial class LogMessages
+{
+    [LoggerMessage(
+        Message = "User {userId} created box {boxId} in location {locationId}",
+        Level = LogLevel.Information)]
+    public static partial void BoxCreated(
+        this ILogger logger, 
+        string userId, 
+        int boxId, 
+        int locationId);
+
+    [LoggerMessage(
+        Message = "Failed to delete item {itemId} - {reason}",
+        Level = LogLevel.Warning)]
+    public static partial void ItemDeleteFailed(
+        this ILogger logger, 
+        int itemId, 
+        string reason);
+
+    [LoggerMessage(
+        Message = "Database query for items in box {boxId} took {elapsed}ms",
+        Level = LogLevel.Debug)]
+    public static partial void QueryPerformance(
+        this ILogger logger, 
+        int boxId, 
+        long elapsed);
+}
+
+// Usage in handlers:
+logger.BoxCreated(userId, box.Id, box.LocationId);
+logger.ItemDeleteFailed(itemId, "Item not found");
+```
+
+**✅ DO:**
+- Use structured logging with named parameters
+- Create one partial class per feature area
+- Use appropriate log levels (Debug, Information, Warning, Error)
+- Log all significant operations
+- Include context (user ID, entity IDs, etc.)
+
+**❌ DON'T:**
+- Use string interpolation in log messages
+- Log sensitive data (passwords, tokens, PII)
+- Over-log (avoid logging every minor step)
+- Use generic messages without context
+
+---
+
+##### 5. Endpoint Mapping
+
+**Use Minimal APIs with proper organization** in the `Endpoints/` folder.
+
+**Pattern:**
+```csharp
+namespace StorageLabelsApi.Endpoints;
+
+internal static partial class EndpointsMapper
+{
+    private static IEndpointRouteBuilder MapYourFeature(this IEndpointRouteBuilder routeBuilder)
+    {
+        var group = routeBuilder.MapGroup("your-feature")
+            .WithTags("YourFeature")
+            .RequireAuthorization(); // If auth required
+
+        group.MapGet("/", GetAllItems)
+            .WithName("Get All Items")
+            .Produces<IEnumerable<ItemResponse>>(StatusCodes.Status200OK);
+
+        group.MapGet("/{id:int}", GetItemById)
+            .WithName("Get Item By ID")
+            .Produces<ItemResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+        group.MapPost("/", CreateItem)
+            .WithName("Create Item")
+            .Produces<ItemResponse>(StatusCodes.Status201Created)
+            .Produces<ValidationProblemDetails>(StatusCodes.Status400BadRequest);
+
+        group.MapPut("/{id:int}", UpdateItem)
+            .WithName("Update Item")
+            .Produces<ItemResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{id:int}", DeleteItem)
+            .WithName("Delete Item")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces<ProblemDetails>(StatusCodes.Status404NotFound);
+
+        return routeBuilder;
+    }
+
+    private static async Task<IResult> GetAllItems(
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetAllItems(), cancellationToken);
+        return result.ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> CreateItem(
+        CreateItemRequest request,
+        HttpContext context,
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var result = await mediator.Send(
+            new CreateItem(userId, request.Name, request.Description, request.BoxId), 
+            cancellationToken);
+        return result.ToMinimalApiResult();
+    }
+}
+```
+
+**✅ DO:**
+- Use route groups for related endpoints
+- Use route constraints (`:int`, `:guid`, etc.)
+- Document all possible response types with `.Produces<T>()`
+- Use `HttpContext.GetUserId()` for authenticated user ID
+- Keep endpoint methods thin (just wire to mediator)
+- Use meaningful route names for documentation
+
+**❌ DON'T:**
+- Put business logic in endpoint methods
+- Use ambiguous routes
+- Forget to specify response types
+
+---
+
+##### 6. Database Access with Entity Framework Core
+
+**Use EF Core with proper patterns** for data access.
+
+**Pattern:**
+```csharp
+// Entity (in Datalayer/Models/)
+public class Item
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int BoxId { get; set; }
+    public int Quantity { get; set; }
+    public DateTime Created { get; set; }
+    public DateTime? Updated { get; set; }
+    
+    // Navigation properties
+    public Box Box { get; set; } = null!;
+}
+
+// DbContext configuration (in Datalayer/StorageLabelsDbContext.cs)
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Item>(entity =>
+    {
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+        entity.Property(e => e.Description).HasMaxLength(1000);
+        
+        entity.HasOne(e => e.Box)
+            .WithMany(b => b.Items)
+            .HasForeignKey(e => e.BoxId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+}
+
+// Usage in handlers
+var item = await dbContext.Items
+    .Include(i => i.Box)
+    .FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
+
+if (item == null)
+{
+    return Result<ItemResponse>.NotFound();
+}
+```
+
+**✅ DO:**
+- Use async methods with CancellationToken
+- Use `.Include()` for eager loading when needed
+- Use `.AsNoTracking()` for read-only queries
+- Configure entities in `OnModelCreating`
+- Use migrations for schema changes
+- Use `TimeProvider` for timestamps (not `DateTime.Now`)
+
+**❌ DON'T:**
+- Use lazy loading (configure explicit loading)
+- Return entities directly (map to DTOs)
+- Forget to check for null after queries
+- Use `DateTime.Now` or `DateTime.UtcNow` (use injected `TimeProvider`)
+
+---
+
+### UI (Frontend)
+
+The UI uses **React 18** with **Material-UI v7**, **React Router**, and **Context API** for state management.
+
+#### Required Patterns
+
+##### 1. Component Structure
+
+**Use functional components with TypeScript** for all UI components.
+
+**Pattern:**
+```tsx
+import React, { useState, useEffect } from 'react';
+import { Box, Button, Typography, CircularProgress } from '@mui/material';
+import { useApi } from '../../../api';
+import { useAlertMessage } from '../../providers/alert-provider';
+
+interface YourComponentProps {
+    itemId: number;
+    onUpdate?: (item: ItemResponse) => void;
+}
+
+export const YourComponent: React.FC<YourComponentProps> = ({ itemId, onUpdate }) => {
+    const { Api } = useApi();
+    const alert = useAlertMessage();
+    const [item, setItem] = useState<ItemResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadItem();
+    }, [itemId]);
+
+    const loadItem = async () => {
+        try {
+            setLoading(true);
+            const { data } = await Api.Item.getItem(itemId);
+            setItem(data);
+        } catch (error: any) {
+            alert.addError(error.response?.data?.message || 'Failed to load item');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdate = async () => {
+        try {
+            const { data } = await Api.Item.updateItem(itemId, { name: 'Updated' });
+            setItem(data);
+            onUpdate?.(data);
+        } catch (error: any) {
+            alert.addError(error.response?.data?.message || 'Failed to update item');
+        }
+    };
+
+    if (loading) {
+        return <CircularProgress />;
+    }
+
+    if (!item) {
+        return <Typography>Item not found</Typography>;
+    }
+
+    return (
+        <Box>
+            <Typography variant="h5">{item.name}</Typography>
+            <Button onClick={handleUpdate} color="primary">
+                Update
+            </Button>
+        </Box>
+    );
+};
+```
+
+**✅ DO:**
+- Use TypeScript for all components
+- Define prop interfaces
+- Use functional components with hooks
+- Handle loading and error states
+- Use Material-UI components consistently
+- Export components as named exports
+
+**❌ DON'T:**
+- Use class components
+- Ignore TypeScript errors
+- Leave API errors unhandled
+- Use inline styles (use sx prop or theme)
+
+---
+
+##### 2. API Integration
+
+**Use axios with typed endpoints** in the `api/` folder.
+
+**Pattern:**
+```typescript
+// api/endpoints/item.ts
+import { AxiosInstance } from 'axios';
+
+export type ItemEndpoints = ReturnType<typeof getItemEndpoints>;
+
+export const getItemEndpoints = (client: AxiosInstance) => ({
+    getItems: () =>
+        client.get<ItemResponse[]>('item'),
+
+    getItem: (id: number) =>
+        client.get<ItemResponse>(`item/${id}`),
+
+    createItem: (request: CreateItemRequest) =>
+        client.post<ItemResponse>('item', request),
+
+    updateItem: (id: number, request: UpdateItemRequest) =>
+        client.put<ItemResponse>(`item/${id}`, request),
+
+    deleteItem: (id: number) =>
+        client.delete(`item/${id}`),
+});
+```
+
+**✅ DO:**
+- Define typed response interfaces
+- Use consistent naming (getX, createX, updateX, deleteX)
+- Return full axios response (allows access to headers, status, etc.)
+- Group endpoints by feature
+
+**❌ DON'T:**
+- Make API calls directly from components (use endpoint functions)
+- Ignore TypeScript types
+- Hard-code URLs (use base URL from config)
+
+---
+
+##### 3. State Management with Context
+
+**Use React Context** for shared state across components.
+
+**Pattern:**
+```tsx
+// providers/your-provider.tsx
+import React, { createContext, PropsWithChildren, useState, useContext } from 'react';
+
+interface YourContextType {
+    data: SomeData | null;
+    loading: boolean;
+    updateData: (data: SomeData) => void;
+}
+
+const YourContext = createContext<YourContextType | null>(null);
+
+export const YourProvider: React.FC<PropsWithChildren> = ({ children }) => {
+    const [data, setData] = useState<SomeData | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    const updateData = (newData: SomeData) => {
+        setData(newData);
+    };
+
+    return (
+        <YourContext.Provider value={{ data, loading, updateData }}>
+            {children}
+        </YourContext.Provider>
+    );
+};
+
+export const useYourContext = () => {
+    const context = useContext(YourContext);
+    if (context === null) {
+        throw new Error('useYourContext must be used within YourProvider');
+    }
+    return context;
+};
+```
+
+**✅ DO:**
+- Create typed context interfaces
+- Throw error if context used outside provider
+- Use custom hooks for context access
+- Keep context focused (single responsibility)
+
+**❌ DON'T:**
+- Create massive global contexts
+- Use context for frequently changing data (use local state)
+- Forget to wrap components in providers
+
+---
+
+##### 4. Form Handling
+
+**Use Material-UI components with controlled inputs**.
+
+**Pattern:**
+```tsx
+import React, { useState } from 'react';
+import { Box, Button, TextField, Stack } from '@mui/material';
+
+interface FormData {
+    name: string;
+    quantity: number;
+}
+
+export const ItemForm: React.FC = () => {
+    const [formData, setFormData] = useState<FormData>({
+        name: '',
+        quantity: 1,
+    });
+    const [loading, setLoading] = useState(false);
+
+    const handleChange = (field: keyof FormData) => (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: e.target.value,
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            // API call
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+                fullWidth
+                label="Name"
+                value={formData.name}
+                onChange={handleChange('name')}
+                margin="normal"
+                required
+            />
+
+            <TextField
+                fullWidth
+                label="Quantity"
+                type="number"
+                value={formData.quantity}
+                onChange={handleChange('quantity')}
+                margin="normal"
+            />
+
+            <Stack direction="row" spacing={2} padding={2} justifyContent="right">
+                <Button type="submit" color="primary" loading={loading}>
+                    Save
+                </Button>
+            </Stack>
+        </Box>
+    );
+};
+```
+
+**✅ DO:**
+- Use controlled inputs (value + onChange)
+- Use TypeScript for form data
+- Add loading states to buttons
+- Use Stack for button layout
+- Validate on submit
+
+**❌ DON'T:**
+- Use uncontrolled inputs
+- Submit forms without preventing default
+- Forget disabled/loading states
+
+---
+
+##### 5. Navigation with React Router
+
+**Use declarative navigation** with Link components.
+
+**Pattern:**
+```tsx
+import { Link, useNavigate } from 'react-router';
+import { Button } from '@mui/material';
+
+// Declarative navigation (preferred)
+<Button component={Link} to="/items">
+    View Items
+</Button>
+
+// Programmatic navigation (when needed)
+const navigate = useNavigate();
+
+const handleSave = async () => {
+    await saveItem();
+    navigate('/items'); // After successful operation
+};
+```
+
+**✅ DO:**
+- Use `component={Link} to="/path"` for navigation buttons
+- Use `navigate()` after successful operations
+- Use relative paths when appropriate
+
+**❌ DON'T:**
+- Use `onClick={() => navigate()}` when Link is sufficient
+- Navigate before confirming operations
+- Use hard-coded URLs
+
+---
+
+##### 6. Error Handling & Notifications
+
+**Use AlertProvider for errors and SnackbarProvider for success messages**.
+
+**Pattern:**
+```tsx
+import { useAlertMessage } from '../../providers/alert-provider';
+import { useSnackbar } from '../../providers/snackbar-provider';
+
+export const YourComponent: React.FC = () => {
+    const alert = useAlertMessage();
+    const { showSuccess } = useSnackbar();
+
+    const handleDelete = async (id: number) => {
+        try {
+            await Api.Item.deleteItem(id);
+            showSuccess('Item deleted successfully');
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Failed to delete item';
+            alert.addError(message);
+        }
+    };
+};
+```
+
+**✅ DO:**
+- Use snackbar for success messages (auto-dismiss)
+- Use alert for error messages (persistent)
+- Extract error messages from API responses
+- Provide user-friendly error messages
+
+**❌ DON'T:**
+- Use `console.error` for user-facing errors
+- Show raw error objects to users
+- Use alert() or confirm() browser dialogs
+
+---
+
+##### 7. Styling with Material-UI
+
+**Use the sx prop and theme** for consistent styling.
+
+**Pattern:**
+```tsx
+import { Box, Typography } from '@mui/material';
+
+<Box sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
+    <Typography variant="h5" sx={{ mb: 2, color: 'primary.main' }}>
+        Title
+    </Typography>
+</Box>
+
+// Use theme spacing (multiples of 8px)
+sx={{ mt: 2 }}  // margin-top: 16px
+sx={{ p: 3 }}   // padding: 24px
+```
+
+**✅ DO:**
+- Use sx prop for styling
+- Use theme values (colors, spacing)
+- Use variant prop for Typography
+- Use consistent spacing multiples
+
+**❌ DON'T:**
+- Use inline styles
+- Hard-code colors or sizes
+- Use CSS classes unless necessary
+
+---
+
+## Code Style Guidelines
+
+### TypeScript/JavaScript (UI)
+
+```typescript
+// ✅ Good
+const getUserName = (user: User): string => {
+    return user.firstName + ' ' + user.lastName;
+};
+
+// ❌ Bad
+function getUserName(user) {
+    return user.firstName + ' ' + user.lastName;
+}
+```
+
+**Rules:**
+- Use arrow functions for consistency
+- Always include types
+- Use `const` instead of `let` when possible
+- Use destructuring for props and objects
+
+### C# (API)
+
+```csharp
+// ✅ Good
+public record CreateBoxRequest(string Code, int LocationId);
+
+public class CreateBoxHandler(StorageLabelsDbContext dbContext)
+    : IRequestHandler<CreateBox, Result<BoxResponse>>
+{
+    // Implementation
+}
+
+// ❌ Bad
+public class CreateBoxRequest
+{
+    public string Code { get; set; }
+    public int LocationId { get; set; }
+}
+```
+
+**Rules:**
+- Use records for DTOs
+- Use primary constructors for dependency injection
+- Follow .NET naming conventions (PascalCase)
+- Use `var` for local variables when type is obvious
+
+---
+
+## Testing Requirements
+
+### Backend (C#)
+
+**All handlers must have unit tests** using xUnit, FluentAssertions, and Moq.
+
+**Pattern:**
+```csharp
+public class CreateBoxHandlerTests
+{
+    [Fact]
+    public async Task Handle_ValidRequest_CreatesBox()
+    {
+        // Arrange
+        var dbContext = CreateInMemoryDbContext();
+        var handler = new CreateBoxHandler(dbContext, TimeProvider.System);
+        var request = new CreateBox("BOX001", 1);
+
+        // Act
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Code.Should().Be("BOX001");
+    }
+
+    [Fact]
+    public async Task Handle_DuplicateCode_ReturnsError()
+    {
+        // Arrange, Act, Assert
+    }
+}
+```
+
+**Requirements:**
+- Minimum 80% code coverage
+- Test happy path and error cases
+- Use descriptive test names
+- Use FluentAssertions for readable assertions
+
+### Frontend (React)
+
+Unit tests are encouraged but not required for all components. Focus on:
+- Complex logic components
+- Utility functions
+- Context providers
+
+---
+
+## Pull Request Process
+
+1. **Create a feature branch** from `main`
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Follow the coding patterns** described above
+
+3. **Write/update tests** as needed
+
+4. **Update documentation** if adding new features
+
+5. **Commit with meaningful messages** (see below)
+
+6. **Push and create PR**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+7. **PR checklist:**
+   - [ ] Code follows established patterns
+   - [ ] Tests added/updated
+   - [ ] Documentation updated
+   - [ ] No linting errors
+   - [ ] All tests pass
+   - [ ] Commits follow convention
+
+---
+
+## Commit Message Format
+
+Use **Conventional Commits** format:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### Types
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, no logic change)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+
+### Examples
+
+```
+feat(items): Add bulk import functionality
+
+Implement CSV import for items with validation and error reporting.
+Includes progress tracking and rollback on errors.
+
+Closes #123
+```
+
+```
+fix(auth): Prevent race condition in UserProvider
+
+Add loading state to UserProvider to prevent concurrent API calls
+when token becomes available after login.
+
+Fixes #456
+```
+
+```
+docs: Update contributing guide with API patterns
+
+Add comprehensive patterns for Mediator, FluentValidation, and
+structured logging to help new contributors.
+```
+
+---
+
+## Questions?
+
+- Check existing code for examples
+- Review the README.md and DOCKER.md
+- Ask in discussions or issues
+
+Thank you for contributing to Storage Labels! 🎉

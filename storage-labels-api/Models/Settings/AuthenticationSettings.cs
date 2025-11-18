@@ -13,17 +13,7 @@ public enum AuthenticationMode
     /// <summary>
     /// Built-in local authentication with ASP.NET Identity
     /// </summary>
-    Local,
-    
-    /// <summary>
-    /// Auth0 authentication (legacy mode for backward compatibility)
-    /// </summary>
-    Auth0,
-    
-    /// <summary>
-    /// Generic OpenID Connect provider (Authentik, Keycloak, etc.)
-    /// </summary>
-    OIDC
+    Local
 }
 
 /// <summary>
@@ -39,22 +29,7 @@ public class AuthenticationSettings
     /// <summary>
     /// Local authentication settings
     /// </summary>
-    public LocalAuthSettings? Local { get; set; }
-
-    /// <summary>
-    /// Auth0 settings (legacy)
-    /// </summary>
-    public Auth0Settings? Auth0 { get; set; }
-
-    /// <summary>
-    /// OpenID Connect settings
-    /// </summary>
-    public OIDCSettings? OIDC { get; set; }
-
-    /// <summary>
-    /// External provider settings
-    /// </summary>
-    public ExternalProvidersSettings? ExternalProviders { get; set; }
+    public LocalAuthSettings Local { get; set; } = new();
 }
 
 /// <summary>
@@ -116,82 +91,4 @@ public class LocalAuthSettings
     /// Lockout duration in minutes
     /// </summary>
     public int LockoutDurationMinutes { get; set; } = 15;
-}
-
-/// <summary>
-/// Generic OIDC provider settings
-/// </summary>
-public class OIDCSettings
-{
-    /// <summary>
-    /// Whether OIDC is enabled
-    /// </summary>
-    public bool Enabled { get; set; } = false;
-
-    /// <summary>
-    /// OIDC authority (issuer URL)
-    /// </summary>
-    public string Authority { get; set; } = string.Empty;
-
-    /// <summary>
-    /// OIDC client ID
-    /// </summary>
-    public string ClientId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// OIDC client secret
-    /// </summary>
-    public string ClientSecret { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Response type (default: code)
-    /// </summary>
-    public string ResponseType { get; set; } = "code";
-
-    /// <summary>
-    /// Scopes to request
-    /// </summary>
-    public string[] Scopes { get; set; } = ["openid", "profile", "email"];
-}
-
-/// <summary>
-/// External authentication providers settings
-/// </summary>
-public class ExternalProvidersSettings
-{
-    /// <summary>
-    /// Google OAuth settings
-    /// </summary>
-    public OAuthProviderSettings? Google { get; set; }
-
-    /// <summary>
-    /// Microsoft OAuth settings
-    /// </summary>
-    public OAuthProviderSettings? Microsoft { get; set; }
-
-    /// <summary>
-    /// GitHub OAuth settings
-    /// </summary>
-    public OAuthProviderSettings? GitHub { get; set; }
-}
-
-/// <summary>
-/// OAuth provider settings
-/// </summary>
-public class OAuthProviderSettings
-{
-    /// <summary>
-    /// Whether this provider is enabled
-    /// </summary>
-    public bool Enabled { get; set; } = false;
-
-    /// <summary>
-    /// OAuth client ID
-    /// </summary>
-    public string ClientId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// OAuth client secret
-    /// </summary>
-    public string ClientSecret { get; set; } = string.Empty;
 }

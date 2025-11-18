@@ -23,16 +23,6 @@ public class ApplicationUser : IdentityUser
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// External authentication provider (Auth0, Google, Microsoft, GitHub)
-    /// </summary>
-    public string? ExternalProvider { get; set; }
-
-    /// <summary>
-    /// External provider's user ID
-    /// </summary>
-    public string? ExternalProviderId { get; set; }
-
-    /// <summary>
     /// Whether the user is active
     /// </summary>
     public bool IsActive { get; set; } = true;

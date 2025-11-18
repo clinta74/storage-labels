@@ -20,7 +20,7 @@ export const TermsConditions: React.FC = () => {
                     <Typography paragraph>
                         Storage Labels is open-source, self-hosted inventory management software. By installing and 
                         using this software, you agree to the terms of the applicable open-source license. This software 
-                        is provided "as-is" for your personal or organizational use on infrastructure you control.
+                        is provided &quot;as-is&quot; for your personal or organizational use on infrastructure you control.
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
@@ -138,7 +138,7 @@ export const TermsConditions: React.FC = () => {
                         9. Limitation of Liability and Warranty Disclaimer
                     </Typography>
                     <Typography paragraph>
-                        This software is provided "as is" without warranty of any kind, either express or implied, 
+                        This software is provided &quot;as is&quot; without warranty of any kind, either express or implied, 
                         including but not limited to warranties of merchantability, fitness for a particular purpose, 
                         or non-infringement.
                     </Typography>
@@ -164,7 +164,7 @@ export const TermsConditions: React.FC = () => {
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
                         <li>Your installation and operation of the software</li>
-                        <li>Your users' access to and use of your installation</li>
+                        <li>Your users&apos; access to and use of your installation</li>
                         <li>Any data breaches or security incidents</li>
                         <li>Your failure to comply with applicable laws and regulations</li>
                     </Box>

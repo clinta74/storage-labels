@@ -1,5 +1,4 @@
 import React, { createContext, PropsWithChildren, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
 import { useApi } from '../../api';
 import { useAuth } from '../../auth/auth-provider';
 import { useAlertMessage } from './alert-provider';
@@ -15,7 +14,6 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [user, setUser] = useState<UserResponse>();
     const [loading, setLoading] = useState(false);
     const alert = useAlertMessage();
-    const navigate = useNavigate();
     const { isAuthenticated, authMode } = useAuth();
     const { Api } = useApi();
 

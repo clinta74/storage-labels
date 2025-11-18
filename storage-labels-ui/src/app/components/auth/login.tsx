@@ -86,7 +86,7 @@ export const Login: React.FC = () => {
                         to="/register"
                         disabled={isLoading}
                     >
-                        Don't have an account? Register
+                        Don&apos;t have an account? Register
                     </Button>
                 </form>
             </Paper>

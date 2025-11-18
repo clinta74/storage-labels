@@ -3,8 +3,6 @@ import { useAuth } from '../../../auth/auth-provider';
 import {
     Box,
     Button,
-    Card,
-    CardContent,
     Chip,
     CircularProgress,
     Dialog,
@@ -38,6 +36,7 @@ import {
 import { useApi } from '../../../api';
 import { Authorized } from '../../providers/user-permission-provider';
 import { Breadcrumbs } from '../shared';
+import { Permissions } from '../../constants/permissions';
 
 const getStatusColor = (status: RotationStatus): 'info' | 'success' | 'error' | 'default' => {
     switch (status) {
@@ -56,7 +55,7 @@ const formatDate = (dateString: string | undefined): string => {
 
 export const RotationsPage: React.FC = () => {
     const { Api } = useApi();
-    const { getToken } = useAuth();
+    const { getAccessToken } = useAuth();
     const [rotations, setRotations] = useState<EncryptionKeyRotation[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRotation, setSelectedRotation] = useState<string | null>(null);
@@ -68,9 +67,6 @@ export const RotationsPage: React.FC = () => {
     const [keys, setKeys] = useState<EncryptionKey[]>([]);
 
     const activeKeys = keys.filter(key => key.status === 'Active');
-    const defaultActiveKey = activeKeys.length > 0 
-        ? activeKeys.reduce((min, key) => key.kid < min.kid ? key : min, activeKeys[0])
-        : null;
 
     const loadRotations = async () => {
         try {
@@ -144,7 +140,7 @@ export const RotationsPage: React.FC = () => {
                         loadRotations();
                     }
                 },
-                getToken
+                getAccessToken
             ).then(cleanup => {
                 cleanupFunctions.push(cleanup);
             }).catch(error => {
@@ -175,7 +171,7 @@ export const RotationsPage: React.FC = () => {
                         loadRotations();
                     }
                 },
-                getToken
+                getAccessToken
             ).then(cleanupFn => {
                 cleanup = cleanupFn;
             }).catch(error => {
@@ -238,7 +234,7 @@ export const RotationsPage: React.FC = () => {
                             <RefreshIcon />
                         </IconButton>
                     </Tooltip>
-                    <Authorized permissions="write:encryption-keys">
+                    <Authorized permissions={Permissions.Write_EncryptionKeys}>
                         <Button
                             variant="contained"
                             startIcon={<PlayArrowIcon />}
@@ -326,7 +322,7 @@ export const RotationsPage: React.FC = () => {
                                                 <InfoIcon />
                                             </IconButton>
                                         </Tooltip>
-                                        <Authorized permissions="write:encryption-keys">
+                                        <Authorized permissions={Permissions.Write_EncryptionKeys}>
                                             {rotation.status === 'InProgress' && (
                                                 <Tooltip title="Cancel Rotation">
                                                     <IconButton

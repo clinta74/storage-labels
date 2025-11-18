@@ -127,7 +127,7 @@ export const PrivacyPolicy: React.FC = () => {
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
-                        Children's Privacy
+                        Children&apos;s Privacy
                     </Typography>
                     <Typography paragraph>
                         The software does not include age verification. As the operator, you are responsible for:
@@ -135,7 +135,7 @@ export const PrivacyPolicy: React.FC = () => {
                     <Box component="ul" sx={{ pl: 3 }}>
                         <li>Determining appropriate age restrictions for your installation</li>
                         <li>Obtaining parental consent if required by law</li>
-                        <li>Complying with children's privacy laws (COPPA, etc.) in your jurisdiction</li>
+                        <li>Complying with children&apos;s privacy laws (COPPA, etc.) in your jurisdiction</li>
                     </Box>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
@@ -157,7 +157,7 @@ export const PrivacyPolicy: React.FC = () => {
                         Questions and Support
                     </Typography>
                     <Typography paragraph>
-                        For questions about the software's data handling:
+                        For questions about the software&apos;s data handling:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
                         <li>Review the source code (open-source)</li>
@@ -165,7 +165,7 @@ export const PrivacyPolicy: React.FC = () => {
                         <li>Ask in community discussions</li>
                     </Box>
                     <Typography paragraph>
-                        <strong>For privacy concerns about a specific installation, contact that installation's operator.</strong>
+                        <strong>For privacy concerns about a specific installation, contact that installation&apos;s operator.</strong>
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>

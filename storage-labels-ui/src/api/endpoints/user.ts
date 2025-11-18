@@ -6,18 +6,18 @@ export const getUserEndpoints = (client: AxiosInstance) => ({
     getUser: () =>
         client.get<UserResponse>(`user`),
 
-    getUserExists: () =>
-        client.get<boolean>(`user/exists`),
-
     updateUser: (user: UserResponse) =>
         client.patch(`user`, user),
-
-    createUser: (request: CreateUserRequest) =>
-        client.post<UserResponse>(`user`, request),
 
     getUserPreferences: () =>
         client.get<UserPreferences>(`user/preferences`),
 
     updateUserPreferences: (preferences: UserPreferences) =>
         client.put<UserPreferences>(`user/preferences`, preferences),
+
+    getAllUsers: () =>
+        client.get<UserWithRoles[]>(`user/all`),
+
+    updateUserRole: (userId: string, role: string) =>
+        client.put(`user/${userId}/role`, { role }),
 });

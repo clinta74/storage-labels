@@ -8,26 +8,25 @@ interface UserResponse {
     created: string;
     preferences?: UserPreferences;
 }
-interface NewUser {
-    firstName: string;
-    lastName: string;
-}
-
-interface CreateUserRequest {
-    firstName: string;
-    lastName: string;
-}
-
-interface NewUserResponse {
-    firstName: string;
-    lastName: string;
-    emailAddress: string;
-}
 
 interface UserPreferences {
     theme: string;
     showImages: boolean;
     codeColorPattern: string;
+}
+
+interface UserWithRoles {
+    userId: string;
+    email: string;
+    username?: string;
+    fullName: string;
+    created: string;
+    isActive: boolean;
+    roles: string[];
+}
+
+interface UpdateUserRoleRequest {
+    role: string;
 }
 
 interface CodeColorSegment {

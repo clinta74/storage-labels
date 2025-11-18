@@ -52,6 +52,18 @@ internal static partial class EndpointsMapper
             .Produces(StatusCodes.Status400BadRequest)
             .WithName("Update User Preferences");
 
+        routeBuilder.MapGet("/all", GetAllUsers)
+            .RequireAuthorization(Policies.Read_User)
+            .Produces<IEnumerable<UserWithRoles>>(StatusCodes.Status200OK)
+            .WithName("Get All Users");
+
+        routeBuilder.MapPut("/{userid}/role", UpdateUserRole)
+            .RequireAuthorization(Policies.Write_User)
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Update User Role");
+
         return routeBuilder;
     }
 
@@ -84,7 +96,11 @@ internal static partial class EndpointsMapper
     private static async Task<IResult> CreateUser(HttpContext context, CreateUserRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        var user = await mediator.Send(new CreateNewUser(userId, request.FirstName, request.LastName), cancellationToken);
+        var email = context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value 
+                    ?? context.User.FindFirst("email")?.Value 
+                    ?? "unknown@localhost";
+        
+        var user = await mediator.Send(new CreateNewUser(userId, request.FirstName, request.LastName, email), cancellationToken);
 
         return user
             .Map(user => new UserResponse(user))
@@ -110,4 +126,23 @@ internal static partial class EndpointsMapper
         
         return preferences.ToMinimalApiResult();
     }
+
+    private static async Task<IResult> GetAllUsers([FromServices] IMediator mediator, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetAllUsers(), cancellationToken);
+        return result.ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> UpdateUserRole(
+        string userid,
+        UpdateUserRoleRequest request,
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new Handlers.Users.UpdateUserRole(userid, request.Role), cancellationToken);
+        return result.ToMinimalApiResult();
+    }
+}
+
+public record UpdateUserRoleRequest(string Role);
 }

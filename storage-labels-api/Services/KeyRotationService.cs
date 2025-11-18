@@ -12,15 +12,18 @@ public class KeyRotationService : IKeyRotationService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<KeyRotationService> _logger;
     private readonly IRotationProgressNotifier _progressNotifier;
+    private readonly TimeProvider _timeProvider;
 
     public KeyRotationService(
         IServiceScopeFactory scopeFactory,
         ILogger<KeyRotationService> logger,
-        IRotationProgressNotifier progressNotifier)
+        IRotationProgressNotifier progressNotifier,
+        TimeProvider timeProvider)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
         _progressNotifier = progressNotifier;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EncryptionKeyRotation> StartRotationAsync(
@@ -374,7 +377,7 @@ public class KeyRotationService : IKeyRotationService
                 if (rotation != null)
                 {
                     rotation.Status = RotationStatus.Failed;
-                    rotation.CompletedAt = DateTime.UtcNow;
+                    rotation.CompletedAt = _timeProvider.GetUtcNow().DateTime;
                     rotation.ErrorMessage = ex.Message;
                     await context.SaveChangesAsync();
                 }

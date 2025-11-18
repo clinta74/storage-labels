@@ -13,6 +13,7 @@ public record UploadImage(IFormFile File, string UserId, bool Encrypt = true) : 
 
 public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetadata>>
 {
+    private readonly TimeProvider _timeProvider;
     private readonly StorageLabelsDbContext _dbContext;
     private readonly ILogger<UploadImageHandler> _logger;
     private readonly IImageEncryptionService _encryptionService;
@@ -22,16 +23,14 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
         StorageLabelsDbContext dbContext,
         ILogger<UploadImageHandler> logger,
         IImageEncryptionService encryptionService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        TimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
         _encryptionService = encryptionService;
-        
-        // Use configured path or default to /app/data/images for Docker compatibility
-        var basePath = configuration["ImageStoragePath"] ?? "/app/data/images";
-        _storagePath = Path.GetFullPath(basePath);
-        Directory.CreateDirectory(_storagePath);
+        _timeProvider = timeProvider;
+        _storagePath = configuration["IMAGE_STORAGE_PATH"] ?? "/app/data/images";
     }
 
     public async ValueTask<Result<ImageMetadata>> Handle(UploadImage request, CancellationToken cancellationToken)
@@ -122,7 +121,7 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
             FileName = fileName,
             ContentType = request.File.ContentType,
             StoragePath = storagePath,
-            UploadedAt = DateTime.UtcNow,
+            UploadedAt = _timeProvider.GetUtcNow().DateTime,
             SizeInBytes = fileSizeBytes,
             IsEncrypted = encryptionKeyId.HasValue,
             EncryptionKeyId = encryptionKeyId,

@@ -14,6 +14,7 @@ public class ImageEncryptionService : IImageEncryptionService
     private readonly StorageLabelsDbContext _context;
     private readonly ILogger<ImageEncryptionService> _logger;
     private readonly IFileSystem _fileSystem;
+    private readonly TimeProvider _timeProvider;
     private const int KeySizeBytes = 32; // AES-256
     private const int IVSizeBytes = 12; // AES-GCM recommended IV size
     private const int TagSizeBytes = 16; // AES-GCM authentication tag size
@@ -22,11 +23,13 @@ public class ImageEncryptionService : IImageEncryptionService
     public ImageEncryptionService(
         StorageLabelsDbContext context,
         ILogger<ImageEncryptionService> logger,
-        IFileSystem fileSystem)
+        IFileSystem fileSystem,
+        TimeProvider timeProvider)
     {
         _context = context;
         _logger = logger;
         _fileSystem = fileSystem;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EncryptionResult> EncryptAsync(
@@ -182,7 +185,7 @@ public class ImageEncryptionService : IImageEncryptionService
             Algorithm = Algorithm,
             Description = description,
             CreatedBy = createdBy,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.GetUtcNow().DateTime
         };
 
         _context.EncryptionKeys.Add(newKey);
@@ -223,9 +226,9 @@ public class ImageEncryptionService : IImageEncryptionService
                 activeKey.RetiredAt = DateTime.UtcNow;
             }
 
-            // Activate the new key
+            // Activate the target key
             keyToActivate.Status = EncryptionKeyStatus.Active;
-            keyToActivate.ActivatedAt = DateTime.UtcNow;
+            keyToActivate.ActivatedAt = _timeProvider.GetUtcNow().DateTime;
 
             await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

@@ -13,10 +13,12 @@ namespace StorageLabelsApi.Services;
 public class JwtTokenService
 {
     private readonly JwtSettings _jwtSettings;
+    private readonly TimeProvider _timeProvider;
 
-    public JwtTokenService(IOptions<JwtSettings> jwtSettings)
+    public JwtTokenService(IOptions<JwtSettings> jwtSettings, TimeProvider timeProvider)
     {
         _jwtSettings = jwtSettings.Value;
+        _timeProvider = timeProvider;
         _jwtSettings.Validate();
     }
 
@@ -55,7 +57,7 @@ public class JwtTokenService
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes);
+        var expires = _timeProvider.GetUtcNow().DateTime.AddMinutes(_jwtSettings.ExpirationMinutes);
 
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
@@ -73,6 +75,6 @@ public class JwtTokenService
     /// </summary>
     public DateTime GetTokenExpiration()
     {
-        return DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes);
+        return _timeProvider.GetUtcNow().DateTime.AddMinutes(_jwtSettings.ExpirationMinutes);
     }
 }

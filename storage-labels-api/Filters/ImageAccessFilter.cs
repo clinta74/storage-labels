@@ -10,12 +10,14 @@ public class ImageAccessFilter : IEndpointFilter
     private readonly RateLimiter _rateLimiter;
     private readonly ILogger<ImageAccessFilter> _logger;
     private readonly IConfiguration _configuration;
+    private readonly TimeProvider _timeProvider;
 
-    public ImageAccessFilter(RateLimiter rateLimiter, ILogger<ImageAccessFilter> logger, IConfiguration configuration)
+    public ImageAccessFilter(RateLimiter rateLimiter, ILogger<ImageAccessFilter> logger, IConfiguration configuration, TimeProvider timeProvider)
     {
         _rateLimiter = rateLimiter;
         _logger = logger;
         _configuration = configuration;
+        _timeProvider = timeProvider;
     }
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)

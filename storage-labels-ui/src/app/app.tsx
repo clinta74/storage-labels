@@ -3,9 +3,11 @@ import { Box, Container, ThemeProvider } from '@mui/material';
 import { BrowserRouter as Router } from 'react-router';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { AuthProvider } from '../auth/auth-provider';
+import { ApiProvider } from '../api/api-provider';
 import { AppRoutes } from './app-routes';
 import { AlertMessage, AlertProvider } from './providers/alert-provider';
 import { UserPermissionProvider } from './providers/user-permission-provider';
+import { UserProvider } from './providers/user-provider';
 import { NavigationBar } from './components/navigation-bar';
 import { SnackbarProvider } from './providers/snackbar-provider';
 import { Footer } from './components/shared/footer';
@@ -23,12 +25,16 @@ export const App: React.FC = () => {
                                     <AlertMessage />
                                     <Router>
                                         <AuthProvider>
-                                            <UserPermissionProvider>
-                                                <NavigationBar />
-                                                <Container maxWidth="lg" style={{ paddingBottom: 8 }}>
-                                                    <AppRoutes />
-                                                </Container>
-                                            </UserPermissionProvider>
+                                            <ApiProvider>
+                                                <UserPermissionProvider>
+                                                    <UserProvider>
+                                                        <NavigationBar />
+                                                        <Container maxWidth="lg" style={{ paddingBottom: 8 }}>
+                                                            <AppRoutes />
+                                                        </Container>
+                                                    </UserProvider>
+                                                </UserPermissionProvider>
+                                            </ApiProvider>
                                         </AuthProvider>
                                     </Router>
                                 </SnackbarProvider>

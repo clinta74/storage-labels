@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate, useLocation, Link } from 'react-router';
 import { Box, Button, TextField, Typography, Paper, Alert } from '@mui/material';
 import { useAuth } from '../../../auth/auth-provider';
 
@@ -22,7 +22,7 @@ export const Login: React.FC = () => {
             const from = (location.state as any)?.from?.pathname || '/';
             navigate(from, { replace: true });
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            setError(err.message || 'Login failed. Please check your credentials.');
         } finally {
             setIsLoading(false);
         }
@@ -72,7 +72,6 @@ export const Login: React.FC = () => {
                     <Button
                         fullWidth
                         type="submit"
-                        variant="contained"
                         color="primary"
                         sx={{ mt: 3, mb: 2 }}
                         disabled={isLoading}
@@ -83,7 +82,8 @@ export const Login: React.FC = () => {
                     <Button
                         fullWidth
                         variant="text"
-                        onClick={() => navigate('/register')}
+                        component={Link}
+                        to="/register"
                         disabled={isLoading}
                     >
                         Don't have an account? Register

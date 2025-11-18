@@ -15,11 +15,11 @@ import {
     Alert,
     TextField,
     Divider,
+    Stack,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { useApi } from '../../../api';
 import { useUser } from '../../providers/user-provider';
-import { ChangePassword } from './change-password';
 import { useAuth } from '../../../auth/auth-provider';
 
 export const Preferences: React.FC = () => {
@@ -137,27 +137,16 @@ export const Preferences: React.FC = () => {
                     </Typography>
                 </FormControl>
 
-                <Box display="flex" justifyContent="flex-end">
+                <Stack direction="row" spacing={2} padding={2} justifyContent="right">
                     <Button
-                        variant="contained"
                         color="primary"
-                        startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                         onClick={handleSave}
-                        disabled={saving}
+                        loading={saving}
                     >
-                        {saving ? 'Saving...' : 'Save Preferences'}
+                        Save Preferences
                     </Button>
-                </Box>
+                </Stack>
             </Paper>
-
-            {authMode === 'Local' && (
-                <>
-                    <Box sx={{ my: 3 }}>
-                        <Divider />
-                    </Box>
-                    <ChangePassword />
-                </>
-            )}
         </Container>
     );
 };

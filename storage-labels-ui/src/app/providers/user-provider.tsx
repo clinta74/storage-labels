@@ -13,6 +13,7 @@ export const UserContext = createContext<UserContext | null>(null);
 
 export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [user, setUser] = useState<UserResponse>();
+    const [loading, setLoading] = useState(false);
     const alert = useAlertMessage();
     const navigate = useNavigate();
     const { isAuthenticated, authMode } = useAuth();
@@ -24,14 +25,21 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
             return;
         }
 
-        if (isAuthenticated) {
+        if (isAuthenticated && !user && !loading) {
+            setLoading(true);
             Api.User.getUser()
                 .then(({ data }) => {
                     setUser(data);
                 })
-                .catch(error => alert.addError(error));
+                .catch(error => {
+                    console.warn('Failed to load user data:', error);
+                    // Don't show error for initial load - might be timing issue
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
         }
-    }, [isAuthenticated, authMode]);
+    }, [isAuthenticated, authMode, user, loading]);
 
     const updateUser = () => {
         Api.User.getUser()

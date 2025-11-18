@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '../../../auth/auth-provider';
 import {
     Box,
     Button,
@@ -56,7 +56,7 @@ const formatDate = (dateString: string | undefined): string => {
 
 export const RotationsPage: React.FC = () => {
     const { Api } = useApi();
-    const { getAccessTokenSilently } = useAuth0();
+    const { getToken } = useAuth();
     const [rotations, setRotations] = useState<EncryptionKeyRotation[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedRotation, setSelectedRotation] = useState<string | null>(null);
@@ -144,7 +144,7 @@ export const RotationsPage: React.FC = () => {
                         loadRotations();
                     }
                 },
-                getAccessTokenSilently
+                getToken
             ).then(cleanup => {
                 cleanupFunctions.push(cleanup);
             }).catch(error => {
@@ -175,7 +175,7 @@ export const RotationsPage: React.FC = () => {
                         loadRotations();
                     }
                 },
-                getAccessTokenSilently
+                getToken
             ).then(cleanupFn => {
                 cleanup = cleanupFn;
             }).catch(error => {

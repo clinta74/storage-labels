@@ -70,6 +70,12 @@ internal static partial class EndpointsMapper
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Update User Role");
 
+        routeBuilder.MapDelete("/{userid}", DeleteUser)
+            .RequireAuthorization(Policies.Write_User)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Delete User");
+
         return routeBuilder;
     }
 
@@ -166,6 +172,15 @@ internal static partial class EndpointsMapper
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new Handlers.Users.UpdateUserRole(userid, request.Role), cancellationToken);
+        return result.ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> DeleteUser(
+        string userid,
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new Handlers.Users.DeleteUser(userid), cancellationToken);
         return result.ToMinimalApiResult();
     }
 }

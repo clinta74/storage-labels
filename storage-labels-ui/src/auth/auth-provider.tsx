@@ -94,8 +94,11 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
             });
             setUser(userResponse.data);
             setIsAuthenticated(true);
-        } catch (error) {
-            console.error('Login failed:', error);
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.response?.statusText || error.message || 'Login failed';
+            console.warn('Login failed:', errorMessage);
+            // Re-throw with message property for UI handling
+            error.message = errorMessage;
             throw error;
         }
     };
@@ -118,8 +121,11 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
             // Auto-login after registration
             await login(username, password);
-        } catch (error) {
-            console.error('Registration failed:', error);
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.response?.data?.title || error.response?.statusText || error.message || 'Registration failed';
+            console.warn('Registration failed:', errorMessage, error.response?.data);
+            // Re-throw with message property for UI handling
+            error.message = errorMessage;
             throw error;
         }
     };

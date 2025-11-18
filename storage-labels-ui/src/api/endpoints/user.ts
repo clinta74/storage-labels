@@ -20,4 +20,10 @@ export const getUserEndpoints = (client: AxiosInstance) => ({
 
     updateUserRole: (userId: string, role: string) =>
         client.put(`user/${userId}/role`, { role }),
+
+    adminResetPassword: (userId: string, newPassword: string) =>
+        client.post(`auth/admin/reset-password`, { userId, newPassword }),
+
+    deleteUser: (userId: string) =>
+        client.delete(`user/${userId}`),
 });

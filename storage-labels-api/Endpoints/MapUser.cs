@@ -52,6 +52,12 @@ internal static partial class EndpointsMapper
             .Produces(StatusCodes.Status400BadRequest)
             .WithName("Update User Preferences");
 
+        routeBuilder.MapGet("/export/{exportType}", ExportUserData)
+            .Produces<byte[]>(StatusCodes.Status200OK, "text/csv")
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithName("Export User Data")
+            .WithDescription("Export user data as CSV. Valid export types: locations, boxes, items");
+
         return routeBuilder;
     }
 
@@ -109,5 +115,25 @@ internal static partial class EndpointsMapper
         var preferences = await mediator.Send(new Handlers.Users.UpdateUserPreferences(userId, request), cancellationToken);
         
         return preferences.ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> ExportUserData(
+        HttpContext context,
+        string exportType,
+        [FromServices] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var userId = context.GetUserId();
+        var result = await mediator.Send(new ExportUserDataRequest(userId, exportType), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Results.BadRequest(new { error = result.Errors });
+        }
+
+        var contentType = "text/csv";
+        var fileName = $"{exportType}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
+        
+        return Results.File(result.Value, contentType, fileName);
     }
 }

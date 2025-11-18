@@ -54,7 +54,9 @@ export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt
                         setError(true);
                         return;
                     }
-                    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+                    console.error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+                    setError(true);
+                    return;
                 }
 
                 const blob = await response.blob();

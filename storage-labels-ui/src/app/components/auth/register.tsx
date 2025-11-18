@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { Box, Button, TextField, Typography, Paper, Alert } from '@mui/material';
 import { useAuth } from '../../../auth/auth-provider';
 
@@ -30,7 +30,7 @@ export const Register: React.FC = () => {
             await register(email, username, password, firstName, lastName);
             navigate('/', { replace: true });
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+            setError(err.message || 'Registration failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -122,7 +122,6 @@ export const Register: React.FC = () => {
                     <Button
                         fullWidth
                         type="submit"
-                        variant="contained"
                         color="primary"
                         sx={{ mt: 3, mb: 2 }}
                         disabled={isLoading}
@@ -133,7 +132,8 @@ export const Register: React.FC = () => {
                     <Button
                         fullWidth
                         variant="text"
-                        onClick={() => navigate('/login')}
+                        component={Link}
+                        to="/login"
                         disabled={isLoading}
                     >
                         Already have an account? Login

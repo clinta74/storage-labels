@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, TextField, Typography, Paper, Alert } from '@mui/material';
+import { Box, Button, TextField, Typography, Paper, Alert, Container, Stack } from '@mui/material';
 import axios from 'axios';
 import { CONFIG } from '../../../config';
 import { useAuth } from '../../../auth/auth-provider';
@@ -55,8 +55,8 @@ export const ChangePassword: React.FC = () => {
     };
 
     return (
-        <Box>
-            <Typography variant="h5" component="h2" gutterBottom>
+        <Container maxWidth="md">
+            <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
                 Change Password
             </Typography>
 
@@ -72,7 +72,7 @@ export const ChangePassword: React.FC = () => {
                 </Alert>
             )}
 
-            <Paper elevation={1} sx={{ p: 3, maxWidth: 500 }}>
+            <Paper sx={{ p: 3 }}>
                 <form onSubmit={handleSubmit}>
                     <TextField
                         fullWidth
@@ -108,18 +108,17 @@ export const ChangePassword: React.FC = () => {
                         disabled={isLoading}
                     />
 
-                    <Button
-                        fullWidth
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        sx={{ mt: 3 }}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? 'Changing Password...' : 'Change Password'}
-                    </Button>
+                    <Stack direction="row" spacing={2} padding={2} justifyContent="right">
+                        <Button
+                            type="submit"
+                            color="primary"
+                            loading={isLoading}
+                        >
+                            Change Password
+                        </Button>
+                    </Stack>
                 </form>
             </Paper>
-        </Box>
+        </Container>
     );
 };

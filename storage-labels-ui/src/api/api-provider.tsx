@@ -53,7 +53,7 @@ export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
                         config.headers['Authorization'] = `Bearer ${token}`;
                     }
                 } catch (error) {
-                    console.error('Failed to get access token:', error);
+                    console.warn('Failed to get access token:', error);
                 }
             }
             // NoAuth mode: no token needed

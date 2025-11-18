@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import {
     AppBar,
     Toolbar,
@@ -10,16 +10,21 @@ import {
     Menu,
     MenuItem,
     Alert,
+    Divider,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import AccountCircle from '@mui/icons-material/AccountCircle';
 import { useAuth } from '../../auth/auth-provider';
 import { useUserPermission } from '../providers/user-permission-provider';
+import { useUser } from '../providers/user-provider';
 
 export const NavigationBar: React.FC = () => {
     const { logout, isAuthenticated, authMode } = useAuth();
     const { hasPermission } = useUserPermission();
+    const { user } = useUser();
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [userMenuAnchorEl, setUserMenuAnchorEl] = React.useState<null | HTMLElement>(null);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -29,23 +34,25 @@ export const NavigationBar: React.FC = () => {
         setAnchorEl(null);
     };
 
+    const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+        setUserMenuAnchorEl(event.currentTarget);
+    };
+
+    const handleUserMenuClose = () => {
+        setUserMenuAnchorEl(null);
+    };
+
     const handleNavigate = (path: string) => {
         navigate(path);
         handleMenuClose();
+        handleUserMenuClose();
     };
 
     const handleLogout = () => {
         logout();
         navigate('/login');
         handleMenuClose();
-    };
-
-    const handleLogin = () => {
-        navigate('/login');
-    };
-
-    const handleRegister = () => {
-        navigate('/register');
+        handleUserMenuClose();
     };
 
     if (!isAuthenticated && authMode !== 'None') {
@@ -56,10 +63,10 @@ export const NavigationBar: React.FC = () => {
                         Storage Labels
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Button color="inherit" onClick={handleLogin}>
+                        <Button color="inherit" component={Link} to="/login">
                             Login
                         </Button>
-                        <Button color="inherit" onClick={handleRegister}>
+                        <Button color="inherit" component={Link} to="/register">
                             Register
                         </Button>
                     </Box>
@@ -71,13 +78,16 @@ export const NavigationBar: React.FC = () => {
     const menuItems = [
         { label: 'Locations', path: '/locations' },
         { label: 'Images', path: '/images' },
-        { label: 'Common Locations', path: '/common-locations' },
-        { label: 'Preferences', path: '/preferences' },
     ];
+
+    // Add Common Locations menu item if user has permission
+    if (hasPermission('read:common-locations')) {
+        menuItems.push({ label: 'Common Locations', path: '/common-locations' });
+    }
 
     // Add Encryption Keys menu item if user has permission
     if (hasPermission('read:encryption-keys')) {
-        menuItems.splice(3, 0, { label: 'Encryption Keys', path: '/encryption-keys' });
+        menuItems.push({ label: 'Encryption Keys', path: '/encryption-keys' });
     }
 
     // Add User Management menu item if user has write:user permission
@@ -119,6 +129,13 @@ export const NavigationBar: React.FC = () => {
                                     {item.label}
                                 </MenuItem>
                             ))}
+                            <Divider />
+                            <MenuItem onClick={() => handleNavigate('/preferences')}>
+                                Preferences
+                            </MenuItem>
+                            <MenuItem onClick={() => handleNavigate('/change-password')}>
+                                Change Password
+                            </MenuItem>
                             {authMode === 'Local' && (
                                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
                             )}
@@ -131,17 +148,42 @@ export const NavigationBar: React.FC = () => {
                             <Button
                                 key={item.path}
                                 color="inherit"
-                                onClick={() => handleNavigate(item.path)}
+                                component={Link}
+                                to={item.path}
                             >
                                 {item.label}
                             </Button>
                         ))}
                     </Box>
-                    {authMode === 'Local' && (
-                        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                            <Button color="inherit" onClick={handleLogout}>
-                                Logout
+
+                    {/* Desktop user menu */}
+                    {user && (
+                        <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+                            <Button
+                                color="inherit"
+                                onClick={handleUserMenuOpen}
+                                startIcon={<AccountCircle />}
+                            >
+                                {user.firstName || 'User'}
                             </Button>
+                            <Menu
+                                anchorEl={userMenuAnchorEl}
+                                open={Boolean(userMenuAnchorEl)}
+                                onClose={handleUserMenuClose}
+                            >
+                                <MenuItem onClick={() => handleNavigate('/preferences')}>
+                                    Preferences
+                                </MenuItem>
+                                <MenuItem onClick={() => handleNavigate('/change-password')}>
+                                    Change Password
+                                </MenuItem>
+                                {authMode === 'Local' && (
+                                    <>
+                                        <Divider />
+                                        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                                    </>
+                                )}
+                            </Menu>
                         </Box>
                     )}
                 </Toolbar>

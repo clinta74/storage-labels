@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using StorageLabelsApi.Models.Settings;
 
 namespace StorageLabelsApi.Transformer;
 
-internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider, IOptions<Auth0Settings> auth0Settings) : IOpenApiDocumentTransformer
+internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer
 {
     public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {
@@ -18,21 +16,11 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
                 ["Bearer"] = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.OAuth2,
-                    Scheme = "bearer", // "bearer" refers to the header name here
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
                     In = ParameterLocation.Header,
-                    BearerFormat = "Json Web Token",
-                    Flows = new OpenApiOAuthFlows
-                    {
-                        Implicit = new OpenApiOAuthFlow
-                        {
-                            Scopes = new Dictionary<string, string>
-                            {
-                                { "openid", "Open Id" }
-                            },
-                            AuthorizationUrl = new Uri($"{auth0Settings.Value.DomainUrl}authorize?audience={auth0Settings.Value.Audience}")
-                        }
-                    }
+                    BearerFormat = "JWT",
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
                 }
             };
             document.Components ??= new OpenApiComponents();

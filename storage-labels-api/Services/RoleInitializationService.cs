@@ -12,15 +12,18 @@ public class RoleInitializationService
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<RoleInitializationService> _logger;
+    private readonly TimeProvider _timeProvider;
 
     public RoleInitializationService(
         RoleManager<ApplicationRole> roleManager,
         UserManager<ApplicationUser> userManager,
-        ILogger<RoleInitializationService> logger)
+        ILogger<RoleInitializationService> logger,
+        TimeProvider timeProvider)
     {
         _roleManager = roleManager;
         _userManager = userManager;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>

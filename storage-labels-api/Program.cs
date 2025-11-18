@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.Datalayer.Models;
+using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Endpoints;
 using Microsoft.AspNetCore.Authorization;
 using StorageLabelsApi.Authorization;
@@ -185,29 +186,15 @@ builder.Services.AddScoped<UserExistsEndpointFilter>();
 
 var app = builder.Build();
 
-// Apply migrations
+// Initialize database using mediator handler
 using (var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
 {
-    using (var context = serviceScope.ServiceProvider.GetRequiredService<StorageLabelsDbContext>())
-    {
-        context.Database.Migrate();
-    }
+    var mediator = serviceScope.ServiceProvider.GetRequiredService<IMediator>();
+    var initResult = await mediator.Send(new StorageLabelsApi.Handlers.Initialization.InitializeDatabaseRequest());
     
-    // Initialize roles and default admin user (Local mode only)
-    if (authSettings.Mode == AuthenticationMode.Local)
+    if (!initResult.IsSuccess)
     {
-        var roleInitService = serviceScope.ServiceProvider.GetRequiredService<RoleInitializationService>();
-        await roleInitService.InitializeRolesAsync();
-        
-        // Create default admin if configured
-        var adminUsername = builder.Configuration["DefaultAdmin:Username"];
-        var adminPassword = builder.Configuration["DefaultAdmin:Password"];
-        var adminEmail = builder.Configuration["DefaultAdmin:Email"];
-        
-        if (!string.IsNullOrEmpty(adminUsername) && !string.IsNullOrEmpty(adminPassword))
-        {
-            await roleInitService.CreateDefaultAdminAsync(adminUsername, adminPassword, adminEmail ?? "admin@localhost");
-        }
+        throw new InvalidOperationException("Failed to initialize database");
     }
 }
 

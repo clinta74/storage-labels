@@ -13,15 +13,18 @@ public class UserMigrationService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly StorageLabelsDbContext _dbContext;
     private readonly ILogger<UserMigrationService> _logger;
+    private readonly TimeProvider _timeProvider;
 
     public UserMigrationService(
         UserManager<ApplicationUser> userManager,
         StorageLabelsDbContext dbContext,
-        ILogger<UserMigrationService> logger)
+        ILogger<UserMigrationService> logger,
+        TimeProvider timeProvider)
     {
         _userManager = userManager;
         _dbContext = dbContext;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>

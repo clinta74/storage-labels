@@ -138,8 +138,8 @@ public class LocalAuthenticationService : IAuthenticationService
             UserName = request.Username,
             Email = request.Email,
             FullName = request.FullName,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.GetUtcNow().DateTime,
+            UpdatedAt = _timeProvider.GetUtcNow().DateTime,
             IsActive = true
         };
 

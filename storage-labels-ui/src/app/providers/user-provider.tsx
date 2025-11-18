@@ -5,7 +5,7 @@ import { useAuth } from '../../auth/auth-provider';
 import { useAlertMessage } from './alert-provider';
 
 interface UserContext {
-    user: UserResponse,
+    user: UserResponse | undefined,
     updateUser: () => void;
 }
 
@@ -21,7 +21,7 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
     useEffect(() => {
         if (authMode === 'None') {
-            // In NoAuth mode, skip user checks
+            // In NoAuth mode, skip user checks - render immediately
             return;
         }
 
@@ -49,12 +49,12 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
             .catch(error => alert.addError(error));
     }
 
+    // Always render children - the context value will have undefined user if not loaded yet
+    // Components that need user data should check if user is defined
     return (
-        <React.Fragment>
-            {
-                user && <UserContext.Provider value={{ user, updateUser }}>{children}</UserContext.Provider>
-            }
-        </React.Fragment>
+        <UserContext.Provider value={{ user, updateUser }}>
+            {children}
+        </UserContext.Provider>
     );
 }
 

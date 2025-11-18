@@ -21,11 +21,11 @@ The **storage-labels** project is a full-stack application suite designed to str
 
 ## Architecture
 
-- **Backend**: .NET 9.0, Mediator, Ardalis.Result, Entity Framework Core, PostgreSQL, RESTful endpoints, System.IO.Abstractions for testable file operations
+- **Backend**: .NET 9.0, Mediator, Ardalis.Result, Entity Framework Core, PostgreSQL, RESTful endpoints, System.IO.Abstractions for testable file operations, ASP.NET Core Identity
 - **Frontend**: React 18, Parcel, Material-UI v7, @yudiel/react-qr-scanner, React Context API
 - **Database**: PostgreSQL 17 (as of v2.0.0)
 - **Testing**: xUnit, FluentAssertions, Moq, System.IO.Abstractions.TestingHelpers for unit tests; ESLint for code quality
-- **Security**: AES-256-GCM encryption, Auth0 authentication and authorization, role-based access control
+- **Security**: AES-256-GCM encryption, Local authentication with JWT tokens, role-based access control
 
 ## Security & Encryption
 
@@ -57,9 +57,60 @@ All uploaded images are encrypted at rest using **AES-256-GCM** (Advanced Encryp
 
 ### Authentication & Authorization
 
-- **Auth0 Integration**: Secure user authentication
-- **Role-Based Access Control**: Permission-based features (`read:encryption-keys`, `write:encryption-keys`)
-- **User-Specific Data**: Each user's data is isolated and secure
+**storage-labels** supports two authentication modes:
+
+#### Local Authentication (Default)
+- **ASP.NET Core Identity**: Built-in user management with secure password hashing
+- **JWT Tokens**: Stateless authentication using JSON Web Tokens
+- **Registration**: Optional self-registration (can be disabled)
+- **Password Requirements**: Configurable complexity rules (min length, uppercase, lowercase, digits)
+- **Account Security**: Lockout protection after failed login attempts
+
+#### No Authentication Mode
+- **Trusted Networks**: Suitable for home labs or isolated networks
+- **Full Access**: All users have complete permissions without login
+- **Development**: Useful for development and testing environments
+- **⚠️ Warning**: Only use in completely trusted environments
+
+#### User Roles & Permissions
+
+Three built-in roles with different permission levels:
+
+1. **Admin** - Full system access
+   - All read and write permissions
+   - User management capabilities
+   - Encryption key management
+   - First registered user automatically becomes Admin
+
+2. **Auditor** - Read-only access
+   - View all data (users, locations, items, encryption keys)
+   - Cannot create, modify, or delete data
+   - Useful for compliance and monitoring
+
+3. **User** - Standard access
+   - Manage own data (locations, boxes, items)
+   - Upload and view images
+   - No administrative capabilities
+
+#### First User Setup
+
+The **first user registered** in the system automatically receives the **Admin** role. This ensures you can bootstrap the system without external tools.
+
+**Steps:**
+1. Start the application with authentication mode set to `Local`
+2. Navigate to the registration page
+3. Register your admin account
+4. You'll automatically have full administrative access
+5. Additional users registered later will have the standard User role
+
+**Note**: If `AllowRegistration` is disabled after initial setup, only Admins can create new user accounts (future feature).
+
+### Password Management
+
+- **Self-Service**: Users can change their own password from Preferences
+- **Admin Reset**: Admins can reset any user's password (invalidates existing sessions)
+- **Security**: Password changes require current password verification
+- **Token Invalidation**: Admin password resets automatically log out the affected user
 
 ## Database Migration (v2.0.0)
 
@@ -76,12 +127,97 @@ Version 2.0.0 introduces a breaking change by migrating from Microsoft SQL Serve
 ### Using Docker Compose
 
 1. Copy `docker-compose-custom-config.yaml` to `docker-compose.yml`
-2. Create a `.env` file with your secrets:
-   ```env
-   POSTGRES_PASSWORD=your_secure_password
-   AUTH0_CLIENT_SECRET=your_auth0_secret
+2. Create a `.env` file based on `.env.example`:
+   ```bash
+   # PostgreSQL Database Configuration
+   POSTGRES_PASSWORD=your_secure_password_here
+   
+   # JWT Secret (generate with: openssl rand -base64 32)
+   JWT_SECRET=your-secure-random-key-here-minimum-32-characters-long
+   
+   # Authentication Mode: Local or None
+   AUTHENTICATION_MODE=Local
    ```
 3. Run: `docker-compose up -d`
+4. Navigate to the application URL
+5. **Register the first user** - this account will automatically become the Admin
+6. Additional users can register (if enabled) or be created by admins
+
+### Generating a Secure JWT Secret
+
+Use one of these methods to generate a secure JWT secret:
+
+```bash
+# Using OpenSSL (recommended)
+openssl rand -base64 32
+
+# Using PowerShell
+-join ((65..90) + (97..122) + (48..57) | Get-Random -Count 32 | % {[char]$_})
+
+# Using Python
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+### Authentication Configuration
+
+Configure authentication in `appsettings.json` or via environment variables:
+
+#### Local Authentication Settings
+
+```json
+{
+  "Authentication": {
+    "Mode": "Local",
+    "Local": {
+      "Enabled": true,
+      "AllowRegistration": true,
+      "RequireEmailConfirmation": false,
+      "MinimumPasswordLength": 8,
+      "RequireDigit": true,
+      "RequireLowercase": true,
+      "RequireUppercase": true,
+      "RequireNonAlphanumeric": false,
+      "LockoutEnabled": true,
+      "MaxFailedAccessAttempts": 5,
+      "LockoutDurationMinutes": 15
+    }
+  },
+  "Jwt": {
+    "Secret": "your-secret-key-min-32-chars-change-in-production",
+    "Issuer": "storage-labels-api",
+    "Audience": "storage-labels-ui",
+    "ExpirationMinutes": 60
+  }
+}
+```
+
+#### No Authentication Mode
+
+To disable authentication (trusted networks only):
+
+```json
+{
+  "Authentication": {
+    "Mode": "None"
+  }
+}
+```
+
+Or via environment variable:
+```bash
+AUTHENTICATION_MODE=None
+```
+
+⚠️ **Warning**: No Auth mode should only be used in completely trusted environments (home networks, isolated VLANs, etc.)
+
+### Security Best Practices
+
+1. **Change Default JWT Secret**: Never use the default JWT secret in production
+2. **Use Strong Passwords**: Enforce password complexity requirements
+3. **Enable Lockout**: Protect against brute force attacks
+4. **HTTPS Only**: Always use HTTPS in production environments
+5. **Regular Updates**: Keep dependencies and system packages updated
+6. **Backup Encryption Keys**: Store encryption keys securely and maintain backups
 
 ### Development Setup
 

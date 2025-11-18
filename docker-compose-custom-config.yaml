@@ -21,7 +21,25 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - Auth0Settings:ClientSecret=${AUTH0_CLIENT_SECRET}
+      # Authentication Mode: Local or None
+      - Authentication__Mode=${AUTHENTICATION_MODE:-Local}
+      
+      # JWT Settings (required for Local mode)
+      - Jwt__Secret=${JWT_SECRET}
+      - Jwt__Issuer=storage-labels-api
+      - Jwt__Audience=storage-labels-ui
+      - Jwt__ExpirationMinutes=60
+      
+      # Local Auth Settings
+      - Authentication__Local__AllowRegistration=true
+      - Authentication__Local__RequireEmailConfirmation=false
+      
+      # Default Admin (created on first run)
+      - DefaultAdmin__Username=${ADMIN_USERNAME:-admin}
+      - DefaultAdmin__Password=${ADMIN_PASSWORD}
+      - DefaultAdmin__Email=${ADMIN_EMAIL:-admin@localhost}
+      
+      # Database Configuration
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_DATABASE=StorageLabels

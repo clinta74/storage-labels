@@ -1,9 +1,8 @@
-import { useAuth0 } from '@auth0/auth0-react';
 import axios, { AxiosInstance } from 'axios';
 import React, { PropsWithChildren } from 'react';
 import { CONFIG } from '../config';
+import { useAuth } from '../auth/auth-provider';
 import { UserEndpoints, getUserEndpoints } from './endpoints/user';
-import { getNewUserEndpoints, NewUserEndpoints } from './endpoints/new-user';
 import { getLocationEndpoints, LocationEndpoints } from './endpoints/location';
 import { BoxEndpoints, getBoxEndpoints } from './endpoints/box';
 import { ItemEndpoints, getItemEndpoints } from './endpoints/item';
@@ -26,7 +25,6 @@ const createAxiosInstance = (): AxiosInstance => {
 
 interface IApiContext {
     Location: LocationEndpoints;
-    NewUser: NewUserEndpoints;
     User: UserEndpoints;
     Box: BoxEndpoints;
     Item: ItemEndpoints;
@@ -40,21 +38,30 @@ interface IApiContext {
 const ApiContext = React.createContext<{ Api: IApiContext } | null>(null);
 
 export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
-    const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+    const { getAccessToken, isAuthenticated, authMode } = useAuth();
     const [Api, setApi] = React.useState<IApiContext>();
 
     React.useEffect(() => {
         const client = createAxiosInstance();
-        client.interceptors.request
-            .use(async config => {
-                const token = await getAccessTokenSilently();
-                config.headers['Authorization'] = `Bearer ${token}`;
-                return config;
-            });
+        
+        client.interceptors.request.use(async config => {
+            // Only add token for Local mode
+            if (authMode === 'Local') {
+                try {
+                    const token = await getAccessToken();
+                    if (token) {
+                        config.headers['Authorization'] = `Bearer ${token}`;
+                    }
+                } catch (error) {
+                    console.error('Failed to get access token:', error);
+                }
+            }
+            // NoAuth mode: no token needed
+            return config;
+        });
 
         const api: IApiContext = {
             Location: getLocationEndpoints(client),
-            NewUser: getNewUserEndpoints(client),
             User: getUserEndpoints(client),
             Box: getBoxEndpoints(client),
             Item: getItemEndpoints(client),
@@ -62,11 +69,11 @@ export const ApiProvider: React.FC<PropsWithChildren> = ({ children }) => {
             CommonLocation: getCommonLocationEndpoints(client),
             Search: getSearchEndpoints(client),
             EncryptionKey: getEncryptionKeyEndpoints(client),
-            getAccessToken: getAccessTokenSilently,
+            getAccessToken,
         }
 
         setApi(api);
-    }, [isAuthenticated]);
+    }, [isAuthenticated, authMode]);
 
     return (
         <React.Fragment>

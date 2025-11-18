@@ -1,7 +1,7 @@
-import { useAuth0 } from '@auth0/auth0-react';
 import React, { createContext, PropsWithChildren, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useApi } from '../../api';
+import { useAuth } from '../../auth/auth-provider';
 import { useAlertMessage } from './alert-provider';
 
 interface UserContext {
@@ -15,41 +15,28 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [user, setUser] = useState<UserResponse>();
     const alert = useAlertMessage();
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth0();
+    const { isAuthenticated, authMode } = useAuth();
     const { Api } = useApi();
 
     useEffect(() => {
+        if (authMode === 'None') {
+            // In NoAuth mode, skip user checks
+            return;
+        }
+
         if (isAuthenticated) {
-            Api.User.getUserExists()
+            Api.User.getUser()
                 .then(({ data }) => {
-                    if (data) {
-                        Api.User.getUser()
-                            .then(({ data }) => {
-                                setUser(data);
-                            })
-                            .catch(error => alert.addError(error));
-                    }
-                    else {
-                        navigate('/new-user');
-                    }
+                    setUser(data);
                 })
                 .catch(error => alert.addError(error));
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, authMode]);
 
     const updateUser = () => {
-        Api.User.getUserExists()
+        Api.User.getUser()
             .then(({ data }) => {
-                if (data) {
-                    Api.User.getUser()
-                        .then(({ data }) => {
-                            setUser(data);
-                        })
-                        .catch(error => alert.addError(error));
-                }
-                else {
-                    navigate('/new-user');
-                }
+                setUser(data);
             })
             .catch(error => alert.addError(error));
     }

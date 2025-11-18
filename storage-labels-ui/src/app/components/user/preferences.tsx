@@ -14,14 +14,18 @@ import {
     CircularProgress,
     Alert,
     TextField,
+    Divider,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { useApi } from '../../../api';
 import { useUser } from '../../providers/user-provider';
+import { ChangePassword } from './change-password';
+import { useAuth } from '../../../auth/auth-provider';
 
 export const Preferences: React.FC = () => {
     const { Api } = useApi();
     const { user, updateUser } = useUser();
+    const { authMode } = useAuth();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -145,6 +149,15 @@ export const Preferences: React.FC = () => {
                     </Button>
                 </Box>
             </Paper>
+
+            {authMode === 'Local' && (
+                <>
+                    <Box sx={{ my: 3 }}>
+                        <Divider />
+                    </Box>
+                    <ChangePassword />
+                </>
+            )}
         </Container>
     );
 };

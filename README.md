@@ -127,7 +127,7 @@ Version 2.0.0 introduces a breaking change by migrating from Microsoft SQL Serve
 ### Using Docker Compose
 
 1. Copy `docker-compose-custom-config.yaml` to `docker-compose.yml`
-2. Create a `.env` file based on `.env.example`:
+2. Create a `.env` file:
    ```bash
    # PostgreSQL Database Configuration
    POSTGRES_PASSWORD=your_secure_password_here

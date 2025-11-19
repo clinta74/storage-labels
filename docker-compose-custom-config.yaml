@@ -34,11 +34,6 @@ services:
       - Authentication__Local__AllowRegistration=true
       - Authentication__Local__RequireEmailConfirmation=false
       
-      # Default Admin (created on first run)
-      - DefaultAdmin__Username=${ADMIN_USERNAME:-admin}
-      - DefaultAdmin__Password=${ADMIN_PASSWORD}
-      - DefaultAdmin__Email=${ADMIN_EMAIL:-admin@localhost}
-      
       # Database Configuration
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432

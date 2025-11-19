@@ -33,7 +33,7 @@ public class ImageEncryptionServiceTests
         context.Database.EnsureCreated();
 
         var fileSystem = new MockFileSystem();
-        var service = new ImageEncryptionService(context, _loggerMock.Object, fileSystem);
+        var service = new ImageEncryptionService(context, _loggerMock.Object, fileSystem, TimeProvider.System);
 
         return new TestEnvironment(context, service, fileSystem, connection);
     }

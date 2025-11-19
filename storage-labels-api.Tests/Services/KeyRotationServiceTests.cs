@@ -85,7 +85,7 @@ public class KeyRotationServiceTests : IDisposable
         _encryptionLoggerMock = new Mock<ILogger<ImageEncryptionService>>();
         _progressNotifierMock = new Mock<IRotationProgressNotifier>();
         _fileSystem = new MockFileSystem();
-        _encryptionService = new ImageEncryptionService(_context, _encryptionLoggerMock.Object, _fileSystem);
+        _encryptionService = new ImageEncryptionService(_context, _encryptionLoggerMock.Object, _fileSystem, TimeProvider.System);
 
         // Setup service provider for scoped services that doesn't get disposed
         var services = new ServiceCollection();
@@ -103,7 +103,8 @@ public class KeyRotationServiceTests : IDisposable
         _service = new KeyRotationService(
             scopeFactoryMock.Object,
             _loggerMock.Object,
-            _progressNotifierMock.Object);
+            _progressNotifierMock.Object,
+            TimeProvider.System);
     }
 
     private ImageMetadata CreateUnencryptedImage(string userId = "user123")
@@ -320,7 +321,7 @@ public class KeyRotationServiceTests : IDisposable
         testContext.Database.EnsureCreated();
         
         var delayedFileSystem = new DelayedMockFileSystem(delayMs: 400); // 400ms delay per file operation
-        var delayedEncryptionService = new ImageEncryptionService(testContext, _encryptionLoggerMock.Object, delayedFileSystem);
+        var delayedEncryptionService = new ImageEncryptionService(testContext, _encryptionLoggerMock.Object, delayedFileSystem, TimeProvider.System);
         
         // Setup service provider with delayed encryption service
         var services = new ServiceCollection();
@@ -344,7 +345,8 @@ public class KeyRotationServiceTests : IDisposable
         var delayedRotationService = new KeyRotationService(
             scopeFactoryMock.Object,
             _loggerMock.Object,
-            _progressNotifierMock.Object);
+            _progressNotifierMock.Object,
+            TimeProvider.System);
         
         var key = await delayedEncryptionService.CreateKeyAsync("Test Key", "user123");
         await delayedEncryptionService.ActivateKeyAsync(key.Kid);
@@ -437,7 +439,7 @@ public class KeyRotationServiceTests : IDisposable
         testContext.Database.EnsureCreated();
         
         var delayedFileSystem = new DelayedMockFileSystem(delayMs: 300); // 300ms delay per file operation
-        var delayedEncryptionService = new ImageEncryptionService(testContext, _encryptionLoggerMock.Object, delayedFileSystem);
+        var delayedEncryptionService = new ImageEncryptionService(testContext, _encryptionLoggerMock.Object, delayedFileSystem, TimeProvider.System);
         
         // Setup service provider with delayed encryption service
         var services = new ServiceCollection();
@@ -461,7 +463,8 @@ public class KeyRotationServiceTests : IDisposable
         var delayedRotationService = new KeyRotationService(
             scopeFactoryMock.Object,
             _loggerMock.Object,
-            _progressNotifierMock.Object);
+            _progressNotifierMock.Object,
+            TimeProvider.System);
         
         var key = await delayedEncryptionService.CreateKeyAsync("Test Key", "user123");
         await delayedEncryptionService.ActivateKeyAsync(key.Kid);

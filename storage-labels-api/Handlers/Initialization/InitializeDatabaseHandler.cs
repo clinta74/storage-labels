@@ -84,12 +84,13 @@ public class InitializeDatabaseHandler : IRequestHandler<InitializeDatabaseReque
     {
         // In NoAuth mode, ensure the "anonymous" user exists in the database
         // This is required for foreign key constraints (UserLocation, ImageMetadata, etc.)
-        var existingUser = await _context.Users.FindAsync(new object[] { "anonymous" }, cancellationToken);
+        const string AnonymousUserId = "00000000-0000-0000-0000-000000000001";
+        var existingUser = await _context.Users.FindAsync(new object[] { AnonymousUserId }, cancellationToken);
 
         if (existingUser == null)
         {
             var anonymousUser = new User(
-                UserId: "anonymous",
+                UserId: AnonymousUserId,
                 FirstName: "Anonymous",
                 LastName: "User",
                 EmailAddress: "anonymous@localhost",

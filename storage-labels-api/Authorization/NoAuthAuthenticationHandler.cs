@@ -22,22 +22,16 @@ public class NoAuthAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, "anonymous"),
+        const string AnonymousUserId = "00000000-0000-0000-0000-000000000001";
+
+        Claim[] claims = 
+        [
+            new Claim(ClaimTypes.NameIdentifier, AnonymousUserId),
             new Claim(ClaimTypes.Name, "anonymous"),
             new Claim(ClaimTypes.Email, "anonymous@localhost"),
             new Claim(ClaimTypes.Role, "Admin"),
-            new Claim("permission", "read:all"),
-            new Claim("permission", "write:all"),
-            new Claim("permission", "delete:all"),
-        };
-
-        // Add all permissions
-        foreach (var permission in Policies.Permissions)
-        {
-            claims.Add(new Claim("permission", permission));
-        }
+            ..Policies.Permissions.Select(permission => new Claim("permission", permission))
+        ];
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);

@@ -147,6 +147,22 @@ if (authSettings.Mode == AuthenticationMode.Local)
 }
 else if (authSettings.Mode == AuthenticationMode.None)
 {
+    // Configure ASP.NET Core Identity even in NoAuth mode (needed for user management handlers)
+    // But don't let it register authentication schemes - we'll do that explicitly
+    builder.Services.AddIdentityCore<ApplicationUser>(options =>
+    {
+        // Minimal password requirements since auth is bypassed
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 1;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
+        options.User.RequireUniqueEmail = false;
+    })
+    .AddRoles<ApplicationRole>()
+    .AddEntityFrameworkStores<StorageLabelsDbContext>()
+    .AddDefaultTokenProviders();
+
     // No authentication - minimal auth configuration
     builder.Services.AddAuthentication("NoAuth")
         .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, NoAuthAuthenticationHandler>("NoAuth", options => { });

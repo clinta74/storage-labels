@@ -186,4 +186,3 @@ internal static partial class EndpointsMapper
 }
 
 public record UpdateUserRoleRequest(string Role);
-

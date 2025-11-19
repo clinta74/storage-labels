@@ -144,6 +144,7 @@ if (authSettings.Mode == AuthenticationMode.Local)
     builder.Services.AddScoped<JwtTokenService>();
     builder.Services.AddScoped<IAuthenticationService, LocalAuthenticationService>();
     builder.Services.AddScoped<RoleInitializationService>();
+    builder.Services.AddScoped<UserMigrationService>();
 }
 else if (authSettings.Mode == AuthenticationMode.None)
 {

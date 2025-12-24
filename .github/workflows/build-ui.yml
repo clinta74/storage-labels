@@ -81,6 +81,7 @@ jobs:
           
           echo "VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "VERSION_NUMBER=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+          echo "MAJOR_VERSION=$MAJOR" >> $GITHUB_OUTPUT
           echo "Final version: $NEW_VERSION"
 
       - name: Set up Docker Buildx
@@ -100,6 +101,7 @@ jobs:
           images: ${{ secrets.DOCKER_USERNAME }}/storage-labels-ui
           tags: |
             type=raw,value=v${{ steps.version.outputs.VERSION_NUMBER }}
+            type=raw,value=v${{ steps.version.outputs.MAJOR_VERSION }},enable={{is_default_branch}}
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=stable,enable={{is_default_branch}}
             type=sha,prefix=sha-

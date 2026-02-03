@@ -1,3 +1,4 @@
+using StorageLabelsApi.Logging;
 using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO.Authentication;
 
@@ -19,8 +20,7 @@ public class NoAuthenticationService : IAuthenticationService
 
     public Task<Result<AuthenticationResult>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
-        // In no-auth mode, any login succeeds with anonymous user
-        _logger.LogInformation("No-auth mode: Login attempt for {Username}", request.UsernameOrEmail);
+        _logger.LoginAttempt(request.UsernameOrEmail);
 
         var userId = "anonymous";
         var username = request.UsernameOrEmail;
@@ -51,28 +51,35 @@ public class NoAuthenticationService : IAuthenticationService
         );
 
         var result = new AuthenticationResult(token, expiresAt, userInfo);
+        _logger.LoginSucceeded(username);
         return Task.FromResult(Result.Success(result));
     }
 
     public Task<Result<AuthenticationResult>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
-        // In no-auth mode, registration is not needed - just login
-        _logger.LogInformation("No-auth mode: Registration attempt for {Username} - redirecting to login", request.Username);
-        
+        _logger.RegistrationAttempt(request.Username);
+
         var loginRequest = new LoginRequest(request.Username, request.Password);
-        return LoginAsync(loginRequest, cancellationToken);
+        var loginTask = LoginAsync(loginRequest, cancellationToken);
+
+        _logger.RegistrationSucceeded(request.Username);
+        return loginTask;
+    }
+
+    public Task<Result<AuthenticationResult>> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        _logger.RefreshFailed("anonymous", "NoAuth mode does not issue refresh tokens");
+        return Task.FromResult(Result<AuthenticationResult>.Error("Refresh tokens are not available in NoAuth mode"));
     }
 
     public Task<Result> LogoutAsync(string userId, CancellationToken cancellationToken = default)
     {
-        // No-auth mode doesn't track sessions
-        _logger.LogInformation("No-auth mode: Logout for {UserId}", userId);
+        _logger.UserLoggedOut(userId);
         return Task.FromResult(Result.Success());
     }
 
     public Task<Result<UserInfoResponse>> GetCurrentUserAsync(string userId, CancellationToken cancellationToken = default)
     {
-        // Return anonymous user with all permissions
         var userInfo = new UserInfoResponse(
             "anonymous",
             "Anonymous",
@@ -89,19 +96,16 @@ public class NoAuthenticationService : IAuthenticationService
 
     public Task<string[]> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default)
     {
-        // In NoAuth mode, all users have all permissions
         return Task.FromResult(Policies.Permissions);
     }
 
     public Task<Result> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
     {
-        // No password management in NoAuth mode
         return Task.FromResult(Result.Error("Password management is not available in NoAuth mode"));
     }
 
     public Task<Result> AdminResetPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
     {
-        // No password management in NoAuth mode
         return Task.FromResult(Result.Error("Password management is not available in NoAuth mode"));
     }
 }

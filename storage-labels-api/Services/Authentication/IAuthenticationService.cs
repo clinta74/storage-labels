@@ -18,6 +18,11 @@ public interface IAuthenticationService
     Task<Result<AuthenticationResult>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Refresh the current authentication session using a refresh token.
+    /// </summary>
+    Task<Result<AuthenticationResult>> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Logout a user
     /// </summary>
     Task<Result> LogoutAsync(string userId, CancellationToken cancellationToken = default);

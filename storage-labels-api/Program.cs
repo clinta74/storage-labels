@@ -33,6 +33,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .Configure<AuthenticationSettings>(builder.Configuration.GetSection("Authentication"))
     .Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
+    .Configure<RefreshTokenSettings>(builder.Configuration.GetSection("RefreshTokens"))
     .AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped)
     .AddLogging()
     .AddOpenApi(OpenApiDocumentName, options =>
@@ -51,6 +52,8 @@ builder.Services
 
 // Configure Npgsql to handle DateTime mapping
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+builder.Services.AddHttpContextAccessor();
 
 // PostgreSQL Database configuration
 var postgresBuilder = new NpgsqlConnectionStringBuilder()
@@ -142,6 +145,7 @@ if (authSettings.Mode == AuthenticationMode.Local)
 
     // Register authentication services
     builder.Services.AddScoped<JwtTokenService>();
+    builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
     builder.Services.AddScoped<IAuthenticationService, LocalAuthenticationService>();
     builder.Services.AddScoped<RoleInitializationService>();
 }
@@ -221,7 +225,8 @@ app.UseCors(config => config
         "https://storage-labels.pollyspeople.net",
     ])
     .AllowAnyMethod()
-    .AllowAnyHeader());
+    .AllowAnyHeader()
+    .AllowCredentials());
 
 // Add security headers
 app.Use(async (context, next) =>

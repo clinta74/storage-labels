@@ -4,8 +4,8 @@ import { useAuth } from '../../auth/auth-provider';
 import { useAlertMessage } from './alert-provider';
 
 interface UserContext {
-    user: UserResponse | undefined,
-    updateUser: () => void;
+    user: UserResponse | undefined;
+    updateUser: (options?: { silent?: boolean }) => Promise<void>;
 }
 
 export const UserContext = createContext<UserContext | null>(null);
@@ -17,35 +17,51 @@ export const UserProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, authMode } = useAuth();
     const { Api } = useApi();
 
-    useEffect(() => {
-        if (authMode === 'None') {
-            // In NoAuth mode, skip user checks - render immediately
+    const fetchUser = React.useCallback(async (silent = false) => {
+        if (!isAuthenticated || authMode === 'None') {
+            setUser(undefined);
+            setLoading(false);
             return;
         }
 
-        if (isAuthenticated && !user && !loading) {
-            setLoading(true);
-            Api.User.getUser()
-                .then(({ data }) => {
-                    setUser(data);
-                })
-                .catch(error => {
-                    console.warn('Failed to load user data:', error);
-                    // Don't show error for initial load - might be timing issue
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+        setLoading(true);
+        try {
+            const { data } = await Api.User.getUser();
+            setUser(data);
+        } catch (error) {
+            if (!silent) {
+                alert.addError(error);
+            } else {
+                console.warn('Failed to load user data:', error);
+            }
+        } finally {
+            setLoading(false);
         }
-    }, [isAuthenticated, authMode, user, loading]);
+    }, [Api, alert, authMode, isAuthenticated]);
 
-    const updateUser = () => {
-        Api.User.getUser()
-            .then(({ data }) => {
-                setUser(data);
-            })
-            .catch(error => alert.addError(error));
-    }
+    const updateUser = React.useCallback(async (options?: { silent?: boolean }) => {
+        await fetchUser(options?.silent ?? false);
+    }, [fetchUser]);
+
+    useEffect(() => {
+        if (authMode === 'None') {
+            return;
+        }
+
+        if (!isAuthenticated) {
+            if (user) {
+                setUser(undefined);
+            }
+            setLoading(false);
+            return;
+        }
+
+        if (user || loading) {
+            return;
+        }
+
+        updateUser({ silent: true }).catch(() => { /* handled in updateUser */ });
+    }, [isAuthenticated, authMode, user, loading, updateUser]);
 
     // Always render children - the context value will have undefined user if not loaded yet
     // Components that need user data should check if user is defined

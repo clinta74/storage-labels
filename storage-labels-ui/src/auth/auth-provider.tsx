@@ -1,27 +1,40 @@
 import React, { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router';
 import { CONFIG } from '../config';
 
 interface AuthConfig {
     mode: 'Local' | 'None';
 }
 
-interface User {
+interface AuthenticatedUser {
+    userId: string;
     username: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    fullName?: string | null;
+    profilePictureUrl?: string | null;
+    roles: string[];
+    permissions: string[];
+    isActive: boolean;
+}
+
+interface AuthenticationResultResponse {
+    token: string;
+    expiresAt: string;
+    user: AuthenticatedUser;
 }
 
 interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
-    user: User | null;
+    user: AuthenticatedUser | null;
     authMode: 'Local' | 'None' | null;
     login: (usernameOrEmail: string, password: string) => Promise<void>;
     register: (email: string, username: string, password: string, firstName: string, lastName: string) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     getAccessToken: () => Promise<string>;
+    refreshAccessToken: () => Promise<string>;
+    handleSessionExpired: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -31,16 +44,26 @@ const TOKEN_KEY = 'auth_token';
 export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [user, setUser] = useState<User | null>(null);
     const [authMode, setAuthMode] = useState<'Local' | 'None' | null>(null);
     const [token, setToken] = useState<string | null>(null);
+    const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(null);
+    const navigate = useNavigate();
+
+    const persistToken = (value: string | null) => {
+        setToken(value);
+        if (value) {
+            localStorage.setItem(TOKEN_KEY, value);
+        } else {
+            localStorage.removeItem(TOKEN_KEY);
+        }
+    };
 
     // Load auth config and check for existing token
     useEffect(() => {
         const initAuth = async () => {
             try {
                 // Fetch auth config
-                const { data } = await axios.get<AuthConfig>(`${CONFIG.API_URL}/api/auth/config`);
+                const { data } = await axios.get<AuthConfig>(`${CONFIG.API_URL}/api/auth/config`, { withCredentials: true });
                 setAuthMode(data.mode);
 
                 if (data.mode === 'None') {
@@ -59,7 +82,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
                         const userResponse = await axios.get(`${CONFIG.API_URL}/api/auth/me`, {
                             headers: { Authorization: `Bearer ${storedToken}` }
                         });
-                        setUser(userResponse.data);
+                        setCurrentUser(userResponse.data);
                         setIsAuthenticated(true);
                     } catch {
                         // Token invalid, clear it
@@ -79,20 +102,19 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
     const login = async (usernameOrEmail: string, password: string) => {
         try {
-            const { data } = await axios.post(`${CONFIG.API_URL}/api/auth/login`, {
-                usernameOrEmail,
-                password
-            });
+            const { data } = await axios.post<AuthenticationResultResponse>(
+                `${CONFIG.API_URL}/api/auth/login`,
+                {
+                    usernameOrEmail,
+                    password
+                },
+                {
+                    withCredentials: true
+                }
+            );
 
-            const newToken = data.token;
-            setToken(newToken);
-            localStorage.setItem(TOKEN_KEY, newToken);
-
-            // Fetch user info
-            const userResponse = await axios.get(`${CONFIG.API_URL}/api/auth/me`, {
-                headers: { Authorization: `Bearer ${newToken}` }
-            });
-            setUser(userResponse.data);
+            persistToken(data.token);
+            setCurrentUser(data.user);
             setIsAuthenticated(true);
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || error.response?.statusText || error.message || 'Login failed';
@@ -117,6 +139,8 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
                 password,
                 firstName,
                 lastName
+            }, {
+                withCredentials: true
             });
 
             // Auto-login after registration
@@ -130,21 +154,58 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
         }
     };
 
-    const logout = () => {
-        setToken(null);
-        setUser(null);
+    const logout = async () => {
+        if (authMode === 'Local' && token) {
+            try {
+                await axios.post(
+                    `${CONFIG.API_URL}/api/auth/logout`,
+                    {},
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                        withCredentials: true
+                    }
+                );
+            } catch (error) {
+                console.warn('Logout request failed:', error);
+            }
+        }
+
+        persistToken(null);
+        setCurrentUser(null);
         setIsAuthenticated(false);
-        localStorage.removeItem(TOKEN_KEY);
     };
 
     const getAccessToken = async (): Promise<string> => {
         if (authMode === 'None') {
             return ''; // No token needed in NoAuth mode
         }
-        if (!token) {
+        const currentToken = token ?? localStorage.getItem(TOKEN_KEY);
+        if (!currentToken) {
             throw new Error('Not authenticated');
         }
-        return token;
+        return currentToken;
+    };
+
+    const refreshAccessToken = async (): Promise<string> => {
+        if (authMode === 'None') {
+            throw new Error('Refresh not supported in NoAuth mode');
+        }
+
+        const { data } = await axios.post<AuthenticationResultResponse>(
+            `${CONFIG.API_URL}/api/auth/refresh`,
+            {},
+            { withCredentials: true }
+        );
+
+        persistToken(data.token);
+        setCurrentUser(data.user);
+        setIsAuthenticated(true);
+        return data.token;
+    };
+
+    const handleSessionExpired = async () => {
+        await logout();
+        navigate('/login?notice=session-expired', { replace: true });
     };
 
     return (
@@ -152,12 +213,14 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
             value={{
                 isAuthenticated,
                 isLoading,
-                user,
+                user: currentUser,
                 authMode,
                 login,
                 register,
                 logout,
-                getAccessToken
+                getAccessToken,
+                refreshAccessToken,
+                handleSessionExpired
             }}
         >
             {children}

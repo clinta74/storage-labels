@@ -1,9 +1,12 @@
 using Ardalis.Result.AspNetCore;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Handlers.Authentication;
 using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO.Authentication;
+using StorageLabelsApi.Models.Settings;
 using StorageLabelsApi.Services.Authentication;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
@@ -33,6 +36,12 @@ public static class MapAuthentication
             .WithName("GetAuthConfig")
             .WithDescription("Get authentication configuration")
             .Produces<AuthConfigResponse>(StatusCodes.Status200OK);
+
+        auth.MapPost("/refresh", Refresh)
+            .WithName("RefreshToken")
+            .WithDescription("Refresh access token using refresh cookie")
+            .Produces<AuthenticationResult>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         // Protected endpoints
         auth.MapPost("/logout", Logout)
@@ -68,26 +77,39 @@ public static class MapAuthentication
     }
 
     private static async Task<IResult> Login(
+        HttpContext context,
         [FromBody] Login request,
         IMediator mediator,
+        IOptions<RefreshTokenSettings> refreshTokenOptions,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(request, cancellationToken);
+        if (result.IsSuccess)
+        {
+            IssueRefreshTokenCookie(context, refreshTokenOptions.Value, result.Value);
+        }
         return result.ToMinimalApiResult();
     }
 
     private static async Task<IResult> Register(
+        HttpContext context,
         [FromBody] Register request,
         IMediator mediator,
+        IOptions<RefreshTokenSettings> refreshTokenOptions,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(request, cancellationToken);
+        if (result.IsSuccess)
+        {
+            IssueRefreshTokenCookie(context, refreshTokenOptions.Value, result.Value);
+        }
         return result.ToMinimalApiResult();
     }
 
     private static async Task<IResult> Logout(
         HttpContext context,
         IMediator mediator,
+        IOptions<RefreshTokenSettings> refreshTokenOptions,
         CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
@@ -98,6 +120,37 @@ public static class MapAuthentication
 
         var request = new Logout(userId);
         var result = await mediator.Send(request, cancellationToken);
+        if (result.IsSuccess)
+        {
+            ClearRefreshTokenCookie(context, refreshTokenOptions.Value);
+        }
+        return result.ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> Refresh(
+        HttpContext context,
+        IMediator mediator,
+        IOptions<RefreshTokenSettings> refreshTokenOptions,
+        CancellationToken cancellationToken)
+    {
+        var refreshToken = context.Request.Cookies[refreshTokenOptions.Value.CookieName];
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return Results.Unauthorized();
+        }
+
+        var request = new RefreshAuthentication(refreshToken);
+        var result = await mediator.Send(request, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            IssueRefreshTokenCookie(context, refreshTokenOptions.Value, result.Value);
+        }
+        else if (result.Status == ResultStatus.Unauthorized)
+        {
+            ClearRefreshTokenCookie(context, refreshTokenOptions.Value);
+        }
+
         return result.ToMinimalApiResult();
     }
 
@@ -153,6 +206,39 @@ public static class MapAuthentication
         return result.IsSuccess 
             ? Results.Ok() 
             : Results.BadRequest(new { error = result.Errors });
+    }
+
+    private static void IssueRefreshTokenCookie(HttpContext context, RefreshTokenSettings settings, AuthenticationResult result)
+    {
+        if (string.IsNullOrEmpty(result.RefreshToken) || result.RefreshTokenExpiresAt is null)
+        {
+            return;
+        }
+
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = new DateTimeOffset(result.RefreshTokenExpiresAt.Value),
+            Path = "/api/auth"
+        };
+
+        context.Response.Cookies.Append(settings.CookieName, result.RefreshToken, cookieOptions);
+    }
+
+    private static void ClearRefreshTokenCookie(HttpContext context, RefreshTokenSettings settings)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UnixEpoch,
+            Path = "/api/auth"
+        };
+
+        context.Response.Cookies.Append(settings.CookieName, string.Empty, cookieOptions);
     }
 }
 

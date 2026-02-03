@@ -49,14 +49,14 @@ export const NavigationBar: React.FC = () => {
         handleUserMenuClose();
     };
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
         navigate('/login');
         handleMenuClose();
         handleUserMenuClose();
     };
 
-    if (!isAuthenticated && authMode !== 'None') {
+    if ((!isAuthenticated && authMode !== 'None') || !user) {
         return (
             <AppBar position="static" sx={{ mb: 3 }}>
                 <Toolbar>
@@ -157,7 +157,7 @@ export const NavigationBar: React.FC = () => {
                                 onClick={handleUserMenuOpen}
                                 startIcon={<AccountCircle />}
                             >
-                                {user.firstName || 'User'}
+                                {user.firstName?.trim() || user.emailAddress || 'User'}
                             </Button>
                             <Menu
                                 anchorEl={userMenuAnchorEl}

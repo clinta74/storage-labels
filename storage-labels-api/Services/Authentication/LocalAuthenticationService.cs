@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Net.Http.Headers;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.Datalayer.Models;
 using StorageLabelsApi.DataLayer.Models;
@@ -18,6 +20,8 @@ public class LocalAuthenticationService : IAuthenticationService
     private readonly JwtTokenService _jwtTokenService;
     private readonly StorageLabelsDbContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly IRefreshTokenService _refreshTokenService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<LocalAuthenticationService> _logger;
 
     public LocalAuthenticationService(
@@ -26,6 +30,8 @@ public class LocalAuthenticationService : IAuthenticationService
         JwtTokenService jwtTokenService,
         StorageLabelsDbContext dbContext,
         TimeProvider timeProvider,
+        IRefreshTokenService refreshTokenService,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<LocalAuthenticationService> logger)
     {
         _userManager = userManager;
@@ -33,6 +39,8 @@ public class LocalAuthenticationService : IAuthenticationService
         _jwtTokenService = jwtTokenService;
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _refreshTokenService = refreshTokenService;
+        _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
 
@@ -86,30 +94,13 @@ public class LocalAuthenticationService : IAuthenticationService
         var roles = await _userManager.GetRolesAsync(user);
         var permissions = await GetUserPermissionsAsync(user.Id, cancellationToken);
 
-        // Generate JWT token
-        var token = _jwtTokenService.GenerateToken(
-            user.Id,
-            user.UserName ?? user.Email!,
-            user.Email!,
-            user.FullName,
-            roles.ToArray(),
-            permissions
-        );
+        var roleArray = roles.ToArray();
+        var (ipAddress, userAgent) = GetRequestMetadata();
+        var refreshToken = await _refreshTokenService.IssueAsync(user.Id, request.RememberMe, ipAddress, userAgent, cancellationToken);
 
-        var expiresAt = _jwtTokenService.GetTokenExpiration();
+        var authResult = BuildAuthenticationResult(user, roleArray, permissions, refreshToken.PlainTextToken, refreshToken.ExpiresAt);
 
-        var userInfo = new UserInfoResponse(
-            user.Id,
-            user.UserName ?? user.Email!,
-            user.Email!,
-            user.FullName,
-            user.ProfilePictureUrl,
-            roles.ToArray(),
-            permissions,
-            user.IsActive
-        );
-
-        return Result.Success(new AuthenticationResult(token, expiresAt, userInfo));
+        return Result.Success(authResult);
     }
 
     public async Task<Result<AuthenticationResult>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
@@ -182,6 +173,44 @@ public class LocalAuthenticationService : IAuthenticationService
         return await LoginAsync(loginRequest, cancellationToken);
     }
 
+    public async Task<Result<AuthenticationResult>> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        var (ipAddress, userAgent) = GetRequestMetadata();
+        var rotation = await _refreshTokenService.RotateAsync(refreshToken, ipAddress, userAgent, cancellationToken);
+
+        if (!rotation.IsSuccess)
+        {
+            var reason = rotation.Errors.FirstOrDefault() ?? "Invalid refresh token";
+            _logger.RefreshFailed("unknown", reason);
+            return Result.Unauthorized();
+        }
+
+        var rotationValue = rotation.Value;
+        var user = await _userManager.FindByIdAsync(rotationValue.UserId);
+        if (user == null)
+        {
+            _logger.RefreshFailed(rotationValue.UserId, "User does not exist");
+            await _refreshTokenService.RevokeUserTokensAsync(rotationValue.UserId, cancellationToken);
+            return Result.Unauthorized();
+        }
+
+        _logger.RefreshAttempt(user.Id);
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var permissions = await GetUserPermissionsAsync(user.Id, cancellationToken);
+
+        var authResult = BuildAuthenticationResult(
+            user,
+            roles.ToArray(),
+            permissions,
+            rotationValue.PlainTextToken,
+            rotationValue.ExpiresAt);
+
+        _logger.RefreshSucceeded(user.Id);
+
+        return Result.Success(authResult);
+    }
+
     public async Task<Result> LogoutAsync(string userId, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByIdAsync(userId);
@@ -192,6 +221,12 @@ public class LocalAuthenticationService : IAuthenticationService
 
         // Update security stamp to invalidate existing tokens
         await _userManager.UpdateSecurityStampAsync(user);
+
+        var revokedCount = await _refreshTokenService.RevokeUserTokensAsync(userId, cancellationToken);
+        if (revokedCount > 0)
+        {
+            _logger.RefreshTokensRevoked(userId, revokedCount);
+        }
         
         _logger.UserLoggedOut(userId);
         
@@ -288,7 +323,68 @@ public class LocalAuthenticationService : IAuthenticationService
         await _userManager.UpdateSecurityStampAsync(user);
         
         _logger.LogWarning("Password reset by admin for user {UserId}", userId);
+
+        var revokedCount = await _refreshTokenService.RevokeUserTokensAsync(userId, cancellationToken);
+        if (revokedCount > 0)
+        {
+            _logger.RefreshTokensRevoked(userId, revokedCount);
+        }
         return Result.Success();
+    }
+
+    private (string? IpAddress, string? UserAgent) GetRequestMetadata()
+    {
+        var context = _httpContextAccessor.HttpContext;
+        if (context is null)
+        {
+            return (null, null);
+        }
+
+        var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        var ipAddress = !string.IsNullOrWhiteSpace(forwardedFor)
+            ? forwardedFor.Split(',').FirstOrDefault()?.Trim()
+            : context.Connection.RemoteIpAddress?.ToString();
+
+        var userAgent = context.Request.Headers[HeaderNames.UserAgent].ToString();
+
+        return (string.IsNullOrWhiteSpace(ipAddress) ? null : ipAddress,
+            string.IsNullOrWhiteSpace(userAgent) ? null : userAgent);
+    }
+
+    private AuthenticationResult BuildAuthenticationResult(
+        ApplicationUser user,
+        string[] roles,
+        string[] permissions,
+        string refreshToken,
+        DateTime refreshTokenExpiresAt)
+    {
+        var token = _jwtTokenService.GenerateToken(
+            user.Id,
+            user.UserName ?? user.Email!,
+            user.Email!,
+            user.FullName,
+            roles,
+            permissions
+        );
+
+        var expiresAt = _jwtTokenService.GetTokenExpiration();
+
+        var userInfo = new UserInfoResponse(
+            user.Id,
+            user.UserName ?? user.Email!,
+            user.Email!,
+            user.FullName,
+            user.ProfilePictureUrl,
+            roles,
+            permissions,
+            user.IsActive
+        );
+
+        return new AuthenticationResult(token, expiresAt, userInfo)
+        {
+            RefreshToken = refreshToken,
+            RefreshTokenExpiresAt = refreshTokenExpiresAt
+        };
     }
 
     private static string[] GetPermissionsForRole(string role)

@@ -12,6 +12,7 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : Identi
     public DbSet<CommonLocation> CommonLocations { get; set; } = null!;
     public DbSet<Item> Items { get; set; } = null!;
     public DbSet<Location> Locations { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
     
     // Legacy Auth0 users table - hiding base.Users intentionally for backward compatibility
     public new DbSet<User> Users { get; set; } = null!;
@@ -42,6 +43,7 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : Identi
         modelBuilder.Entity<User>().ToTable("users");
         modelBuilder.Entity<UserLocation>().ToTable("userlocations");
         modelBuilder.Entity<ImageMetadata>().ToTable("images");
+        modelBuilder.Entity<RefreshToken>().ToTable("refreshtokens");
         modelBuilder.Entity<EncryptionKey>().ToTable("encryptionkeys");
         modelBuilder.Entity<CommonLocation>().ToTable("commonlocations");
         modelBuilder.Entity<Item>().ToTable("items");
@@ -148,5 +150,18 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : Identi
 
         modelBuilder.Entity<EncryptionKeyRotation>()
             .HasIndex(r => r.Status);
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(token => token.TokenHash)
+            .IsUnique();
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(token => token.UserId);
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasOne(token => token.User)
+            .WithMany()
+            .HasForeignKey(token => token.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

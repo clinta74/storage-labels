@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router';
 import { Box, Button, TextField, Typography, Paper, Alert } from '@mui/material';
 import { useAuth } from '../../../auth/auth-provider';
+import { useUser } from '../../providers/user-provider';
 
 export const Login: React.FC = () => {
     const [usernameOrEmail, setUsernameOrEmail] = useState('');
@@ -9,8 +10,13 @@ export const Login: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
+    const { updateUser } = useUser();
     const navigate = useNavigate();
     const location = useLocation();
+    const sessionExpired = useMemo(() => {
+        const params = new URLSearchParams(location.search);
+        return params.get('notice') === 'session-expired';
+    }, [location.search]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,6 +25,7 @@ export const Login: React.FC = () => {
 
         try {
             await login(usernameOrEmail, password);
+            await updateUser();
             const from = (location.state as any)?.from?.pathname || '/';
             navigate(from, { replace: true });
         } catch (err: any) {
@@ -39,6 +46,12 @@ export const Login: React.FC = () => {
                 <Typography variant="h4" component="h1" gutterBottom>
                     Login
                 </Typography>
+
+                {sessionExpired && (
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        Your session expired. Please sign in again to continue.
+                    </Alert>
+                )}
 
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>

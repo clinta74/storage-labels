@@ -14,6 +14,7 @@ using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Endpoints;
 using Microsoft.AspNetCore.Authorization;
 using StorageLabelsApi.Authorization;
+using StorageLabelsApi.Logging;
 using StorageLabelsApi.Services;
 using StorageLabelsApi.Services.Authentication;
 using StorageLabelsApi.Filters;
@@ -92,10 +93,10 @@ if (authSettings.Mode == AuthenticationMode.Local)
         jwtSettings.Secret = generatedSecret;
         
         var logger = LoggerFactory.Create(b => b.AddConsole()).CreateLogger("Startup");
-        logger.LogWarning("⚠️  JWT Secret was not configured or is a placeholder. A random secret has been generated.");
-        logger.LogWarning("⚠️  This secret will change on every restart, invalidating all existing tokens.");
-        logger.LogWarning("⚠️  For production, set a persistent JWT secret via environment variable or appsettings.json");
-        logger.LogInformation("Generated JWT Secret (save this for persistence): {Secret}", generatedSecret);
+        logger.JwtSecretNotConfigured();
+        logger.JwtSecretTemporary();
+        logger.JwtSecretProductionWarning();
+        logger.JwtSecretGenerated(generatedSecret);
     }
     
     jwtSettings.Validate();

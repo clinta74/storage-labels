@@ -151,7 +151,7 @@ public class LocalAuthenticationService : IAuthenticationService
         
         if (roleToAssign == "Admin")
         {
-            _logger.LogInformation("First user registered - assigned Admin role to {Username}", user.UserName);
+            _logger.FirstUserRegisteredAsAdmin(user.UserName!);
         }
 
         // Create User record in database (legacy users table)
@@ -292,11 +292,11 @@ public class LocalAuthenticationService : IAuthenticationService
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            _logger.LogWarning("Password change failed for user {UserId}: {Errors}", userId, errors);
+            _logger.PasswordChangeFailed(userId, errors);
             return Result.Error(errors);
         }
 
-        _logger.LogInformation("Password changed successfully for user {UserId}", userId);
+        _logger.PasswordChanged(userId);
         return Result.Success();
     }
 
@@ -315,14 +315,14 @@ public class LocalAuthenticationService : IAuthenticationService
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            _logger.LogError("Admin password reset failed for user {UserId}: {Errors}", userId, errors);
+            _logger.AdminPasswordResetFailed(userId, errors);
             return Result.Error(errors);
         }
 
         // Update security stamp to invalidate existing tokens
         await _userManager.UpdateSecurityStampAsync(user);
         
-        _logger.LogWarning("Password reset by admin for user {UserId}", userId);
+        _logger.PasswordResetByAdmin(userId);
 
         var revokedCount = await _refreshTokenService.RevokeUserTokensAsync(userId, cancellationToken);
         if (revokedCount > 0)

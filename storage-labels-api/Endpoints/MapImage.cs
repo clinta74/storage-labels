@@ -3,6 +3,7 @@ using Mediator;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Images;
+using StorageLabelsApi.Logging;
 using StorageLabelsApi.Models.DTO.Image;
 using StorageLabelsApi.Services;
 
@@ -114,7 +115,7 @@ public static class MapImage
                 {
                     // Log error and fall back to error response
                     context.RequestServices.GetRequiredService<ILogger<IImageEncryptionService>>()
-                        .LogError(ex, "Failed to decrypt image {ImageId}", imageId);
+                        .ImageDecryptionFailed(ex, imageId, userId);
                     return Results.Problem("Failed to decrypt image", statusCode: 500);
                 }
             }

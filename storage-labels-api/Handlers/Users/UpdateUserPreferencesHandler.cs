@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
+using StorageLabelsApi.Logging;
 using StorageLabelsApi.Models.DTO.User;
 
 namespace StorageLabelsApi.Handlers.Users;
@@ -32,7 +33,7 @@ public class UpdateUserPreferencesHandler(
                 .SetProperty(u => u.Preferences, preferencesJson),
                 cancellationToken);
 
-        logger.LogInformation("Updated preferences for user {UserId}", request.UserId);
+        logger.UserPreferencesUpdated(request.UserId);
 
         return Result<UserPreferencesResponse>.Success(request.Preferences);
     }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using StorageLabelsApi.Datalayer.Models;
+using StorageLabelsApi.Logging;
 using StorageLabelsApi.Models;
 
 namespace StorageLabelsApi.Services;
@@ -43,14 +44,14 @@ public class RoleInitializationService
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
-            _logger.LogInformation("No default admin credentials configured - skipping admin creation");
+            _logger.NoDefaultAdminConfigured();
             return;
         }
 
         var existingAdmin = await _userManager.FindByNameAsync(username);
         if (existingAdmin != null)
         {
-            _logger.LogInformation("Default admin user '{Username}' already exists", username);
+            _logger.DefaultAdminExists(username);
             return;
         }
 
@@ -70,12 +71,12 @@ public class RoleInitializationService
         if (result.Succeeded)
         {
             await _userManager.AddToRoleAsync(adminUser, "Admin");
-            _logger.LogInformation("Default admin user '{Username}' created successfully", username);
+            _logger.DefaultAdminCreated(username);
         }
         else
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            _logger.LogError("Failed to create default admin user: {Errors}", errors);
+            _logger.DefaultAdminCreationFailed(errors);
         }
     }
 
@@ -94,12 +95,12 @@ public class RoleInitializationService
             
             if (result.Succeeded)
             {
-                _logger.LogInformation("Role '{RoleName}' created", roleName);
+                _logger.RoleCreated(roleName);
             }
             else
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                _logger.LogError("Failed to create role '{RoleName}': {Errors}", roleName, errors);
+                _logger.RoleCreationFailed(roleName, errors);
             }
         }
     }

@@ -71,7 +71,7 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
                 var activeKey = await _encryptionService.GetActiveKeyAsync(cancellationToken);
                 if (activeKey == null)
                 {
-                    _logger.LogWarning("No active encryption key found. Saving image unencrypted.");
+                    _logger.NoActiveEncryptionKeyFound();
                     // Fall back to unencrypted storage
                     await using var fileStream = File.Create(storagePath);
                     await request.File.CopyToAsync(fileStream, cancellationToken);
@@ -91,15 +91,12 @@ public class UploadImageHandler : IRequestHandler<UploadImage, Result<ImageMetad
                     iv = encryptionResult.InitializationVector;
                     authTag = encryptionResult.AuthenticationTag;
 
-                    _logger.LogInformation(
-                        "Image {ImageId} encrypted with key {Kid}",
-                        imageId,
-                        activeKey.Kid);
+                    _logger.ImageEncryptedWithKey(imageId, activeKey.Kid);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to encrypt image {ImageId}. Saving unencrypted.", imageId);
+                _logger.ImageEncryptionFailed(ex, imageId);
                 // Fall back to unencrypted storage
                 await using var fileStream = File.Create(storagePath);
                 await request.File.CopyToAsync(fileStream, cancellationToken);

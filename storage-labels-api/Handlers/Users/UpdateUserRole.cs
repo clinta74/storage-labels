@@ -3,6 +3,7 @@ using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using StorageLabelsApi.Datalayer.Models;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Users;
 
@@ -38,7 +39,7 @@ public class UpdateUserRoleHandler(
             var user = await userManager.FindByIdAsync(request.UserId);
             if (user == null)
             {
-                logger.LogWarning("User {UserId} not found for role update", request.UserId);
+                logger.UserNotFoundForRoleUpdate(request.UserId);
                 return Result.NotFound("User not found");
             }
 
@@ -51,7 +52,7 @@ public class UpdateUserRoleHandler(
                 var removeResult = await userManager.RemoveFromRolesAsync(user, currentRoles);
                 if (!removeResult.Succeeded)
                 {
-                    logger.LogError("Failed to remove roles from user {UserId}: {Errors}", 
+                    logger.UserRoleRemovalFailed(
                         request.UserId, 
                         string.Join(", ", removeResult.Errors.Select(e => e.Description)));
                     return Result.Error("Failed to update user role");
@@ -62,7 +63,7 @@ public class UpdateUserRoleHandler(
             var addResult = await userManager.AddToRoleAsync(user, request.Role);
             if (!addResult.Succeeded)
             {
-                logger.LogError("Failed to add role {Role} to user {UserId}: {Errors}", 
+                logger.UserRoleAddFailed(
                     request.Role,
                     request.UserId, 
                     string.Join(", ", addResult.Errors.Select(e => e.Description)));
@@ -72,16 +73,13 @@ public class UpdateUserRoleHandler(
             // Update security stamp to invalidate existing tokens
             await userManager.UpdateSecurityStampAsync(user);
 
-            logger.LogInformation("Updated user {UserId} ({Email}) to role {Role}", 
-                request.UserId, 
-                user.Email, 
-                request.Role);
+            logger.UserRoleUpdated(request.UserId, user.Email!, request.Role);
 
             return Result.Success();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error updating role for user {UserId}", request.UserId);
+            logger.UserRoleUpdateFailed(ex, request.UserId);
             return Result.Error("Failed to update user role");
         }
     }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
+using StorageLabelsApi.Logging;
 using System.IO.Abstractions;
 using System.Security.Cryptography;
 
@@ -59,11 +60,7 @@ public class ImageEncryptionService : IImageEncryptionService
         using var aesGcm = new AesGcm(activeKey.KeyMaterial, TagSizeBytes);
         aesGcm.Encrypt(iv, plaintext, ciphertext, tag);
 
-        _logger.LogInformation(
-            "Encrypted {Size} bytes using key {Kid} (v{Version})",
-            plaintext.Length,
-            activeKey.Kid,
-            activeKey.Version);
+        _logger.BytesEncrypted(plaintext.Length, activeKey.Kid, activeKey.Version);
 
         return new EncryptionResult(
             EncryptedData: ciphertext,
@@ -91,10 +88,7 @@ public class ImageEncryptionService : IImageEncryptionService
 
         if (key.Status == EncryptionKeyStatus.Deprecated)
         {
-            _logger.LogWarning(
-                "Using deprecated key {Kid} (v{Version}) for decryption",
-                key.Kid,
-                key.Version);
+            _logger.UsingDeprecatedKey(key.Kid, key.Version);
         }
 
         // Prepare plaintext buffer
@@ -108,11 +102,7 @@ public class ImageEncryptionService : IImageEncryptionService
         }
         catch (CryptographicException ex)
         {
-            _logger.LogError(
-                ex,
-                "Failed to decrypt data with key {Kid} (v{Version}). Data may be corrupted or tampered.",
-                key.Kid,
-                key.Version);
+            _logger.DecryptionFailed(ex, key.Kid, key.Version);
             throw new InvalidOperationException("Failed to decrypt image. Data integrity check failed.", ex);
         }
 
@@ -191,11 +181,7 @@ public class ImageEncryptionService : IImageEncryptionService
         _context.EncryptionKeys.Add(newKey);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Created new encryption key {Kid} (v{Version}) by {User}",
-            newKey.Kid,
-            newKey.Version,
-            createdBy ?? "system");
+        _logger.EncryptionKeyCreatedWithDescription(createdBy ?? "system", newKey.Kid, newKey.Version, description ?? string.Empty);
 
         return newKey;
     }
@@ -233,18 +219,14 @@ public class ImageEncryptionService : IImageEncryptionService
             await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            _logger.LogInformation(
-                "Activated encryption key {Kid} (v{Version}), retired {Count} previous key(s)",
-                keyToActivate.Kid,
-                keyToActivate.Version,
-                activeKeys.Count);
+            _logger.EncryptionKeyActivatedWithRetired("system", keyToActivate.Kid, keyToActivate.Version, activeKeys.Count);
 
             return true;
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync(cancellationToken);
-            _logger.LogError(ex, "Failed to activate encryption key {Kid}", kid);
+            _logger.EncryptionKeyActivationFailed(ex, kid);
             throw;
         }
     }
@@ -269,10 +251,7 @@ public class ImageEncryptionService : IImageEncryptionService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Retired encryption key {Kid} (v{Version})",
-            key.Kid,
-            key.Version);
+        _logger.EncryptionKeyRetiredWithVersion("system", key.Kid, key.Version);
 
         return true;
     }
@@ -335,10 +314,7 @@ public class ImageEncryptionService : IImageEncryptionService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Encrypted previously unencrypted image {ImageId} with key {Kid}",
-            metadata.ImageId,
-            kid);
+        _logger.UnencryptedImageEncrypted(metadata.ImageId, kid);
 
         return metadata;
     }
@@ -372,11 +348,7 @@ public class ImageEncryptionService : IImageEncryptionService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Re-encrypted image {ImageId} from key {OldKey} to key {NewKey}",
-            metadata.ImageId,
-            metadata.EncryptionKeyId,
-            newKid);
+        _logger.ImageReencrypted(metadata.ImageId, metadata.EncryptionKeyId ?? 0, newKid);
 
         return metadata;
     }

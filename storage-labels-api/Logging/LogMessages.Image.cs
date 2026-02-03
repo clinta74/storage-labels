@@ -5,7 +5,7 @@ namespace StorageLabelsApi.Logging;
 public static partial class LogMessages
 {
     [LoggerMessage(
-        EventId = 1,
+        EventId = 1000,
         Level = LogLevel.Information,
         Message = "Image {ImageId} uploaded by user {UserId} with filename {FileName}")]
     public static partial void LogImageUploaded(
@@ -15,7 +15,7 @@ public static partial class LogMessages
         string fileName);
 
     [LoggerMessage(
-        EventId = 2,
+        EventId = 1001,
         Level = LogLevel.Information,
         Message = "Image {ImageId} deleted by user {UserId}")]
     public static partial void LogImageDeleted(
@@ -24,7 +24,7 @@ public static partial class LogMessages
         string userId);
 
     [LoggerMessage(
-        EventId = 3,
+        EventId = 1002,
         Level = LogLevel.Error,
         Message = "Failed to delete image file {ImageId}")]
     public static partial void LogImageDeleteError(
@@ -33,7 +33,7 @@ public static partial class LogMessages
         Guid imageId);
 
     [LoggerMessage(
-        EventId = 4,
+        EventId = 1003,
         Level = LogLevel.Warning,
         Message = "Rate limit exceeded for user {UserId}")]
     public static partial void LogImageRateLimitExceeded(
@@ -41,7 +41,7 @@ public static partial class LogMessages
         string userId);
 
     [LoggerMessage(
-        EventId = 5,
+        EventId = 1004,
         Level = LogLevel.Warning,
         Message = "Hotlinking attempt by user {UserId} from referer {Referer}")]
     public static partial void LogImageHotlinkReferer(
@@ -50,7 +50,7 @@ public static partial class LogMessages
         string referer);
 
     [LoggerMessage(
-        EventId = 6,
+        EventId = 1005,
         Level = LogLevel.Warning,
         Message = "Hotlinking attempt by user {UserId} from origin {Origin}")]
     public static partial void LogImageHotlinkOrigin(
@@ -59,7 +59,7 @@ public static partial class LogMessages
         string origin);
 
     [LoggerMessage(
-        EventId = 7,
+        EventId = 1006,
         Level = LogLevel.Warning,
         Message = "Image not found: {ImageId} by user {UserId}")]
     public static partial void LogImageNotFound(
@@ -68,7 +68,7 @@ public static partial class LogMessages
         string userId);
 
     [LoggerMessage(
-        EventId = 8,
+        EventId = 1007,
         Level = LogLevel.Warning,
         Message = "File not found for image {ImageId} by user {UserId}")]
     public static partial void LogImageFileNotFound(
@@ -77,7 +77,7 @@ public static partial class LogMessages
         string userId);
 
     [LoggerMessage(
-        EventId = 9,
+        EventId = 1008,
         Level = LogLevel.Warning,
         Message = "Invalid content type for image {ImageId} by user {UserId}")]
     public static partial void LogImageInvalidContentType(
@@ -86,7 +86,7 @@ public static partial class LogMessages
         string userId);
 
     [LoggerMessage(
-        EventId = 10,
+        EventId = 1009,
         Level = LogLevel.Information,
         Message = "Image {ImageId} served to owner {UserId}")]
     public static partial void LogImageServedToOwner(
@@ -95,7 +95,7 @@ public static partial class LogMessages
         string userId);
 
     [LoggerMessage(
-        EventId = 11,
+        EventId = 1010,
         Level = LogLevel.Information,
         Message = "Image {ImageId} served to user {UserId} via box/item access")]
     public static partial void LogImageServedToUserViaAccess(
@@ -104,11 +104,46 @@ public static partial class LogMessages
         string userId);
 
     [LoggerMessage(
-        EventId = 12,
+        EventId = 1011,
         Level = LogLevel.Warning,
         Message = "Forbidden image access attempt: {ImageId} by user {UserId}")]
     public static partial void LogImageForbiddenAccess(
         this ILogger logger,
+        Guid imageId,
+        string userId);
+
+    [LoggerMessage(
+        EventId = 1012,
+        Level = LogLevel.Warning,
+        Message = "No active encryption key found. Saving image unencrypted")]
+    public static partial void NoActiveEncryptionKeyFound(
+        this ILogger logger);
+
+    [LoggerMessage(
+        EventId = 1013,
+        Level = LogLevel.Information,
+        Message = "Image {ImageId} encrypted with key {Kid}")]
+    public static partial void ImageEncryptedWithKey(
+        this ILogger logger,
+        Guid imageId,
+        int kid);
+
+    [LoggerMessage(
+        EventId = 1014,
+        Level = LogLevel.Error,
+        Message = "Failed to encrypt image {ImageId}. Saving unencrypted")]
+    public static partial void ImageEncryptionFailed(
+        this ILogger logger,
+        Exception ex,
+        Guid imageId);
+
+    [LoggerMessage(
+        EventId = 1015,
+        Level = LogLevel.Error,
+        Message = "Failed to decrypt image {ImageId} for user {UserId}")]
+    public static partial void ImageDecryptionFailed(
+        this ILogger logger,
+        Exception ex,
         Guid imageId,
         string userId);
 }

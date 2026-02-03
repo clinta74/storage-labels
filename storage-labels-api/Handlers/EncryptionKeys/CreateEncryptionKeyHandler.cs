@@ -41,7 +41,7 @@ public class CreateEncryptionKeyHandler : IRequestHandler<CreateEncryptionKey, R
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning(ex, "Failed to create encryption key: {Description}", request.Description ?? "unnamed");
+            _logger.EncryptionKeyCreationWarning(ex, request.Description ?? "unnamed");
             return Result.Error(ex.Message);
         }
     }

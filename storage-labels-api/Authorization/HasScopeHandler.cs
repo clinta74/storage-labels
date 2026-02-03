@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Authorization;
 
@@ -36,7 +37,7 @@ public class HasScopeHandler(ILogger<HasScopeHandler> logger) : AuthorizationHan
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error checking authorization requirement");
+            logger.AuthorizationCheckFailed(ex);
         }
         return Task.CompletedTask;
     }

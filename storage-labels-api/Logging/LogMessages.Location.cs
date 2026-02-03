@@ -4,6 +4,11 @@ namespace StorageLabelsApi.Logging;
 
 public static partial class LogMessages
 {
-    [LoggerMessage(Message = "Location with id ({locationId}) deleted.", Level = LogLevel.Information)]
-    public static partial void DeleteLocation(this ILogger logger, long locationId);
+    [LoggerMessage(
+        EventId = 7000,
+        Level = LogLevel.Information,
+        Message = "Location with id ({LocationId}) deleted")]
+    public static partial void DeleteLocation(
+        this ILogger logger,
+        long locationId);
 }

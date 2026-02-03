@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Filters;
 
@@ -15,7 +16,7 @@ public class OperationCancelledExceptionFilter : ExceptionFilterAttribute
     {
         if (context.Exception is OperationCanceledException)
         {
-            _logger.LogInformation("Request was cancelled");
+            _logger.RequestCancelled();
             context.ExceptionHandled = true;
             context.Result = new StatusCodeResult(499);
         }

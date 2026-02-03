@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.Datalayer.Models;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Handlers.Users;
 
@@ -48,12 +49,12 @@ public class GetAllUsersHandler(
                 ));
             }
 
-            logger.LogInformation("Retrieved {Count} users", usersWithRoles.Count);
+            logger.UsersRetrieved(usersWithRoles.Count);
             return Result<IEnumerable<UserWithRoles>>.Success(usersWithRoles);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error retrieving all users");
+            logger.UsersRetrievalFailed(ex);
             return Result<IEnumerable<UserWithRoles>>.Error("Failed to retrieve users");
         }
     }

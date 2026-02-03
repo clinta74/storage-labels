@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
+using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Services;
 
@@ -63,12 +64,7 @@ public class KeyRotationService : IKeyRotationService
             context.EncryptionKeyRotations.Add(rotation);
             await context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation(
-                "Started unencrypted image migration {RotationId}: unencrypted -> {ToKey} ({TotalImages} images, batch size {BatchSize})",
-                rotation.Id,
-                toKey.Kid,
-                totalImages,
-                options.BatchSize);
+            _logger.UnencryptedImageMigrationStarted(rotation.Id, toKey.Kid, totalImages, options.BatchSize);
 
             // Start background rotation
             _ = Task.Run(() => PerformRotationAsync(rotation.Id), CancellationToken.None);
@@ -105,13 +101,7 @@ public class KeyRotationService : IKeyRotationService
         context.EncryptionKeyRotations.Add(rotation2);
         await context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Started key rotation {RotationId}: {FromKey} -> {ToKey} ({TotalImages} images, batch size {BatchSize})",
-            rotation2.Id,
-            fromKey.Kid,
-            toKey2.Kid,
-            totalImages2,
-            options.BatchSize);
+        _logger.KeyRotationStarted(rotation2.Id, fromKey.Kid, toKey2.Kid, totalImages2, options.BatchSize);
 
         // Start background rotation
         _ = Task.Run(() => PerformRotationAsync(rotation2.Id), CancellationToken.None);
@@ -190,7 +180,7 @@ public class KeyRotationService : IKeyRotationService
 
         await context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Cancelled rotation {RotationId}", rotationId);
+        _logger.RotationCancelledInService(rotationId);
 
         return true;
     }
@@ -210,14 +200,13 @@ public class KeyRotationService : IKeyRotationService
 
             if (rotation == null)
             {
-                _logger.LogError("Rotation {RotationId} not found", rotationId);
+                _logger.RotationNotFound(rotationId);
                 return;
             }
 
             var isEncryptionMigration = !rotation.FromKeyId.HasValue;
 
-            _logger.LogInformation(
-                "Beginning {Operation} {RotationId}: {FromKey} -> {ToKey}",
+            _logger.RotationOperationBeginning(
                 isEncryptionMigration ? "migration" : "rotation",
                 rotationId,
                 isEncryptionMigration ? "unencrypted" : rotation.FromKey!.Kid.ToString(),
@@ -233,7 +222,7 @@ public class KeyRotationService : IKeyRotationService
 
                 if (rotation.Status == RotationStatus.Cancelled)
                 {
-                    _logger.LogInformation("{Operation} {RotationId} was cancelled", 
+                    _logger.RotationOperationCancelled(
                         isEncryptionMigration ? "Migration" : "Rotation",
                         rotationId);
                     break;
@@ -253,8 +242,7 @@ public class KeyRotationService : IKeyRotationService
                 hasMore = images.Count == rotation.BatchSize;
                 batchNumber++;
 
-                _logger.LogInformation(
-                    "Processing batch {BatchNumber} of {Operation} {RotationId}: {Count} images",
+                _logger.RotationBatchProcessing(
                     batchNumber,
                     isEncryptionMigration ? "migration" : "rotation",
                     rotationId,
@@ -286,13 +274,10 @@ public class KeyRotationService : IKeyRotationService
                     catch (Exception ex)
                     {
                         rotation.FailedImages++;
-                        _logger.LogError(
-                            ex,
-                            "Failed to {Operation} image {ImageId} during {Process} {RotationId}",
+                        _logger.ImageRotationFailed(
                             isEncryptionMigration ? "encrypt" : "re-encrypt",
                             image.ImageId,
-                            isEncryptionMigration ? "migration" : "rotation",
-                            rotationId);
+                            ex.Message);
                     }
                 }
 
@@ -315,8 +300,7 @@ public class KeyRotationService : IKeyRotationService
                     rotation.ErrorMessage
                 ));
 
-                _logger.LogInformation(
-                    "Batch {BatchNumber} complete: {Processed}/{Total} images rotated ({Failed} failed)",
+                _logger.RotationBatchComplete(
                     batchNumber,
                     rotation.ProcessedImages,
                     rotation.TotalImages,
@@ -355,10 +339,10 @@ public class KeyRotationService : IKeyRotationService
                     rotation.ErrorMessage
                 ));
 
-                _logger.LogInformation(
-                    "Rotation {RotationId} {Status}: {Processed}/{Total} images rotated, {Failed} failed",
+                _logger.RotationComplete(
+                    isEncryptionMigration ? "migration" : "rotation",
                     rotationId,
-                    rotation.Status,
+                    rotation.Status.ToString(),
                     rotation.ProcessedImages,
                     rotation.TotalImages,
                     rotation.FailedImages);
@@ -366,7 +350,7 @@ public class KeyRotationService : IKeyRotationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fatal error during rotation {RotationId}", rotationId);
+            _logger.RotationFatalError(ex, rotationId);
 
             try
             {
@@ -384,7 +368,7 @@ public class KeyRotationService : IKeyRotationService
             }
             catch (Exception innerEx)
             {
-                _logger.LogError(innerEx, "Failed to update rotation {RotationId} status after error", rotationId);
+                _logger.RotationStatusUpdateFailed(innerEx, rotationId);
             }
         }
     }

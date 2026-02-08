@@ -391,7 +391,7 @@ public class LocalAuthenticationService : IAuthenticationService
     {
         return role.ToLower() switch
         {
-            "admin" => Policies.Permissions,
+            "admin" => Policies.AllPermissions.ToArray(),
             "auditor" => [
                 Policies.Read_User,
                 Policies.Read_CommonLocations,

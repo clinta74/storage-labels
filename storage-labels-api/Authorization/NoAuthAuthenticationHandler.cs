@@ -30,7 +30,7 @@ public class NoAuthAuthenticationHandler : AuthenticationHandler<AuthenticationS
             new Claim(ClaimTypes.Name, "anonymous"),
             new Claim(ClaimTypes.Email, "anonymous@localhost"),
             new Claim(ClaimTypes.Role, "Admin"),
-            ..Policies.Permissions.Select(permission => new Claim("permission", permission))
+            ..Policies.AllPermissions.Select(permission => new Claim("permission", permission))
         ];
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

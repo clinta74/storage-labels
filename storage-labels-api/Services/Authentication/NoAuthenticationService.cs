@@ -26,7 +26,7 @@ public class NoAuthenticationService : IAuthenticationService
         var username = request.UsernameOrEmail;
         var email = $"{username}@localhost";
         var roles = new[] { "Admin" };
-        var permissions = Policies.Permissions;
+        var permissions = Policies.AllPermissions.ToArray();
 
         var token = _jwtTokenService.GenerateToken(
             userId,
@@ -87,7 +87,7 @@ public class NoAuthenticationService : IAuthenticationService
             "Anonymous User",
             null,
             new[] { "Admin" },
-            Policies.Permissions,
+            Policies.AllPermissions.ToArray(),
             true
         );
 
@@ -96,7 +96,7 @@ public class NoAuthenticationService : IAuthenticationService
 
     public Task<string[]> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(Policies.Permissions);
+        return Task.FromResult(Policies.AllPermissions.ToArray());
     }
 
     public Task<Result> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)

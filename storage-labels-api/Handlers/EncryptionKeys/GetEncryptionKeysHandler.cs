@@ -25,7 +25,7 @@ public class GetEncryptionKeysHandler : IRequestHandler<GetEncryptionKeys, Resul
             .OrderByDescending(k => k.Version)
             .ToListAsync(cancellationToken);
 
-        var dtos = keys.Select(EncryptionKeyResponse.FromEntity).ToList();
+        var dtos = keys.Select(k => new EncryptionKeyResponse(k)).ToList();
 
         return Result.Success(dtos);
     }

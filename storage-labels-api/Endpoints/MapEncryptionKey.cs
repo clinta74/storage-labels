@@ -13,8 +13,7 @@ public static class MapEncryptionKey
     {
         var group = app.MapGroup("admin/encryption-keys")
             .RequireAuthorization()
-            .WithTags("Admin - Encryption Keys")
-            .WithOpenApi();
+            .WithTags("Admin - Encryption Keys");
 
         group.MapPost("/", CreateEncryptionKeyEndpoint)
             .RequireAuthorization(Policies.Write_EncryptionKeys)

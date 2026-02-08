@@ -206,22 +206,9 @@ export const BoxComponent: React.FC = () => {
     const handleQrCodeScan = (code: string) => {
         Api.Search.searchByQrCode(code)
             .then(({ data }) => {
-                // Navigate to the box containing the scanned item/box
-                if (data.boxId && data.type === 'box') {
-                    // Navigating to the found box (could be in any location)
+                // Navigate to the scanned box
+                if (data.boxId) {
                     navigate(`/locations/${data.locationId}/box/${data.boxId}`);
-                } else if (data.boxId && data.type === 'item') {
-                    // Navigate to the box containing the item
-                    if (data.boxId === params.boxId) {
-                        // Item is in current box - find and show it
-                        const item = items.find(i => i.itemId === data.itemId);
-                        if (item) {
-                            handleItemClick(item);
-                        }
-                    } else {
-                        // Navigate to the box containing the item (could be in any location)
-                        navigate(`/locations/${data.locationId}/box/${data.boxId}`);
-                    }
                 }
             })
             .catch((_error) => {

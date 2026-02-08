@@ -2,6 +2,46 @@
 
 Thank you for your interest in contributing to Storage Labels! This document provides guidelines and patterns to maintain consistency and quality across the codebase.
 
+---
+
+## 🤖 Guidelines for AI Assistants
+
+**If you are an AI coding assistant (GitHub Copilot, Claude, Cursor, etc.), please read this section carefully before generating or modifying code.**
+
+### Critical Patterns to Follow
+
+1. **DTOs MUST use constructor mapping pattern** (see [DTOs with Records](#3-dtos-with-records-and-constructor-mapping))
+   - ✅ DO: `public record ItemResponse(...) { public ItemResponse(ItemModel item) : this(...) { } }`
+   - ❌ DON'T: Use static `FromEntity()` methods or manual property-by-property mapping
+
+2. **All handlers MUST use MediatR pattern** (see [MediatR for CQRS](#1-mediator-for-cqrs))
+   - ✅ DO: `public record CreateItem(...) : IRequest<Result<ItemResponse>>`
+   - ❌ DON'T: Create methods directly in endpoints
+
+3. **Validation MUST use FluentValidation** (see [FluentValidation](#2-fluentvalidation-for-input-validation))
+   - ✅ DO: Create separate `Validator` classes for each request
+   - ❌ DON'T: Validate inline in handlers or endpoints
+
+4. **Logging MUST use LoggerMessage source generators** (see [Structured Logging](#4-structured-logging-with-loggermessage))
+   - ✅ DO: `logger.BoxCreated(userId, boxId, locationId);`
+   - ❌ DON'T: Use string interpolation like `logger.LogInformation($"Created box {boxId}")`
+
+5. **Route parameters MUST be camelCase with type constraints**
+   - ✅ DO: `/{boxId:guid}`, `/{locationId:long}`, `/{kid:int}`
+   - ❌ DON'T: Use kebab-case or omit constraints
+
+6. **Endpoint names MUST include version suffixes**
+   - ✅ DO: `.WithName("Update Box V2")`
+   - ❌ DON'T: Duplicate names across API versions
+
+**Before making changes:**
+1. Search the codebase for similar existing patterns
+2. Follow the established conventions exactly
+3. Review the relevant sections below for detailed guidance
+4. Test your changes with `dotnet test`
+
+---
+
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
@@ -210,9 +250,9 @@ public class YourRequestValidator : AbstractValidator<YourRequest>
 
 ---
 
-##### 3. DTOs with Records
+##### 3. DTOs with Records and Constructor Mapping
 
-**Use records for all DTOs** (Data Transfer Objects) for immutability and conciseness.
+**Use records for all DTOs** (Data Transfer Objects) for immutability and conciseness. **Response DTOs should include a constructor that accepts the internal/domain model** for clean, consistent mapping.
 
 **Pattern:**
 ```csharp
@@ -226,7 +266,7 @@ public record CreateItemRequest(
     int Quantity = 1
 );
 
-// Response DTOs
+// Response DTOs with constructor mapping
 public record ItemResponse(
     int Id,
     string Name,
@@ -236,7 +276,24 @@ public record ItemResponse(
     int Quantity,
     DateTime Created,
     DateTime? Updated
-);
+)
+{
+    // Constructor that accepts the internal/domain model
+    public ItemResponse(ItemModel item) : this(
+        item.Id,
+        item.Name,
+        item.Description,
+        item.BoxId,
+        item.BoxCode,
+        item.Quantity,
+        item.Created,
+        item.Updated
+    )
+    { }
+};
+
+// Usage in endpoints:
+var items = result.Value.Select(item => new ItemResponse(item)).ToList();
 
 // Use positional parameters for simple DTOs
 // Use property syntax for complex DTOs with many optional fields
@@ -248,17 +305,34 @@ public record UpdateItemRequest
 }
 ```
 
+**Architecture:**
+```
+Models/DTO/FeatureName/     <- DTOs (API boundary only)
+    ItemResponse.cs
+    CreateItemRequest.cs
+    
+Models/FeatureName/          <- Internal/domain models (used by services/handlers)
+    ItemModel.cs
+    SearchResult.cs
+```
+
 **✅ DO:**
 - Use records for immutability
+- Add constructor to response DTOs that accepts internal model
+- Keep DTOs in `Models/DTO/` namespace (API boundary only)
+- Keep internal models in `Models/` namespace (service/handler layer)
 - Use nullable reference types appropriately
 - Provide default values where sensible
-- Place DTOs in `Models/DTO/FeatureName/` folder
 - Include all necessary data (don't make clients call multiple endpoints)
+- Map at the endpoint boundary: `.Select(model => new ResponseDto(model))`
 
 **❌ DON'T:**
 - Use classes for DTOs unless mutability is required
 - Expose database entities directly in API responses
+- Use DTOs in service/handler layers (use internal models instead)
+- Use verbose property-by-property mapping when constructor exists
 - Include unnecessary fields (e.g., sensitive data, internal IDs)
+- Mix DTOs and internal models in the same namespace
 
 ---
 

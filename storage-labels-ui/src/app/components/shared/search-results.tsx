@@ -10,17 +10,35 @@ import {
     Typography,
     Chip,
     Box,
+    Pagination,
+    Stack,
+    Rating,
 } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import LabelIcon from '@mui/icons-material/Label';
 
 interface SearchResultsProps {
-    results: SearchResultResponse[];
-    onResultClick: (result: SearchResultResponse) => void;
+    results: SearchResultV2[];
+    onResultClick: (result: SearchResultV2) => void;
     loading?: boolean;
+    // v2 Pagination props
+    currentPage?: number;
+    totalPages?: number;
+    totalResults?: number;
+    onPageChange?: (page: number) => void;
+    showRelevance?: boolean;
 }
 
-export const SearchResults: React.FC<SearchResultsProps> = ({ results, onResultClick, loading }) => {
+export const SearchResults: React.FC<SearchResultsProps> = ({ 
+    results, 
+    onResultClick, 
+    loading,
+    currentPage = 1,
+    totalPages = 1,
+    totalResults = 0,
+    onPageChange,
+    showRelevance = true
+}) => {
     if (loading) {
         return (
             <Paper elevation={2} sx={{ p: 2 }}>
@@ -35,6 +53,11 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results, onResultC
         return null;
     }
 
+    // Normalize rank to 0-5 scale for visual display (typical rank values are 0-1)
+    const normalizeRank = (rank: number): number => {
+        return Math.min(5, Math.max(0, rank * 5));
+    };
+
     return (
         <Paper 
             elevation={8} 
@@ -45,10 +68,19 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results, onResultC
                 right: 0,
                 mt: 1,
                 zIndex: 1200,
-                maxHeight: '400px',
+                maxHeight: '500px',
                 overflow: 'auto',
             }}
         >
+            {totalResults > 0 && (
+                <Box sx={{ p: 2, pb: 1, borderBottom: 1, borderColor: 'divider' }}>
+                    <Typography variant="caption" color="text.secondary">
+                        {totalResults} result{totalResults !== 1 ? 's' : ''} found
+                        {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
+                    </Typography>
+                </Box>
+            )}
+            
             <List>
                 {results.map((result, index) => (
                     <ListItem
@@ -71,6 +103,17 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results, onResultC
                                             size="small"
                                             color={result.type === 'box' ? 'primary' : 'secondary'}
                                         />
+                                        {showRelevance && result.rank > 0 && (
+                                            <Box sx={{ ml: 'auto' }}>
+                                                <Rating 
+                                                    value={normalizeRank(result.rank)} 
+                                                    precision={0.5} 
+                                                    size="small" 
+                                                    readOnly 
+                                                    max={5}
+                                                />
+                                            </Box>
+                                        )}
                                     </Box>
                                 }
                                 secondary={
@@ -99,6 +142,22 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ results, onResultC
                     </ListItem>
                 ))}
             </List>
+
+            {totalPages > 1 && onPageChange && (
+                <Box sx={{ p: 2, pt: 1, display: 'flex', justifyContent: 'center', borderTop: 1, borderColor: 'divider' }}>
+                    <Stack spacing={2}>
+                        <Pagination 
+                            count={totalPages} 
+                            page={currentPage} 
+                            onChange={(_, page) => onPageChange(page)}
+                            color="primary"
+                            size="small"
+                            showFirstButton
+                            showLastButton
+                        />
+                    </Stack>
+                </Box>
+            )}
         </Paper>
     );
 };

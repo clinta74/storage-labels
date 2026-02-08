@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
-using StorageLabelsApi.Models.DTO.Search;
+using StorageLabelsApi.Models.Search;
 
 namespace StorageLabelsApi.Services;
 
@@ -13,7 +13,7 @@ public class InMemorySearchService(
     StorageLabelsDbContext dbContext,
     ILogger<InMemorySearchService> logger) : ISearchService
 {
-    public async Task<SearchResultsResponseV2> SearchBoxesAndItemsAsync(
+    public async Task<SearchResultsInternal> SearchBoxesAndItemsAsync(
         string query,
         string userId,
         long? locationId,
@@ -36,17 +36,11 @@ public class InMemorySearchService(
         if (!accessibleLocationIds.Any())
         {
             logger.LogDebug("User {UserId} has no accessible locations", userId);
-            return new SearchResultsResponseV2
-            {
-                Results = new List<SearchResultV2>(),
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalResults = 0
-            };
+            return new SearchResultsInternal(new List<SearchResult>(), 0);
         }
 
         // Combined results list
-        var allResults = new List<SearchResultV2>();
+        var allResults = new List<SearchResult>();
 
         // Search boxes if not filtering by BoxId
         if (!boxId.HasValue)
@@ -68,19 +62,17 @@ public class InMemorySearchService(
                     (b.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (b.Code?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (b.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
-                .Select(b => new SearchResultV2
-                {
-                    Type = "box",
-                    BoxId = b.BoxId.ToString(),
-                    BoxName = b.Name,
-                    BoxCode = b.Code,
-                    ItemId = null,
-                    ItemName = null,
-                    ItemCode = null,
-                    LocationId = b.LocationId.ToString(),
-                    LocationName = b.Location?.Name ?? "Unknown",
-                    Rank = CalculateSimpleRank(searchTerm, b.Name, b.Code, b.Description)
-                })
+                .Select(b => new SearchResult(
+                    "box",
+                    CalculateSimpleRank(searchTerm, b.Name, b.Code, b.Description),
+                    b.BoxId.ToString(),
+                    b.Name,
+                    b.Code,
+                    null,
+                    null,
+                    null,
+                    b.LocationId.ToString(),
+                    b.Location?.Name ?? "Unknown"))
                 .ToList();
 
             allResults.AddRange(boxResults);
@@ -109,19 +101,17 @@ public class InMemorySearchService(
             .Where(i =>
                 (i.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (i.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
-            .Select(i => new SearchResultV2
-            {
-                Type = "item",
-                BoxId = i.BoxId.ToString(),
-                BoxName = i.Box.Name,
-                BoxCode = i.Box.Code,
-                ItemId = i.ItemId.ToString(),
-                ItemName = i.Name,
-                ItemCode = null,
-                LocationId = i.Box.LocationId.ToString(),
-                LocationName = i.Box.Location?.Name ?? "Unknown",
-                Rank = CalculateSimpleRank(searchTerm, i.Name, null, i.Description)
-            })
+            .Select(i => new SearchResult(
+                "item",
+                CalculateSimpleRank(searchTerm, i.Name, null, i.Description),
+                i.BoxId.ToString(),
+                i.Box.Name,
+                i.Box.Code,
+                i.ItemId.ToString(),
+                i.Name,
+                null,
+                i.Box.LocationId.ToString(),
+                i.Box.Location?.Name ?? "Unknown"))
             .ToList();
 
         allResults.AddRange(itemResults);
@@ -145,13 +135,7 @@ public class InMemorySearchService(
         logger.LogDebug("In-memory search completed: {TotalResults} results, {PagedResults} on page {PageNumber}",
             totalResults, pagedResults.Count, pageNumber);
 
-        return new SearchResultsResponseV2
-        {
-            Results = pagedResults,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            TotalResults = totalResults
-        };
+        return new SearchResultsInternal(pagedResults, totalResults);
     }
 
     /// <summary>

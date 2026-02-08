@@ -1,4 +1,4 @@
-using StorageLabelsApi.Models.DTO.Search;
+using StorageLabelsApi.Models.Search;
 
 namespace StorageLabelsApi.Services;
 
@@ -10,7 +10,7 @@ public interface ISearchService
     /// <summary>
     /// Search for boxes and items with pagination
     /// </summary>
-    Task<SearchResultsResponseV2> SearchBoxesAndItemsAsync(
+    Task<SearchResultsInternal> SearchBoxesAndItemsAsync(
         string query,
         string userId,
         long? locationId,

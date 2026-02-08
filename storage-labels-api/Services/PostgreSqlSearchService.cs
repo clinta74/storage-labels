@@ -1,7 +1,8 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
-using StorageLabelsApi.Models.DTO.Search;
+using StorageLabelsApi.Models.Search;
 
 namespace StorageLabelsApi.Services;
 
@@ -12,7 +13,7 @@ public class PostgreSqlSearchService(
     StorageLabelsDbContext dbContext,
     ILogger<PostgreSqlSearchService> logger) : ISearchService
 {
-    public async Task<SearchResultsResponseV2> SearchBoxesAndItemsAsync(
+    public async Task<SearchResultsInternal> SearchBoxesAndItemsAsync(
         string query,
         string userId,
         long? locationId,
@@ -29,100 +30,111 @@ public class PostgreSqlSearchService(
             .Where(ul => ul.UserId == userId && ul.AccessLevel != AccessLevels.None)
             .Select(ul => ul.LocationId);
 
-        // Combined query for boxes and items with ranking
-        var boxResults = new List<SearchResultV2>();
-        var itemResults = new List<SearchResultV2>();
+        // Build reusable filter expressions
+        Expression<Func<Box, bool>> boxBaseFilter = b => 
+            accessibleLocationIds.Contains(b.LocationId) &&
+            EF.Functions.ToTsVector("english", b.Name + " " + b.Code + " " + (b.Description ?? ""))
+                .Matches(EF.Functions.PlainToTsQuery("english", query));
 
-        // Search boxes if not filtering by BoxId
-        if (!boxId.HasValue)
-        {
-            var boxQuery = dbContext.Boxes
-                .AsNoTracking()
-                .Where(b => accessibleLocationIds.Contains(b.LocationId))
-                .Where(b => EF.Functions.ToTsVector("english", b.Name + " " + b.Code + " " + (b.Description ?? ""))
-                    .Matches(EF.Functions.PlainToTsQuery("english", query)));
+        Expression<Func<Item, bool>> itemBaseFilter = i => 
+            accessibleLocationIds.Contains(i.Box.LocationId) &&
+            EF.Functions.ToTsVector("english", i.Name + " " + (i.Description ?? ""))
+                .Matches(EF.Functions.PlainToTsQuery("english", query));
 
-            if (locationId.HasValue)
-            {
-                boxQuery = boxQuery.Where(b => b.LocationId == locationId.Value);
-            }
-
-            boxResults = await boxQuery
-                .Select(b => new SearchResultV2
-                {
-                    Type = "box",
-                    BoxId = b.BoxId.ToString(),
-                    BoxName = b.Name,
-                    BoxCode = b.Code,
-                    ItemId = null,
-                    ItemName = null,
-                    ItemCode = null,
-                    LocationId = b.LocationId.ToString(),
-                    LocationName = b.Location.Name,
-                    Rank = EF.Functions.ToTsVector("english", b.Name + " " + b.Code + " " + (b.Description ?? ""))
-                        .Rank(EF.Functions.PlainToTsQuery("english", query))
-                })
-                .ToListAsync(cancellationToken);
-        }
-
-        // Search items
-        var itemQuery = dbContext.Items
+        // Build box query with filters
+        var boxQuery = dbContext.Boxes
             .AsNoTracking()
-            .Where(i => accessibleLocationIds.Contains(i.Box.LocationId))
-            .Where(i => EF.Functions.ToTsVector("english", i.Name + " " + (i.Description ?? ""))
-                .Matches(EF.Functions.PlainToTsQuery("english", query)));
+            .Where(boxBaseFilter);
 
         if (locationId.HasValue)
         {
-            itemQuery = itemQuery.Where(i => i.Box.LocationId == locationId.Value);
+            var locId = locationId.Value;
+            boxQuery = boxQuery.Where(b => b.LocationId == locId);
+        }
+
+        // Build item query with filters
+        var itemQuery = dbContext.Items
+            .AsNoTracking()
+            .Where(itemBaseFilter);
+
+        if (locationId.HasValue)
+        {
+            var locId = locationId.Value;
+            itemQuery = itemQuery.Where(i => i.Box.LocationId == locId);
         }
 
         if (boxId.HasValue)
         {
-            itemQuery = itemQuery.Where(i => i.BoxId == boxId.Value);
+            var bId = boxId.Value;
+            itemQuery = itemQuery.Where(i => i.BoxId == bId);
         }
 
-        itemResults = await itemQuery
-            .Select(i => new SearchResultV2
+        // Count total results at database level
+        var boxCountTask = boxId.HasValue ? Task.FromResult(0) : boxQuery.CountAsync(cancellationToken);
+        var itemCountTask = itemQuery.CountAsync(cancellationToken);
+        await Task.WhenAll(boxCountTask, itemCountTask);
+        
+        var totalResults = await boxCountTask + await itemCountTask;
+
+        // Build combined ranked query with proper ordering
+        var boxResultsQuery = boxQuery
+            .Select(b => new
+            {
+                Type = "box",
+                BoxId = b.BoxId.ToString(),
+                BoxName = b.Name,
+                BoxCode = b.Code,
+                ItemId = (string?)null,
+                ItemName = (string?)null,
+                ItemCode = (string?)null,
+                LocationId = b.LocationId.ToString(),
+                LocationName = b.Location.Name,
+                Rank = EF.Functions.ToTsVector("english", b.Name + " " + b.Code + " " + (b.Description ?? ""))
+                    .Rank(EF.Functions.PlainToTsQuery("english", query))
+            });
+
+        var itemResultsQuery = itemQuery
+            .Select(i => new
             {
                 Type = "item",
                 BoxId = i.BoxId.ToString(),
                 BoxName = i.Box.Name,
                 BoxCode = i.Box.Code,
-                ItemId = i.ItemId.ToString(),
-                ItemName = i.Name,
-                ItemCode = null,
+                ItemId = (string?)i.ItemId.ToString(),
+                ItemName = (string?)i.Name,
+                ItemCode = (string?)null,
                 LocationId = i.Box.LocationId.ToString(),
                 LocationName = i.Box.Location.Name,
                 Rank = EF.Functions.ToTsVector("english", i.Name + " " + (i.Description ?? ""))
                     .Rank(EF.Functions.PlainToTsQuery("english", query))
-            })
-            .ToListAsync(cancellationToken);
+            });
 
-        // Combine and sort by rank (descending)
-        var allResults = boxResults
-            .Concat(itemResults)
-            .OrderByDescending(r => r.Rank)
-            .ToList();
-
-        var totalResults = allResults.Count;
-
-        // Apply pagination
+        // Combine queries and apply pagination at database level
         var skip = (pageNumber - 1) * pageSize;
-        var pagedResults = allResults
+        var combinedQuery = boxId.HasValue 
+            ? itemResultsQuery 
+            : boxResultsQuery.Concat(itemResultsQuery);
+
+        var pagedResults = await combinedQuery
+            .OrderByDescending(r => r.Rank)
             .Skip(skip)
             .Take(pageSize)
-            .ToList();
+            .Select(r => new SearchResult(
+                r.Type,
+                r.Rank,
+                r.BoxId,
+                r.BoxName,
+                r.BoxCode,
+                r.ItemId,
+                r.ItemName,
+                r.ItemCode,
+                r.LocationId,
+                r.LocationName))
+            .ToListAsync(cancellationToken);
 
         logger.LogDebug("PostgreSQL FTS search completed: {TotalResults} results, {PagedResults} on page {PageNumber}",
             totalResults, pagedResults.Count, pageNumber);
 
-        return new SearchResultsResponseV2
-        {
-            Results = pagedResults,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            TotalResults = totalResults
-        };
+        return new SearchResultsInternal(pagedResults, totalResults);
     }
 }

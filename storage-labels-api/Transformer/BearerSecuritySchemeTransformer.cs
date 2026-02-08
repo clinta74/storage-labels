@@ -32,13 +32,11 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
                 
                 foreach (var operation in path.Operations)
                 {
-                    if (operation.Value.Security is not null)
+                    operation.Value.Security ??= [];
+                    operation.Value.Security.Add(new OpenApiSecurityRequirement
                     {
-                        operation.Value.Security.Add(new OpenApiSecurityRequirement
-                        {
-                            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
-                        });
-                    }
+                        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+                    });
                 }
             }
         }

@@ -244,16 +244,7 @@ public class LocalAuthenticationService : IAuthenticationService
         var roles = await _userManager.GetRolesAsync(user);
         var permissions = await GetUserPermissionsAsync(userId, cancellationToken);
 
-        var userInfo = new UserInfoResponse(
-            user.Id,
-            user.UserName ?? user.Email!,
-            user.Email!,
-            user.FullName,
-            user.ProfilePictureUrl,
-            roles.ToArray(),
-            permissions,
-            user.IsActive
-        );
+        var userInfo = new UserInfoResponse(user, roles.ToArray(), permissions);
 
         return Result.Success(userInfo);
     }
@@ -369,16 +360,7 @@ public class LocalAuthenticationService : IAuthenticationService
 
         var expiresAt = _jwtTokenService.GetTokenExpiration();
 
-        var userInfo = new UserInfoResponse(
-            user.Id,
-            user.UserName ?? user.Email!,
-            user.Email!,
-            user.FullName,
-            user.ProfilePictureUrl,
-            roles,
-            permissions,
-            user.IsActive
-        );
+        var userInfo = new UserInfoResponse(user, roles, permissions);
 
         return new AuthenticationResult(token, expiresAt, userInfo)
         {

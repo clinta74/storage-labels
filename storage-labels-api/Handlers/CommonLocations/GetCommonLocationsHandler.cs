@@ -10,6 +10,7 @@ public class GetCommonLocationsHandler(StorageLabelsDbContext dbContext) : IStre
     public IAsyncEnumerable<CommonLocation> Handle(GetCommonLocation request, CancellationToken cancellationToken)
     {
         return dbContext.CommonLocations
+            .AsNoTracking()
             .OrderBy(x => x.Name)
             .AsAsyncEnumerable();
     }

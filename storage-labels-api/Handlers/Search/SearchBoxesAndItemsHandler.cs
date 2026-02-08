@@ -3,33 +3,33 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
+using StorageLabelsApi.Logging;
 using StorageLabelsApi.Models.DTO.Search;
 
 namespace StorageLabelsApi.Handlers.Search;
 
 public record SearchBoxesAndItemsQuery(string Query, string UserId, long? LocationId, Guid? BoxId) : IRequest<Result<SearchResultsResponse>>;
 
-public class SearchBoxesAndItemsHandler : IRequestHandler<SearchBoxesAndItemsQuery, Result<SearchResultsResponse>>
+public class SearchBoxesAndItemsHandler(
+    StorageLabelsDbContext dbContext,
+    ILogger<SearchBoxesAndItemsHandler> logger) : IRequestHandler<SearchBoxesAndItemsQuery, Result<SearchResultsResponse>>
 {
-    private readonly StorageLabelsDbContext dbContext;
-
-    public SearchBoxesAndItemsHandler(StorageLabelsDbContext dbContext)
-    {
-        this.dbContext = dbContext;
-    }
-
     public async ValueTask<Result<SearchResultsResponse>> Handle(SearchBoxesAndItemsQuery request, CancellationToken cancellationToken)
     {
+        logger.LegacySearchStarted(request.Query, request.UserId, request.LocationId, request.BoxId);
+        
         var searchTerm = request.Query.ToLower();
         var results = new List<SearchResultResponse>();
 
         // Build base query for user's accessible locations
         var accessibleLocationIds = dbContext.UserLocations
+            .AsNoTracking()
             .Where(ul => ul.UserId == request.UserId && ul.AccessLevel != AccessLevels.None)
             .Select(ul => ul.LocationId);
 
         // Search boxes
         var boxQuery = dbContext.Boxes
+            .AsNoTracking()
             .Where(b => accessibleLocationIds.Contains(b.LocationId));
 
         // Filter by location if specified
@@ -62,6 +62,7 @@ public class SearchBoxesAndItemsHandler : IRequestHandler<SearchBoxesAndItemsQue
 
         // Search items
         var itemQuery = dbContext.Items
+            .AsNoTracking()
             .Where(i => accessibleLocationIds.Contains(i.Box.LocationId));
 
         // Filter by location if specified
@@ -96,6 +97,8 @@ public class SearchBoxesAndItemsHandler : IRequestHandler<SearchBoxesAndItemsQue
 
         results.AddRange(items);
 
+        logger.LegacySearchCompleted(request.Query, results.Count);
+        
         return Result<SearchResultsResponse>.Success(new SearchResultsResponse { Results = results });
     }
 }

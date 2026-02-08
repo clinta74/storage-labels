@@ -22,6 +22,7 @@ public class SearchByQrCodeHandler : IRequestHandler<SearchByQrCodeQuery, Result
     {
         // Search for exact match in boxes the user has access to
         var box = await dbContext.Boxes
+            .AsNoTracking()
             .Where(b => b.Code == request.Code)
             .Where(b => dbContext.UserLocations
                 .Any(ul => ul.LocationId == b.LocationId && 
@@ -44,6 +45,7 @@ public class SearchByQrCodeHandler : IRequestHandler<SearchByQrCodeQuery, Result
         // Search for exact match in items by name (items don't have codes)
         // This is a fallback - QR codes typically map to boxes
         var item = await dbContext.Items
+            .AsNoTracking()
             .Where(i => dbContext.UserLocations
                 .Any(ul => ul.LocationId == i.Box.LocationId && 
                           ul.UserId == request.UserId && 

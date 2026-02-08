@@ -1,25 +1,32 @@
 namespace StorageLabelsApi.Models.DTO.Search;
 
-public class SearchResultResponse
-{
-    public required string Type { get; set; } // "box" or "item"
-    
-    // Box fields
-    public string? BoxId { get; set; }
-    public string? BoxName { get; set; }
-    public string? BoxCode { get; set; }
-    
-    // Item fields
-    public string? ItemId { get; set; }
-    public string? ItemName { get; set; }
-    public string? ItemCode { get; set; }
-    
-    // Common fields
-    public required string LocationId { get; set; }
-    public required string LocationName { get; set; }
-}
+using StorageLabelsApi.Models.Search;
 
-public class SearchResultsResponse
+/// <summary>
+/// Search result with relevance ranking (v2) - DTO for API response
+/// </summary>
+public record SearchResultResponse(
+    string Type,
+    float Rank,
+    string? BoxId,
+    string? BoxName,
+    string? BoxCode,
+    string? ItemId,
+    string? ItemName,
+    string? ItemCode,
+    string LocationId,
+    string LocationName)
 {
-    public List<SearchResultResponse> Results { get; set; } = new();
-}
+    public SearchResultResponse(SearchResult result) : this(
+        result.Type,
+        result.Rank,
+        result.BoxId,
+        result.BoxName,
+        result.BoxCode,
+        result.ItemId,
+        result.ItemName,
+        result.ItemCode,
+        result.LocationId,
+        result.LocationName)
+    { }
+};

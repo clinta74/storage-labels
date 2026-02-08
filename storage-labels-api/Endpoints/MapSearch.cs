@@ -22,34 +22,17 @@ internal static partial class EndpointsMapper
 
     private static IEndpointRouteBuilder MapSearchEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
-        // v1 endpoints
         routeBuilder.MapGet("qrcode/{code}", SearchByQrCode)
             .Produces<SearchResultResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
-            .WithName("SearchByQrCodeV1")
-            .WithSummary("Search for a box or item by exact QR code match")
-            .MapToApiVersion(1.0);
+            .WithName("Search By QR Code")
+            .WithSummary("Search for a box or item by exact QR code match");
 
         routeBuilder.MapGet("", SearchBoxesAndItems)
-            .Produces<SearchResultsResponse>(StatusCodes.Status200OK)
-            .WithName("SearchBoxesAndItems")
-            .WithSummary("[DEPRECATED] Search boxes and items - use v2 for better performance and pagination")
-            .MapToApiVersion(1.0);
-
-        // v2 endpoints (complete API surface with FTS and pagination)
-        routeBuilder.MapGet("qrcode/{code}", SearchByQrCode)
-            .Produces<SearchResultResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
-            .WithName("SearchByQrCodeV2")
-            .WithSummary("Search for a box or item by exact QR code match")
-            .MapToApiVersion(2.0);
-
-        routeBuilder.MapGet("", SearchBoxesAndItemsV2)
-            .Produces<SearchResultsResponseV2>(StatusCodes.Status200OK)
+            .Produces<List<SearchResultResponse>>(StatusCodes.Status200OK)
             .ProducesValidationProblem()
-            .WithName("SearchBoxesAndItemsV2")
-            .WithSummary("Search boxes and items with full-text search ranking and pagination")
-            .MapToApiVersion(2.0);
+            .WithName("Search Boxes And Items")
+            .WithSummary("Search boxes and items with full-text search ranking and pagination. Total count returned in x-total-count header.");
 
         return routeBuilder;
     }
@@ -69,21 +52,6 @@ internal static partial class EndpointsMapper
 
     private static async Task<IResult> SearchBoxesAndItems(
         HttpContext context,
-        [FromQuery] string query,
-        [FromQuery] long? locationId,
-        [FromQuery] Guid? boxId,
-        [FromServices] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var userId = context.GetUserId();
-
-        var result = await mediator.Send(new SearchBoxesAndItemsQuery(query, userId, locationId, boxId), cancellationToken);
-
-        return result.ToMinimalApiResult();
-    }
-
-    private static async Task<IResult> SearchBoxesAndItemsV2(
-        HttpContext context,
         [FromServices] IMediator mediator,
         [FromQuery] string query,
         [FromQuery] long? locationId = null,
@@ -99,9 +67,19 @@ internal static partial class EndpointsMapper
         var userId = context.GetUserId();
 
         var result = await mediator.Send(
-            new SearchBoxesAndItemsQueryV2(query, userId, locationId, boxId, pageNumber, pageSize), 
-            cancellationToken);
+            new SearchBoxesAndItemsQuery(query, userId, locationId, boxId, pageNumber, pageSize), cancellationToken);
 
-        return result.ToMinimalApiResult();
+        if (result.IsSuccess)
+        {
+            context.Response.Headers["x-total-count"] = result.Value.TotalResults.ToString();
+            
+            var response = result.Value.Results
+                .Select(r => new SearchResultResponse(r))
+                .ToList();
+                
+            return Results.Ok(response);
+        }
+        
+        return Results.BadRequest(result.Errors);
     }
 }

@@ -194,10 +194,10 @@ export const BoxComponent: React.FC = () => {
         
         setSearching(true);
         // Search globally across all locations and boxes
-        Api.Search.searchBoxesAndItemsV2(query, undefined, undefined, page, pageSize)
-            .then(({ data }) => {
-                setSearchResults(data.results);
-                setPaginationInfo(data.totalResults, data.totalPages);
+        Api.Search.searchBoxesAndItems(query, undefined, undefined, page, pageSize)
+            .then(({ data, totalCount, totalPages }) => {
+                setSearchResults(data);
+                setPaginationInfo(totalCount, totalPages);
             })
             .catch((error) => alert.addMessage(error))
             .finally(() => setSearching(false));

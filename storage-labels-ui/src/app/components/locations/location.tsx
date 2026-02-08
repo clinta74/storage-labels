@@ -135,10 +135,10 @@ export const Location: React.FC = () => {
         
         setSearching(true);
         // Search globally, not just in this location
-        Api.Search.searchBoxesAndItemsV2(query, undefined, undefined, page, pageSize)
-            .then(({ data }) => {
-                setSearchResults(data.results);
-                setPaginationInfo(data.totalResults, data.totalPages);
+        Api.Search.searchBoxesAndItems(query, undefined, undefined, page, pageSize)
+            .then(({ data, totalCount, totalPages }) => {
+                setSearchResults(data);
+                setPaginationInfo(totalCount, totalPages);
             })
             .catch((error) => alert.addError(error))
             .finally(() => setSearching(false));

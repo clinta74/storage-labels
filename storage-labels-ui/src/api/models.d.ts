@@ -153,15 +153,8 @@ interface SearchResultV2 {
     locationName: string;
 }
 
-interface SearchResultsResponseV2 {
-    results: SearchResultV2[];
-    pageNumber: number;
-    pageSize: number;
-    totalResults: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-}
+// V2 Search returns array directly with x-total-count header
+type SearchResultsResponseV2 = SearchResultV2[];
 
 // Encryption Key Management Models
 type EncryptionKeyStatus = 'Created' | 'Active' | 'Deprecated' | 'Retired';

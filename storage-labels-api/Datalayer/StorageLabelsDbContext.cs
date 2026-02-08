@@ -163,5 +163,17 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : Identi
             .WithMany()
             .HasForeignKey(token => token.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure full-text search vectors as generated columns
+        // These are managed by PostgreSQL and should not be updated by EF Core
+        modelBuilder.Entity<Box>()
+            .Property(b => b.SearchVector)
+            .ValueGeneratedOnAddOrUpdate()
+            .Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Ignore);
+
+        modelBuilder.Entity<Item>()
+            .Property(i => i.SearchVector)
+            .ValueGeneratedOnAddOrUpdate()
+            .Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Ignore);
     }
 }

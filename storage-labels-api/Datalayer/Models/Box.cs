@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using NpgsqlTypes;
 
 namespace StorageLabelsApi.DataLayer.Models;
 
@@ -18,4 +19,10 @@ public record Box(
     public Location Location { get; } = null!;
     public ICollection<Item> Items { get; } = [];
     public ImageMetadata? ImageMetadata { get; set; }
+    
+    /// <summary>
+    /// Full-text search vector generated from Name, Code, and Description.
+    /// Managed automatically by PostgreSQL as a generated column.
+    /// </summary>
+    public NpgsqlTsVector? SearchVector { get; set; }
 }

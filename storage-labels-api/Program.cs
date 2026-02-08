@@ -25,6 +25,7 @@ using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.Settings;
 using StorageLabelsApi.Transformer;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using StorageLabelsApi.Middleware;
 
 const string OpenApiDocumentName = "storage-labels-api";
 
@@ -50,6 +51,19 @@ builder.Services
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+// Add API Versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = Asp.Versioning.ApiVersionReader.Combine(
+        new Asp.Versioning.UrlSegmentApiVersionReader(),
+        new Asp.Versioning.HeaderApiVersionReader("X-API-Version"),
+        new Asp.Versioning.QueryStringApiVersionReader("api-version")
+    );
+});
 
 // Configure Npgsql to handle DateTime mapping
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -185,7 +199,7 @@ builder.Services.AddSingleton<StorageLabelsApi.Filters.RateLimiter>(sp => new St
 
 builder.Services.AddAuthorization(options =>
 {
-    foreach (var permission in Policies.Permissions)
+    foreach (var permission in Policies.AllPermissions)
     {
         options.AddPolicy(permission, policy => policy.Requirements.Add(new HasScopeRequirement(permission, authSettings.Mode == AuthenticationMode.Local ? "local" : "none")));
     }
@@ -201,6 +215,9 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IImageEncryptionService, ImageEncryptionService>();
 builder.Services.AddSingleton<IKeyRotationService, KeyRotationService>();
 builder.Services.AddSingleton<IRotationProgressNotifier, RotationProgressNotifier>();
+
+// Register search service (PostgreSQL FTS in production)
+builder.Services.AddScoped<ISearchService, PostgreSqlSearchService>();
 
 builder.Services.AddScoped<UserExistsEndpointFilter>();
 
@@ -239,6 +256,9 @@ app.Use(async (context, next) =>
     context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
     await next();
 });
+
+// Add API sunset headers for v1 endpoints
+app.UseApiSunset();
 
 app.UseAuthentication();
 app.UseAuthorization();

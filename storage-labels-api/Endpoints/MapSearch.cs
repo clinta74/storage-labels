@@ -1,4 +1,5 @@
 using Ardalis.Result.AspNetCore;
+using Asp.Versioning;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Extensions;
@@ -21,16 +22,34 @@ internal static partial class EndpointsMapper
 
     private static IEndpointRouteBuilder MapSearchEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
+        // v1 endpoints
         routeBuilder.MapGet("qrcode/{code}", SearchByQrCode)
             .Produces<SearchResultResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
-            .WithName("SearchByQrCode")
-            .WithSummary("Search for a box or item by exact QR code match");
+            .WithName("SearchByQrCodeV1")
+            .WithSummary("Search for a box or item by exact QR code match")
+            .MapToApiVersion(1.0);
 
         routeBuilder.MapGet("", SearchBoxesAndItems)
             .Produces<SearchResultsResponse>(StatusCodes.Status200OK)
             .WithName("SearchBoxesAndItems")
-            .WithSummary("Search boxes and items by name, code, or description");
+            .WithSummary("[DEPRECATED] Search boxes and items - use v2 for better performance and pagination")
+            .MapToApiVersion(1.0);
+
+        // v2 endpoints (complete API surface with FTS and pagination)
+        routeBuilder.MapGet("qrcode/{code}", SearchByQrCode)
+            .Produces<SearchResultResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("SearchByQrCodeV2")
+            .WithSummary("Search for a box or item by exact QR code match")
+            .MapToApiVersion(2.0);
+
+        routeBuilder.MapGet("", SearchBoxesAndItemsV2)
+            .Produces<SearchResultsResponseV2>(StatusCodes.Status200OK)
+            .ProducesValidationProblem()
+            .WithName("SearchBoxesAndItemsV2")
+            .WithSummary("Search boxes and items with full-text search ranking and pagination")
+            .MapToApiVersion(2.0);
 
         return routeBuilder;
     }
@@ -59,6 +78,29 @@ internal static partial class EndpointsMapper
         var userId = context.GetUserId();
 
         var result = await mediator.Send(new SearchBoxesAndItemsQuery(query, userId, locationId, boxId), cancellationToken);
+
+        return result.ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> SearchBoxesAndItemsV2(
+        HttpContext context,
+        [FromServices] IMediator mediator,
+        [FromQuery] string query,
+        [FromQuery] long? locationId = null,
+        [FromQuery] Guid? boxId = null,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        // Validate pagination parameters
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+        var userId = context.GetUserId();
+
+        var result = await mediator.Send(
+            new SearchBoxesAndItemsQueryV2(query, userId, locationId, boxId, pageNumber, pageSize), 
+            cancellationToken);
 
         return result.ToMinimalApiResult();
     }

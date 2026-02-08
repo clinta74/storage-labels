@@ -1,5 +1,6 @@
 using Ardalis.Result.AspNetCore;
 using Mediator;
+using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Handlers.EncryptionKeys;
 using StorageLabelsApi.Models;
@@ -7,17 +8,18 @@ using StorageLabelsApi.Models.DTO.EncryptionKey;
 
 namespace StorageLabelsApi.Endpoints;
 
-public static class MapEncryptionKey
+internal static partial class EndpointsMapper
 {
     public static void MapEncryptionKeyEndpoints(this IEndpointRouteBuilder app)
     {
+        
         var group = app.MapGroup("admin/encryption-keys")
             .RequireAuthorization()
             .WithTags("Admin - Encryption Keys");
 
         group.MapPost("/", CreateEncryptionKeyEndpoint)
             .RequireAuthorization(Policies.Write_EncryptionKeys)
-            .WithName("CreateEncryptionKey")
+            .WithName("Create Encryption Key")
             .WithSummary("Create a new encryption key")
             .Produces<EncryptionKeyResponse>(201)
             .ProducesValidationProblem()
@@ -115,7 +117,7 @@ public static class MapEncryptionKey
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetEncryptionKeyStatsEndpoint(
-        int kid,
+        [FromRoute] int kid,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
@@ -124,7 +126,7 @@ public static class MapEncryptionKey
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> ActivateEncryptionKeyEndpoint(
-        int kid,
+        [FromRoute] int kid,
         IMediator mediator,
         HttpContext context,
         bool autoRotate = true,
@@ -138,7 +140,7 @@ public static class MapEncryptionKey
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> RetireEncryptionKeyEndpoint(
-        int kid,
+        [FromRoute] int kid,
         IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -177,7 +179,7 @@ public static class MapEncryptionKey
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetRotationProgressEndpoint(
-        Guid rotationId,
+        [FromRoute] Guid rotationId,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
@@ -186,7 +188,7 @@ public static class MapEncryptionKey
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> CancelRotationEndpoint(
-        Guid rotationId,
+        [FromRoute] Guid rotationId,
         IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -197,7 +199,7 @@ public static class MapEncryptionKey
     }
 
     private static async Task StreamRotationProgressEndpoint(
-        Guid rotationId,
+        [FromRoute] Guid rotationId,
         HttpContext context,
         Services.IRotationProgressNotifier progressNotifier,
         CancellationToken cancellationToken)

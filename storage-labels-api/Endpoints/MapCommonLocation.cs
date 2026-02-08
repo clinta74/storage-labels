@@ -19,18 +19,22 @@ internal static partial class EndpointsMapper
 
     private static IEndpointRouteBuilder MapCommonLocationEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
+
         routeBuilder.MapPost("/", CreateCommonLocation)
             .RequireAuthorization(Policies.Write_CommonLocations)
             .Produces<CommonLocationResponse>(StatusCodes.Status201Created)
-            .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest);
+            .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest)
+            .WithName("Create Common Location");
 
         routeBuilder.MapGet("/", GetCommonLocations)
-            .Produces<CommonLocationResponse>(StatusCodes.Status200OK);
+            .Produces<CommonLocationResponse>(StatusCodes.Status200OK)
+            .WithName("Get Common Locations");
 
-        routeBuilder.MapDelete("{commonlocationid}", DeleteCommonLocation)
+        routeBuilder.MapDelete("{commonLocationId:int}", DeleteCommonLocation)
             .RequireAuthorization(Policies.Write_CommonLocations)
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Delete Common Location");
 
         return routeBuilder;
     }
@@ -57,7 +61,7 @@ internal static partial class EndpointsMapper
         }
     }
 
-    private static async Task<IResult> DeleteCommonLocation(int commonLocationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> DeleteCommonLocation([FromRoute] int commonLocationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new DeleteCommonLocation(commonLocationId), cancellationToken);
 

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing.Patterns;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Boxes;
 using StorageLabelsApi.Models.DTO.Box;
@@ -20,31 +21,35 @@ internal static partial class EndpointsMapper
 
     private static IEndpointRouteBuilder MapBoxEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
+
         routeBuilder.MapPost("/", CreateBox)
             .Produces<BoxResponse>(StatusCodes.Status201Created)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status409Conflict)
-            .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest);
+            .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest)
+            .WithName("Create Box");
 
-        routeBuilder.MapGet("{boxid}", GetBoxById)
+        routeBuilder.MapGet("{boxId:guid}", GetBoxById)
             .Produces<BoxResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("Get Box By ID");
 
-        routeBuilder.MapGet("/location/{locationid}/", GetBoxesByLocationId)
-            .Produces<IAsyncEnumerable<BoxResponse>>(StatusCodes.Status200OK);
+        routeBuilder.MapGet("/location/{locationId:long}/", GetBoxesByLocationId)
+            .Produces<IAsyncEnumerable<BoxResponse>>(StatusCodes.Status200OK)
+            .WithName("Get Boxes By Location");
 
-        routeBuilder.MapPut("{boxId}", UpdateBox)
+        routeBuilder.MapPut("{boxId:guid}", UpdateBox)
             .Produces<BoxResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Update Box");
 
-        routeBuilder.MapPut("{boxId}/move", MoveBox)
+        routeBuilder.MapPut("{boxId:guid}/move", MoveBox)
             .Produces<BoxResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ValidationError>>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Move Box");
 
-        routeBuilder.MapDelete("{boxId}", DeleteBox)
+        routeBuilder.MapDelete("{boxId:guid}", DeleteBox)
             .Produces(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
@@ -53,7 +58,7 @@ internal static partial class EndpointsMapper
         return routeBuilder;
     }
 
-    private static async Task<IResult> GetBoxById(HttpContext context, Guid boxId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> GetBoxById(HttpContext context, [FromRoute] Guid boxId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 
@@ -83,7 +88,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async IAsyncEnumerable<BoxResponse> GetBoxesByLocationId(HttpContext context, long locationId, [FromServices] IMediator mediator, [EnumeratorCancellation] CancellationToken cancellationToken)
+    private static async IAsyncEnumerable<BoxResponse> GetBoxesByLocationId(HttpContext context, [FromRoute] long locationId, [FromServices] IMediator mediator, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
         var boxes = mediator.CreateStream(new GetBoxesByLocationId(locationId, userId), cancellationToken);
@@ -96,7 +101,7 @@ internal static partial class EndpointsMapper
     }
 
 
-    private static async Task<IResult> UpdateBox(HttpContext context, Guid boxId, BoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> UpdateBox(HttpContext context, [FromRoute] Guid boxId, BoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 
@@ -116,7 +121,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> MoveBox(HttpContext context, Guid BoxId, [FromBody] MoveBoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> MoveBox(HttpContext context, [FromRoute] Guid BoxId, [FromBody] MoveBoxRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 
@@ -127,7 +132,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> DeleteBox(HttpContext context, Guid BoxId, [FromServices] IMediator mediator, CancellationToken cancellationToken, [FromQuery] bool force = false)
+    private static async Task<IResult> DeleteBox(HttpContext context, [FromRoute] Guid BoxId, [FromServices] IMediator mediator, CancellationToken cancellationToken, [FromQuery] bool force = false)
     {
         var userId = context.GetUserId();
 

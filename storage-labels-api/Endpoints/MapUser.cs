@@ -19,6 +19,7 @@ internal static partial class EndpointsMapper
 
     private static IEndpointRouteBuilder MapUsersEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
+
         routeBuilder.MapGet("/", GetCurrentUser)
             .Produces<UserResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
@@ -70,7 +71,7 @@ internal static partial class EndpointsMapper
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Update User Role");
 
-        routeBuilder.MapDelete("/{userid}", DeleteUser)
+        routeBuilder.MapDelete("/{userId}", DeleteUser)
             .RequireAuthorization(Policies.Write_User)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
@@ -89,7 +90,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> GetUserById(string userid, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> GetUserById([FromRoute] string userid, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var user = await mediator.Send(new GetUserById(userid), cancellationToken);
         return user
@@ -141,7 +142,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<IResult> ExportUserData(
         HttpContext context,
-        string exportType,
+        [FromRoute] string exportType,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
@@ -166,7 +167,7 @@ internal static partial class EndpointsMapper
     }
 
     private static async Task<IResult> UpdateUserRole(
-        string userid,
+        [FromRoute] string userid,
         UpdateUserRoleRequest request,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
@@ -176,7 +177,7 @@ internal static partial class EndpointsMapper
     }
 
     private static async Task<IResult> DeleteUser(
-        string userid,
+        [FromRoute] string userid,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {

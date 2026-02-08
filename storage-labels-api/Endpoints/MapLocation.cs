@@ -20,12 +20,13 @@ internal static partial class EndpointsMapper
 
     private static IEndpointRouteBuilder MapLocationEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
+
         routeBuilder.MapGet("/", GetLocationsByUserId)
             .Produces<IEnumerable<LocationResponse>>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
             .WithName("Get Current User Locations");
 
-        routeBuilder.MapGet("{locationId}", GetLocation)
+        routeBuilder.MapGet("{locationId:long}", GetLocation)
             .Produces<LocationResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Get Location");
@@ -35,37 +36,37 @@ internal static partial class EndpointsMapper
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
             .WithName("Create Location");
 
-        routeBuilder.MapPut("{locationId}", UpdateLocation)
+        routeBuilder.MapPut("{locationId:long}", UpdateLocation)
             .Produces<LocationResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Update Location");
 
-        routeBuilder.MapDelete("{locationId}", DeleteLocation)
+        routeBuilder.MapDelete("{locationId:long}", DeleteLocation)
             .Produces(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Delete Location");
 
         // User access management
-        routeBuilder.MapGet("{locationId}/users", GetLocationUsers)
+        routeBuilder.MapGet("{locationId:long}/users", GetLocationUsers)
             .Produces<IEnumerable<UserLocationResponse>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
             .WithName("Get Location Users");
 
-        routeBuilder.MapPost("{locationId}/users", AddUserToLocation)
+        routeBuilder.MapPost("{locationId:long}/users", AddUserToLocation)
             .Produces<UserLocationResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status409Conflict)
             .WithName("Add User To Location");
 
-        routeBuilder.MapPut("{locationId}/users/{userId}", UpdateUserLocationAccess)
+        routeBuilder.MapPut("{locationId:long}/users/{userId}", UpdateUserLocationAccess)
             .Produces<UserLocationResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Update User Location Access");
 
-        routeBuilder.MapDelete("{locationId}/users/{userId}", RemoveUserFromLocation)
+        routeBuilder.MapDelete("{locationId:long}/users/{userId}", RemoveUserFromLocation)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
@@ -83,7 +84,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> GetLocation(HttpContext context, long locationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> GetLocation(HttpContext context, [FromRoute] long locationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userid = context.GetUserId();
         var location = await mediator.Send(new GetLocation(userid, locationId), cancellationToken);
@@ -103,26 +104,26 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> UpdateLocation(HttpContext context, long LocationId, LocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> UpdateLocation(HttpContext context, [FromRoute] long locationId, LocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userid = context.GetUserId();
 
-        var location = await mediator.Send(new UpdateLocation(userid, LocationId, request.Name), cancellationToken);
+        var location = await mediator.Send(new UpdateLocation(userid, locationId, request.Name), cancellationToken);
         return location
             .Map(loc => new LocationResponse(loc))
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> DeleteLocation(HttpContext context, long LocationId, [FromServices] IMediator mediator, CancellationToken cancellationToken, [FromQuery] bool force = false)
+    private static async Task<IResult> DeleteLocation(HttpContext context, [FromRoute] long locationId, [FromServices] IMediator mediator, CancellationToken cancellationToken, [FromQuery] bool force = false)
     {
         var userid = context.GetUserId();
 
-        var location = await mediator.Send(new DeleteLocation(userid, LocationId, force), cancellationToken);
+        var location = await mediator.Send(new DeleteLocation(userid, locationId, force), cancellationToken);
         return location
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> GetLocationUsers(HttpContext context, long locationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> GetLocationUsers(HttpContext context, [FromRoute] long locationId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userid = context.GetUserId();
         var result = await mediator.Send(new GetLocationUsers(userid, locationId), cancellationToken);
@@ -132,7 +133,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> AddUserToLocation(HttpContext context, long locationId, AddUserLocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> AddUserToLocation(HttpContext context, [FromRoute] long locationId, AddUserLocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var userid = context.GetUserId();
         var result = await mediator.Send(new AddUserToLocation(userid, locationId, request.EmailAddress, request.AccessLevel), cancellationToken);
@@ -142,7 +143,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> UpdateUserLocationAccess(HttpContext context, long locationId, string userId, UpdateUserLocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> UpdateUserLocationAccess(HttpContext context, [FromRoute] long locationId, [FromRoute] string userId, UpdateUserLocationRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var requestUserId = context.GetUserId();
         var result = await mediator.Send(new UpdateUserLocationAccess(requestUserId, locationId, userId, request.AccessLevel), cancellationToken);
@@ -152,7 +153,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> RemoveUserFromLocation(HttpContext context, long locationId, string userId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> RemoveUserFromLocation(HttpContext context, [FromRoute] long locationId, [FromRoute] string userId, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var requestUserId = context.GetUserId();
         var result = await mediator.Send(new RemoveUserFromLocation(requestUserId, locationId, userId), cancellationToken);

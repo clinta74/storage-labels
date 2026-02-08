@@ -33,7 +33,7 @@ public class InMemorySearchService(
             .Select(ul => ul.LocationId)
             .ToListAsync(cancellationToken);
 
-        if (!accessibleLocationIds.Any())
+        if (accessibleLocationIds.Count == 0)
         {
             logger.LogDebug("User {UserId} has no accessible locations", userId);
             return new SearchResultsInternal(AsyncEnumerable.Empty<SearchResult>(), 0);

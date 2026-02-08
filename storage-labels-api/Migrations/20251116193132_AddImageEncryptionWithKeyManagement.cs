@@ -9,6 +9,8 @@ namespace StorageLabelsApi.Migrations
     /// <inheritdoc />
     public partial class AddImageEncryptionWithKeyManagement : Migration
     {
+        private static readonly string[] columns = new[] { "Status", "Version" };
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -117,7 +119,7 @@ namespace StorageLabelsApi.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_encryptionkeys_Status_Version",
                 table: "encryptionkeys",
-                columns: new[] { "Status", "Version" });
+                columns: columns);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_images_encryptionkeys_EncryptionKeyId",

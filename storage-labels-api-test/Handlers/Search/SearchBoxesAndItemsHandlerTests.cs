@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
-using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Handlers.Search;
 using StorageLabelsApi.Services;

@@ -11,6 +11,7 @@ public class NoAuthenticationService : IAuthenticationService
 {
     private readonly JwtTokenService _jwtTokenService;
     private readonly ILogger<NoAuthenticationService> _logger;
+    private static readonly string[] Roles = new[] { "Admin" };
 
     public NoAuthenticationService(JwtTokenService jwtTokenService, ILogger<NoAuthenticationService> logger)
     {
@@ -86,7 +87,7 @@ public class NoAuthenticationService : IAuthenticationService
             "anonymous@localhost",
             "Anonymous User",
             null,
-            new[] { "Admin" },
+            Roles,
             Policies.AllPermissions.ToArray(),
             true
         );

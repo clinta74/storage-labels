@@ -61,7 +61,7 @@ internal static partial class EndpointsMapper
             Description: request.Description,
             ImageUrl: request.ImageUrl,
             ImageMetadataId: request.ImageMetadataId
-        ));
+        ), cancellationToken);
 
         return item
             .Map(item => new ItemResponse(item))

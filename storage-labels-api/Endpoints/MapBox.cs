@@ -62,7 +62,7 @@ internal static partial class EndpointsMapper
     {
         var userId = context.GetUserId();
 
-        var box = await mediator.Send(new GetBoxById(boxId, userId));
+        var box = await mediator.Send(new GetBoxById(boxId, userId), cancellationToken);
 
         return box
             .Map(box => new BoxResponse(box))

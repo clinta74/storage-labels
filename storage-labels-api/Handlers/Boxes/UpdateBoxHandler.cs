@@ -25,7 +25,7 @@ public class UpdateBoxHandler(
     public async ValueTask<Result<Box>> Handle(UpdateBox request, CancellationToken cancellationToken)
     {
         var validation = await new UpdateBoxValidator()
-            .ValidateAsync(request);
+            .ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
         {
             return Result<Box>.Invalid(validation.AsErrors());

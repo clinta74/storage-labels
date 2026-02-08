@@ -19,5 +19,5 @@ public record SearchResult(
 /// Internal response type for search service - contains results and metadata
 /// </summary>
 public record SearchResultsInternal(
-    List<SearchResult> Results,
+    IAsyncEnumerable<SearchResult> Results,
     int TotalResults);

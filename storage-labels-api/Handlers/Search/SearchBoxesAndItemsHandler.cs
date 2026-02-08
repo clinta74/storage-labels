@@ -46,7 +46,7 @@ public class SearchBoxesAndItemsHandler(
                 cancellationToken);
 
             stopwatch.Stop();
-            logger.SearchCompleted(request.Query, response.TotalResults, response.Results.Count, stopwatch.ElapsedMilliseconds);
+            logger.SearchCompleted(request.Query, response.TotalResults, request.PageSize, stopwatch.ElapsedMilliseconds);
 
             if (response.TotalResults == 0)
             {

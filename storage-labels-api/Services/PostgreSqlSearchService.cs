@@ -69,12 +69,17 @@ public class PostgreSqlSearchService(
             itemQuery = itemQuery.Where(i => i.BoxId == bId);
         }
 
-        // Count total results at database level
-        var boxCountTask = boxId.HasValue ? Task.FromResult(0) : boxQuery.CountAsync(cancellationToken);
-        var itemCountTask = itemQuery.CountAsync(cancellationToken);
-        await Task.WhenAll(boxCountTask, itemCountTask);
+        // Count total results sequentially
+        int boxCount = 0;
+        int itemCount;
         
-        var totalResults = await boxCountTask + await itemCountTask;
+        if (!boxId.HasValue)
+        {
+            boxCount = await boxQuery.CountAsync(cancellationToken);
+        }
+        itemCount = await itemQuery.CountAsync(cancellationToken);
+        
+        var totalResults = boxCount + itemCount;
 
         // Build combined ranked query with proper ordering
         var boxResultsQuery = boxQuery
@@ -115,7 +120,8 @@ public class PostgreSqlSearchService(
             ? itemResultsQuery 
             : boxResultsQuery.Concat(itemResultsQuery);
 
-        var pagedResults = await combinedQuery
+        // Materialize results before DbContext disposal
+        var materializedResults = await combinedQuery
             .OrderByDescending(r => r.Rank)
             .Skip(skip)
             .Take(pageSize)
@@ -132,9 +138,9 @@ public class PostgreSqlSearchService(
                 r.LocationName))
             .ToListAsync(cancellationToken);
 
-        logger.LogDebug("PostgreSQL FTS search completed: {TotalResults} results, {PagedResults} on page {PageNumber}",
-            totalResults, pagedResults.Count, pageNumber);
+        logger.LogDebug("PostgreSQL FTS search: returning results for page {PageNumber} (total: {TotalResults})",
+            pageNumber, totalResults);
 
-        return new SearchResultsInternal(pagedResults, totalResults);
+        return new SearchResultsInternal(materializedResults.ToAsyncEnumerable(), totalResults);
     }
 }

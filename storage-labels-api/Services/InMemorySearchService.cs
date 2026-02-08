@@ -36,7 +36,7 @@ public class InMemorySearchService(
         if (!accessibleLocationIds.Any())
         {
             logger.LogDebug("User {UserId} has no accessible locations", userId);
-            return new SearchResultsInternal(new List<SearchResult>(), 0);
+            return new SearchResultsInternal(AsyncEnumerable.Empty<SearchResult>(), 0);
         }
 
         // Combined results list
@@ -125,15 +125,15 @@ public class InMemorySearchService(
 
         var totalResults = allResults.Count;
 
-        // Apply pagination
+        // Apply pagination and convert to async enumerable
         var skip = (pageNumber - 1) * pageSize;
         var pagedResults = allResults
             .Skip(skip)
             .Take(pageSize)
-            .ToList();
+            .ToAsyncEnumerable();
 
-        logger.LogDebug("In-memory search completed: {TotalResults} results, {PagedResults} on page {PageNumber}",
-            totalResults, pagedResults.Count, pageNumber);
+        logger.LogDebug("In-memory search: returning results for page {PageNumber} (total: {TotalResults})",
+            pageNumber, totalResults);
 
         return new SearchResultsInternal(pagedResults, totalResults);
     }

@@ -167,10 +167,11 @@ public class SearchBoxesAndItemsHandlerTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.Results.ShouldNotBeEmpty();
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldNotBeEmpty();
         
         // Should find the Electronics Box
-        var electronicsResults = result.Value.Results.Where(r => 
+        var electronicsResults = results.Where(r => 
             r.BoxName?.Contains("Electronics", StringComparison.OrdinalIgnoreCase) == true ||
             r.ItemName?.Contains("Arduino", StringComparison.OrdinalIgnoreCase) == true);
         electronicsResults.ShouldNotBeEmpty();
@@ -195,7 +196,8 @@ public class SearchBoxesAndItemsHandlerTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.Results.Count.ShouldBeLessThanOrEqualTo(2);
+        var results = await result.Value.Results.ToListAsync();
+        results.Count.ShouldBeLessThanOrEqualTo(2);
         result.Value.TotalResults.ShouldBeGreaterThan(0);
     }
 
@@ -220,7 +222,8 @@ public class SearchBoxesAndItemsHandlerTests
         result.Value.ShouldNotBeNull();
         result.Value.TotalResults.ShouldBeGreaterThan(0);
         // Results should not exceed page size
-        result.Value.Results.Count.ShouldBeLessThanOrEqualTo(2);
+        var results = await result.Value.Results.ToListAsync();
+        results.Count.ShouldBeLessThanOrEqualTo(2);
     }
 
     [Fact]
@@ -242,7 +245,8 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert - When filtering by box, should only return items from that box, not the box itself
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Results.ShouldAllBe(r => r.Type == "item");
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldAllBe(r => r.Type == "item");
     }
 
     [Fact]
@@ -264,7 +268,8 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Results.ShouldAllBe(r => r.BoxId == targetBox.BoxId.ToString());
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldAllBe(r => r.BoxId == targetBox.BoxId.ToString());
     }
 
     [Fact]
@@ -285,7 +290,8 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Results.ShouldAllBe(r => r.LocationId == "1");
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldAllBe(r => r.LocationId == "1");
     }
 
     [Fact]
@@ -306,7 +312,8 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Results.ShouldBeEmpty();
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldBeEmpty();
         result.Value.TotalResults.ShouldBe(0);
     }
 
@@ -328,7 +335,8 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Results.ShouldBeEmpty("user has no location access");
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldBeEmpty("user has no location access");
     }
 
     [Fact]
@@ -349,10 +357,11 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        if (result.Value.Results.Count > 1)
+        var results = await result.Value.Results.ToListAsync();
+        if (results.Count > 1)
         {
             // Results should be ordered by rank (higher rank first)
-            var ranks = result.Value.Results.Select(r => r.Rank).ToList();
+            var ranks = results.Select(r => r.Rank).ToList();
             ranks.ShouldBeInOrder(SortDirection.Descending, "results should be ordered by relevance");
         }
     }
@@ -396,7 +405,8 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Results.ShouldNotBeEmpty("search should be case-insensitive");
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldNotBeEmpty("search should be case-insensitive");
     }
 
     [Fact]
@@ -417,8 +427,9 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Results.ShouldNotBeEmpty("should find items by description");
-        result.Value.Results.ShouldContain(r => r.ItemName == "Arduino Uno");
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldNotBeEmpty("should find items by description");
+        results.ShouldContain(r => r.ItemName == "Arduino Uno");
     }
 
     [Fact]
@@ -439,7 +450,8 @@ public class SearchBoxesAndItemsHandlerTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.Results.ShouldNotBeEmpty("should find boxes by code");
-        result.Value.Results.ShouldContain(r => r.BoxCode == "ELEC001");
+        var results = await result.Value.Results.ToListAsync();
+        results.ShouldNotBeEmpty("should find boxes by code");
+        results.ShouldContain(r => r.BoxCode == "ELEC001");
     }
 }

@@ -73,9 +73,11 @@ internal static partial class EndpointsMapper
         {
             context.Response.Headers["x-total-count"] = result.Value.TotalResults.ToString();
             
-            var response = result.Value.Results
-                .Select(r => new SearchResultResponse(r))
-                .ToList();
+            var response = new List<SearchResultResponse>();
+            await foreach (var r in result.Value.Results.WithCancellation(cancellationToken))
+            {
+                response.Add(new SearchResultResponse(r));
+            }
                 
             return Results.Ok(response);
         }

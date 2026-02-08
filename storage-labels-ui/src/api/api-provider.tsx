@@ -13,7 +13,7 @@ import { EncryptionKeyEndpoints, getEncryptionKeyEndpoints } from './endpoints/e
 
 const createAxiosInstance = (): AxiosInstance => {
     return axios.create({
-        baseURL: `${CONFIG.API_URL}/api/v2/`,
+        baseURL: `${CONFIG.API_URL}/api/`,
         timeout: 240 * 1000,
         responseType: 'json',
         withCredentials: true,

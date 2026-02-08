@@ -7,35 +7,38 @@ internal static partial class EndpointsMapper
         // Map public authentication endpoints (no authorization required)
         routeBuilder.MapAuthenticationEndpoints();
 
-        // v1 API (default, no version in URL)
-        var apiV1 = routeBuilder.MapGroup("api")
+        // Main API
+        var api = routeBuilder.MapGroup("api")
             .RequireAuthorization()
-            .WithApiVersionSet()
-            .HasApiVersion(1.0);
+            .WithGroupName("storage-labels-api");
         
-        apiV1.MapBox();
-        apiV1.MapCommonLocation();
-        apiV1.MapItem();
-        apiV1.MapLocation();
-        apiV1.MapUser();
-        apiV1.MapImageEndpoints();
-        apiV1.MapSearch();
-        apiV1.MapEncryptionKeyEndpoints();
+        api.MapBox();
+        api.MapCommonLocation();
+        api.MapItem();
+        api.MapLocation();
+        api.MapUser();
+        api.MapImageEndpoints();
+        api.MapSearch();
+        api.MapEncryptionKeyEndpoints();
 
-        // v2 API (explicit version in URL)
-        var apiV2 = routeBuilder.MapGroup("api/v2")
-            .RequireAuthorization()
-            .WithApiVersionSet()
-            .HasApiVersion(2.0);
-        
-        apiV2.MapBox();
-        apiV2.MapCommonLocation();
-        apiV2.MapItem();
-        apiV2.MapLocation();
-        apiV2.MapUser();
-        apiV2.MapImageEndpoints();
-        apiV2.MapSearch();
-        apiV2.MapEncryptionKeyEndpoints();
+        // Root endpoint - redirect to Swagger in development
+        routeBuilder.MapGet("/", (HttpContext context) =>
+        {
+            var env = context.RequestServices.GetRequiredService<IHostEnvironment>();
+            if (env.IsDevelopment())
+            {
+                return Results.Redirect("/swagger");
+            }
+            return Results.Ok(new { 
+                message = "Storage Labels API", 
+                version = "1.0",
+                health = "/health",
+                swagger = "/swagger"
+            });
+        })
+        .WithName("Root")
+        .WithSummary("API root endpoint")
+        .ExcludeFromDescription();
 
         routeBuilder.MapGet("health", () => Results.Ok("Hello world."));
 

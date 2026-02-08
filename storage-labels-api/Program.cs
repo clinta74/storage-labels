@@ -41,6 +41,13 @@ builder.Services
     .AddOpenApi(OpenApiDocumentName, options =>
     {
         options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        options.AddDocumentTransformer((document, context, cancellationToken) =>
+        {
+            document.Info.Title = "Storage Labels API";
+            document.Info.Version = "1.0";
+            document.Info.Description = "API for managing storage boxes, items, and locations";
+            return Task.CompletedTask;
+        });
     })
     .AddCors()
     .ConfigureHttpJsonOptions(options =>
@@ -51,19 +58,6 @@ builder.Services
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
-
-// Add API Versioning
-builder.Services.AddApiVersioning(options =>
-{
-    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ReportApiVersions = true;
-    options.ApiVersionReader = Asp.Versioning.ApiVersionReader.Combine(
-        new Asp.Versioning.UrlSegmentApiVersionReader(),
-        new Asp.Versioning.HeaderApiVersionReader("X-API-Version"),
-        new Asp.Versioning.QueryStringApiVersionReader("api-version")
-    );
-});
 
 // Configure Npgsql to handle DateTime mapping
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -257,9 +251,6 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Add API sunset headers for v1 endpoints
-app.UseApiSunset();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -271,7 +262,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.DocumentTitle = "Storage Labels API";
-        options.SwaggerEndpoint($"/openapi/{OpenApiDocumentName}.json", OpenApiDocumentName);
+        options.SwaggerEndpoint($"/openapi/{OpenApiDocumentName}.json", "Storage Labels API");
         options.DefaultModelRendering(ModelRendering.Example);
         options.DefaultModelExpandDepth(1);
     });

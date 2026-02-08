@@ -12,9 +12,9 @@ export const Locations: React.FC = () => {
     const alert = useAlertMessage();
     const navigate = useNavigate();
     const { Api } = useApi();
-    const { clearSearch } = useSearch();
+    const { clearSearch, searchQuery, currentPage, pageSize, setCurrentPage, setPaginationInfo, totalPages, totalResults } = useSearch();
     const [locations, setLocations] = useState<StorageLocation[]>([]);
-    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
+    const [searchResults, setSearchResults] = useState<SearchResultV2[]>([]);
     const [searching, setSearching] = useState(false);
 
     const theme = useTheme();
@@ -26,17 +26,19 @@ export const Locations: React.FC = () => {
             });
     }, []);
 
-    const handleSearch = (query: string) => {
+    const handleSearch = (query: string, page: number = 1) => {
         // Clear results if query is empty
         if (!query || !query.trim()) {
             setSearchResults([]);
+            setPaginationInfo(0, 0);
             return;
         }
         
         setSearching(true);
-        Api.Search.searchBoxesAndItems(query)
+        Api.Search.searchBoxesAndItemsV2(query, undefined, undefined, page, pageSize)
             .then(({ data }) => {
                 setSearchResults(data.results);
+                setPaginationInfo(data.totalResults, data.totalPages);
             })
             .catch((error) => alert.addError(error))
             .finally(() => setSearching(false));
@@ -55,7 +57,7 @@ export const Locations: React.FC = () => {
             });
     };
 
-    const handleSearchResultClick = (result: SearchResultResponse) => {
+    const handleSearchResultClick = (result: SearchResultV2) => {
         setSearchResults([]); // Clear results
         clearSearch(); // Clear search box
         
@@ -63,6 +65,13 @@ export const Locations: React.FC = () => {
             navigate(`${result.locationId}/box/${result.boxId}`);
         } else if (result.type === 'item' && result.boxId) {
             navigate(`${result.locationId}/box/${result.boxId}`);
+        }
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        if (searchQuery) {
+            handleSearch(searchQuery, page);
         }
     };
 
@@ -82,6 +91,11 @@ export const Locations: React.FC = () => {
                     results={searchResults}
                     onResultClick={handleSearchResultClick}
                     loading={searching}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalResults={totalResults}
+                    onPageChange={handlePageChange}
+                    showRelevance={true}
                 />
             </Box>
 

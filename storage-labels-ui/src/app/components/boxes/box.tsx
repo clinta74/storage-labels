@@ -52,7 +52,7 @@ export const BoxComponent: React.FC = () => {
     const navigate = useNavigate();
     const alert = useAlertMessage();
     const { Api } = useApi();
-    const { clearSearch } = useSearch();
+    const { clearSearch, searchQuery, currentPage, pageSize, setCurrentPage, setPaginationInfo, totalPages, totalResults } = useSearch();
     const { location } = useLocation();
     const [box, setBox] = useState<Box | null>(null);
     const [items, setItems] = useState<ItemResponse[]>([]);
@@ -64,7 +64,7 @@ export const BoxComponent: React.FC = () => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [openDeleteBoxDialog, setOpenDeleteBoxDialog] = useState(false);
     const [openMoveBoxDialog, setOpenMoveBoxDialog] = useState(false);
-    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
+    const [searchResults, setSearchResults] = useState<SearchResultV2[]>([]);
     const [searching, setSearching] = useState(false);
     const [boxMenuAnchor, setBoxMenuAnchor] = useState<null | HTMLElement>(null);
     const [forceDelete, setForceDelete] = useState(false);
@@ -184,18 +184,20 @@ export const BoxComponent: React.FC = () => {
         }
     };
 
-    const handleSearch = (query: string) => {
+    const handleSearch = (query: string, page: number = 1) => {
         // Clear results if query is empty
         if (!query || !query.trim()) {
             setSearchResults([]);
+            setPaginationInfo(0, 0);
             return;
         }
         
         setSearching(true);
         // Search globally across all locations and boxes
-        Api.Search.searchBoxesAndItems(query)
+        Api.Search.searchBoxesAndItemsV2(query, undefined, undefined, page, pageSize)
             .then(({ data }) => {
                 setSearchResults(data.results);
+                setPaginationInfo(data.totalResults, data.totalPages);
             })
             .catch((error) => alert.addMessage(error))
             .finally(() => setSearching(false));
@@ -227,7 +229,7 @@ export const BoxComponent: React.FC = () => {
             });
     };
 
-    const handleSearchResultClick = (result: SearchResultResponse) => {
+    const handleSearchResultClick = (result: SearchResultV2) => {
         setSearchResults([]); // Clear results
         clearSearch(); // Clear search box
         
@@ -244,6 +246,13 @@ export const BoxComponent: React.FC = () => {
                 // Item is in a different box - navigate to that box
                 navigate(`/locations/${result.locationId}/box/${result.boxId}`);
             }
+        }
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        if (searchQuery) {
+            handleSearch(searchQuery, page);
         }
     };
 
@@ -284,6 +293,11 @@ export const BoxComponent: React.FC = () => {
                     results={searchResults}
                     onResultClick={handleSearchResultClick}
                     loading={searching}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalResults={totalResults}
+                    onPageChange={handlePageChange}
+                    showRelevance={true}
                 />
             </Box>
 

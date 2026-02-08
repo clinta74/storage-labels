@@ -192,9 +192,7 @@ public static class MapAuthentication
         }
 
         var result = await authService.ChangePasswordAsync(userId, request.CurrentPassword, request.NewPassword, cancellationToken);
-        return result.IsSuccess 
-            ? Results.Ok() 
-            : Results.BadRequest(new { error = result.Errors });
+        return result.ToMinimalApiResult();
     }
 
     private static async Task<IResult> AdminResetPassword(
@@ -203,9 +201,7 @@ public static class MapAuthentication
         CancellationToken cancellationToken)
     {
         var result = await authService.AdminResetPasswordAsync(request.UserId, request.NewPassword, cancellationToken);
-        return result.IsSuccess 
-            ? Results.Ok() 
-            : Results.BadRequest(new { error = result.Errors });
+        return result.ToMinimalApiResult();
     }
 
     private static void IssueRefreshTokenCookie(HttpContext context, RefreshTokenSettings settings, AuthenticationResult result)

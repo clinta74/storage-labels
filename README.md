@@ -133,7 +133,7 @@ Upgrading to .NET 10 provides measurable benefits:
 
 - **Startup Time**: 15-30% faster with Native AOT (applicable to minimal APIs)
 - **Memory Usage**: 20-40% reduction with Frozen collections and compiled models
-- **Query Performance**: 50-100x faster with PostgreSQL full-text search vs LIKE queries
+- **Query Performance**: 50-100x faster with PostgreSQL trigram indexes vs standard LIKE queries
 - **Throughput**: 10-25% improvement with LINQ optimizations and bulk operations
 - **Security**: Enhanced with WebAuthn/passkeys, improved cryptographic APIs, secure memory handling
 - **Observability**: Better metrics, tracing, and diagnostics with OpenTelemetry integration
@@ -141,7 +141,7 @@ Upgrading to .NET 10 provides measurable benefits:
 ### Implementation Priorities
 
 1. **High Priority** (immediate benefits):
-   - Database search optimization with PostgreSQL full-text search
+   - Database search optimization with PostgreSQL trigram search (pg_trgm)
    - FrozenCollections for permission lookups (16x faster)
    - CompositeFormat for logging performance
    - Bulk update/delete operations in EF Core

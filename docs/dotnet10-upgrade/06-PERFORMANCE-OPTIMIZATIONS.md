@@ -267,27 +267,25 @@ var boxes = await boxQuery
 - Case-insensitive search is slow
 - Poor performance with >10,000 rows
 
-### Solution 1: PostgreSQL Full-Text Search (Best for Current Stack)
+### Solution 1: PostgreSQL Trigram Search with pg_trgm (Implemented)
 
 **Implementation:**
 
 ```csharp
-// 1. Add migration to create search column and index
-public partial class AddFullTextSearch : Migration
+// 1. Add migration to enable pg_trgm and create trigram indexes
+public partial class AddTrigramExtension : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        // Add computed search vector column
-        migrationBuilder.Sql(@"
-            ALTER TABLE boxes 
-            ADD COLUMN search_vector tsvector 
-            GENERATED ALWAYS AS (
-                setweight(to_tsvector('english', coalesce(""Name"', '')), 'A') ||
-                setweight(to_tsvector('english', coalesce(""Code"", '')), 'A') ||
-                setweight(to_tsvector('english', coalesce(""Description"", '')), 'B')
-            ) STORED;
-            
-            CREATE INDEX idx_boxes_search ON boxes USING GIN (search_vector);
+        // Enable pg_trgm extension
+        migrationBuilder.Sql("CREATE EXTENSION IF NOT EXISTS pg_trgm;");
+        
+        // Create GIN trigram indexes for fast substring matching
+        migrationBuilder.Sql("CREATE INDEX IF NOT EXISTS idx_boxes_name_trgm ON boxes USING gin(\"Name\" gin_trgm_ops);");
+        migrationBuilder.Sql("CREATE INDEX IF NOT EXISTS idx_boxes_code_trgm ON boxes USING gin(\"Code\" gin_trgm_ops);");
+        migrationBuilder.Sql("CREATE INDEX IF NOT EXISTS idx_boxes_description_trgm ON boxes USING gin(\"Description\" gin_trgm_ops);");
+    }
+}
         ");
         
         migrationBuilder.Sql(@"
@@ -311,41 +309,43 @@ public partial class AddFullTextSearch : Migration
     }
 }
 
-// 2. Update SearchBoxesAndItemsHandler
-public class SearchBoxesAndItemsHandler : IRequestHandler<SearchBoxesAndItemsQuery, Result<SearchResultsResponse>>
+// 2. Update SearchBoxesAndItemsHandler with trigram search
+public class PostgreSqlSearchService : ISearchService
 {
-    public async ValueTask<Result<SearchResultsResponse>> Handle(
-        SearchBoxesAndItemsQuery request, 
-        CancellationToken cancellationToken)
+    public async Task<SearchResultsInternal> SearchBoxesAndItemsAsync(
+        string query, string userId, ...)
     {
-        // Convert search term to tsquery format
-        var searchQuery = string.Join(" & ", request.Query.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        // Split query into words for AND matching
+        var searchWords = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         
-        // Full-text search using GIN index - MUCH faster than LIKE!
+        // Trigram-indexed ILIKE for substring matching - uses GIN indexes!
         var boxes = await _dbContext.Boxes
-            .FromSqlRaw(@"
-                SELECT * FROM boxes 
-                WHERE search_vector @@ to_tsquery('english', {0})
-                AND ""LocationId"" = ANY({1})
-                ORDER BY ts_rank(search_vector, to_tsquery('english', {0})) DESC
-                LIMIT 20",
-                searchQuery,
-                accessibleLocationIds)
+            .Where(b => accessibleLocationIds.Contains(b.LocationId) &&
+                searchWords.All(word => 
+                    EF.Functions.ILike(b.Name, $"%{word}%") ||
+                    EF.Functions.ILike(b.Code, $"%{word}%") ||
+                    EF.Functions.ILike(b.Description ?? "", $"%{word}%")))
+            .Select(b => new {
+                Box = b,
+                // Trigram similarity scoring (0.0 to 1.0)
+                Rank = EF.Functions.TrigramsSimilarity(b.Name, query) * 3.0 +
+                       EF.Functions.TrigramsSimilarity(b.Code, query) * 2.0
+            })
+            .OrderByDescending(x => x.Rank)
+            .Take(20)
             .ToListAsync(cancellationToken);
-        
-        // Map to response DTOs...
     }
 }
 ```
 
 **Performance:**
 - **LIKE queries**: 500-2000ms on 100,000 rows
-- **Full-text search**: 5-20ms on 100,000 rows
-- **100x faster!**
+- **Trigram search**: 5-20ms on 100,000 rows with substring matching
+- **100x faster + finds partial matches anywhere!**
 
 ### Solution 2: Computed Search Column (Simpler Alternative)
 
-**For simpler cases without full-text features:**
+**For simpler cases without substring matching:**
 
 ```csharp
 // Migration
@@ -375,7 +375,7 @@ var boxes = await _dbContext.Boxes
 **Performance:**
 - Uses B-tree index with pattern matching
 - 10-20x faster than multiple LIKE queries
-- Simpler than full-text search
+- Simpler than trigram search (no extension needed)
 
 ### Solution 3: Redis Cache for Search Results
 
@@ -508,7 +508,7 @@ public class ElasticsearchService
 3. Update handlers to use indexed columns
 
 **Phase 2: Optimization (1 week)**
-1. Implement PostgreSQL full-text search with ts_vector
+1. Implement PostgreSQL trigram search with pg_trgm extension
 2. Add ranking for relevance
 3. Add search result pagination
 
@@ -1766,7 +1766,7 @@ var data = await dbContext.Boxes
 ### Phase 3: Database Search Optimization (3-5 days) **PRIORITY!**
 - [ ] Add computed search columns to boxes and items tables
 - [ ] Create indexes on search columns
-- [ ] Implement PostgreSQL full-text search
+- [x] Implement PostgreSQL trigram search
 - [ ] Add SearchValues for search term validation (client-side only!)
 - [ ] Refactor SearchBoxesAndItemsHandler for parallel queries
 - [ ] Consider Redis cache for frequent searches

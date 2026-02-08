@@ -69,19 +69,12 @@ internal static partial class EndpointsMapper
         var result = await mediator.Send(
             new SearchBoxesAndItemsQuery(query, userId, locationId, boxId, pageNumber, pageSize), cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            context.Response.Headers["x-total-count"] = result.Value.TotalResults.ToString();
-            
-            var response = new List<SearchResultResponse>();
-            await foreach (var r in result.Value.Results.WithCancellation(cancellationToken))
+        return result
+            .Map(searchResults =>
             {
-                response.Add(new SearchResultResponse(r));
-            }
-                
-            return Results.Ok(response);
-        }
-        
-        return Results.BadRequest(result.Errors);
+                context.Response.Headers["x-total-count"] = searchResults.TotalResults.ToString();
+                return searchResults.Results.Select(r => new SearchResultResponse(r));
+            })
+            .ToMinimalApiResult();
     }
 }

@@ -7,7 +7,9 @@ using StorageLabelsApi.Models.Search;
 namespace StorageLabelsApi.Services;
 
 /// <summary>
-/// PostgreSQL-specific search implementation using full-text search (FTS) with ranking
+/// PostgreSQL-specific search implementation using pg_trgm extension for substring matching.
+/// Uses trigram indexes with ILIKE for filtering and trigram similarity for relevance scoring.
+/// Matches substrings anywhere in text (e.g., "est" matches "test", "best", "estimated").
 /// </summary>
 public class PostgreSqlSearchService(
     StorageLabelsDbContext dbContext,
@@ -22,7 +24,10 @@ public class PostgreSqlSearchService(
         int pageSize,
         CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("PostgreSQL FTS search: {Query} for user {UserId}", query, userId);
+        logger.LogDebug("PostgreSQL trigram search: {Query} for user {UserId}", query, userId);
+
+        // Split query into words for AND matching
+        var searchWords = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         // Build base query for user's accessible locations
         var accessibleLocationIds = dbContext.UserLocations
@@ -30,16 +35,19 @@ public class PostgreSqlSearchService(
             .Where(ul => ul.UserId == userId && ul.AccessLevel != AccessLevels.None)
             .Select(ul => ul.LocationId);
 
-        // Build reusable filter expressions
+        // Build reusable filter expressions using ILIKE for substring matching (uses trigram indexes)
         Expression<Func<Box, bool>> boxBaseFilter = b => 
             accessibleLocationIds.Contains(b.LocationId) &&
-            EF.Functions.ToTsVector("english", b.Name + " " + b.Code + " " + (b.Description ?? ""))
-                .Matches(EF.Functions.PlainToTsQuery("english", query));
+            searchWords.All(word => 
+                EF.Functions.ILike(b.Name, $"%{word}%") ||
+                EF.Functions.ILike(b.Code, $"%{word}%") ||
+                EF.Functions.ILike(b.Description ?? "", $"%{word}%"));
 
         Expression<Func<Item, bool>> itemBaseFilter = i => 
             accessibleLocationIds.Contains(i.Box.LocationId) &&
-            EF.Functions.ToTsVector("english", i.Name + " " + (i.Description ?? ""))
-                .Matches(EF.Functions.PlainToTsQuery("english", query));
+            searchWords.All(word => 
+                EF.Functions.ILike(i.Name, $"%{word}%") ||
+                EF.Functions.ILike(i.Description ?? "", $"%{word}%"));
 
         // Build box query with filters
         var boxQuery = dbContext.Boxes
@@ -81,7 +89,7 @@ public class PostgreSqlSearchService(
         
         var totalResults = boxCount + itemCount;
 
-        // Build combined ranked query with proper ordering
+        // Build combined query with trigram similarity scoring for relevance
         var boxResultsQuery = boxQuery
             .Select(b => new
             {
@@ -94,8 +102,11 @@ public class PostgreSqlSearchService(
                 ItemCode = (string?)null,
                 LocationId = b.LocationId.ToString(),
                 LocationName = b.Location.Name,
-                Rank = EF.Functions.ToTsVector("english", b.Name + " " + b.Code + " " + (b.Description ?? ""))
-                    .Rank(EF.Functions.PlainToTsQuery("english", query))
+                // Combine trigram similarity scores (0.0 to 1.0) weighted by field importance
+                Rank = (float)(
+                    EF.Functions.TrigramsSimilarity(b.Name, query) * 3.0 +
+                    EF.Functions.TrigramsSimilarity(b.Code, query) * 2.0 +
+                    EF.Functions.TrigramsSimilarity(b.Description ?? "", query) * 1.0)
             });
 
         var itemResultsQuery = itemQuery
@@ -110,8 +121,10 @@ public class PostgreSqlSearchService(
                 ItemCode = (string?)null,
                 LocationId = i.Box.LocationId.ToString(),
                 LocationName = i.Box.Location.Name,
-                Rank = EF.Functions.ToTsVector("english", i.Name + " " + (i.Description ?? ""))
-                    .Rank(EF.Functions.PlainToTsQuery("english", query))
+                // Combine trigram similarity scores weighted by field importance
+                Rank = (float)(
+                    EF.Functions.TrigramsSimilarity(i.Name, query) * 3.0 +
+                    EF.Functions.TrigramsSimilarity(i.Description ?? "", query) * 1.0)
             });
 
         // Combine queries and apply pagination at database level
@@ -138,7 +151,7 @@ public class PostgreSqlSearchService(
                 r.LocationName))
             .ToListAsync(cancellationToken);
 
-        logger.LogDebug("PostgreSQL FTS search: returning results for page {PageNumber} (total: {TotalResults})",
+        logger.LogDebug("PostgreSQL trigram search: returning results for page {PageNumber} (total: {TotalResults})",
             pageNumber, totalResults);
 
         return new SearchResultsInternal(materializedResults.ToAsyncEnumerable(), totalResults);

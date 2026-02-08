@@ -102,8 +102,13 @@ internal static partial class EndpointsMapper
     {
         var userId = context.TryGetUserId();
 
-        var userExists = userId is null ? false : await mediator.Send(new UserExists(userId), cancellationToken);
-        return Results.Ok(userExists);
+        if (userId is null)
+        {
+            return Results.Ok(false);
+        }
+
+        var result = await mediator.Send(new UserExists(userId), cancellationToken);
+        return Result.Success(result).ToMinimalApiResult();
     }
 
     private static async Task<IResult> CreateUser(HttpContext context, CreateUserRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
@@ -149,15 +154,14 @@ internal static partial class EndpointsMapper
         var userId = context.GetUserId();
         var result = await mediator.Send(new ExportUserDataRequest(userId, exportType), cancellationToken);
 
-        if (!result.IsSuccess)
-        {
-            return Results.BadRequest(new { error = result.Errors });
-        }
-
-        var contentType = "text/csv";
-        var fileName = $"{exportType}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
-        
-        return Results.File(result.Value, contentType, fileName);
+        return result
+            .Map(csvData =>
+            {
+                var contentType = "text/csv";
+                var fileName = $"{exportType}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
+                return Results.File(csvData, contentType, fileName);
+            })
+            .ToMinimalApiResult();
     }
 
     private static async Task<IResult> GetAllUsers([FromServices] IMediator mediator, CancellationToken cancellationToken)

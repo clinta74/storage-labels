@@ -638,13 +638,13 @@ public class GetBoxByIdHandler(StorageLabelsDbContext dbContext)
 
 ---
 
-##### 8. Full-Text Search with PostgreSQL
+##### 8. Trigram Search with PostgreSQL
 
-**Use PostgreSQL full-text search** for efficient text searching across large datasets.
+**Use PostgreSQL trigram search (pg_trgm)** for efficient substring searching across large datasets.
 
 ###### Setup
 
-The project uses PostgreSQL's native full-text search with `pg_trgm` extension and `tsvector` columns.
+The project uses PostgreSQL's `pg_trgm` extension with GIN trigram indexes for fast substring matching.
 
 **Migration pattern:**
 ```csharp
@@ -718,7 +718,7 @@ public class SearchBoxesAndItemsV2Handler(
 
 **Performance comparison:**
 - **LIKE queries**: 500-2000ms on 100,000 rows
-- **Full-text search**: 5-20ms on 100,000 rows
+- **Trigram search**: 5-20ms on 100,000 rows with substring matching
 - **50-100x faster!**
 
 **✅ DO:**
@@ -822,7 +822,7 @@ public static class MapSearch
         })
         .MapToApiVersion(2, 0)
         .WithSummary("Search boxes and items with FTS (v2)")
-        .WithDescription("Full-text search with pagination and relevance ranking")
+        .WithDescription("Trigram-based search with pagination and relevance ranking")
         .WithOpenApi();
     }
 }

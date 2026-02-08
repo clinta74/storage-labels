@@ -139,6 +139,30 @@ interface SearchResultsResponse {
     results: SearchResultResponse[];
 }
 
+// v2 Search Models (with pagination and relevance ranking)
+interface SearchResultV2 {
+    type: 'box' | 'item';
+    rank: number; // Relevance score from full-text search
+    boxId?: string;
+    boxName?: string;
+    boxCode?: string;
+    itemId?: string;
+    itemName?: string;
+    itemCode?: string;
+    locationId: string;
+    locationName: string;
+}
+
+interface SearchResultsResponseV2 {
+    results: SearchResultV2[];
+    pageNumber: number;
+    pageSize: number;
+    totalResults: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+}
+
 // Encryption Key Management Models
 type EncryptionKeyStatus = 'Created' | 'Active' | 'Deprecated' | 'Retired';
 type RotationStatus = 'InProgress' | 'Completed' | 'Failed' | 'Cancelled';

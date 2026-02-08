@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using NpgsqlTypes;
 using StorageLabelsApi.Datalayer;
 
 #nullable disable
@@ -161,10 +160,6 @@ namespace StorageLabelsApi.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<NpgsqlTsVector>("SearchVector")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("tsvector");
 
                     b.Property<DateTimeOffset>("Updated")
                         .HasColumnType("timestamp with time zone");
@@ -375,10 +370,6 @@ namespace StorageLabelsApi.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<NpgsqlTsVector>("SearchVector")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("tsvector");
 
                     b.Property<DateTimeOffset>("Updated")
                         .HasColumnType("timestamp with time zone");

@@ -15,12 +15,6 @@ public class TestStorageLabelsDbContext([NotNull] DbContextOptions options) : St
         // Call base configuration for all standard mappings
         base.OnModelCreating(modelBuilder);
 
-        // Ignore PostgreSQL-specific SearchVector properties for InMemory provider
-        // These are tsvector columns managed by PostgreSQL full-text search
-        modelBuilder.Entity<StorageLabelsApi.DataLayer.Models.Box>()
-            .Ignore(b => b.SearchVector);
-
-        modelBuilder.Entity<StorageLabelsApi.DataLayer.Models.Item>()
-            .Ignore(i => i.SearchVector);
+        // No PostgreSQL-specific properties to ignore at this time
     }
 }

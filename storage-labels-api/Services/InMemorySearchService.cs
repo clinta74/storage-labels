@@ -1,0 +1,202 @@
+using Microsoft.EntityFrameworkCore;
+using StorageLabelsApi.Datalayer;
+using StorageLabelsApi.DataLayer.Models;
+using StorageLabelsApi.Models.DTO.Search;
+
+namespace StorageLabelsApi.Services;
+
+/// <summary>
+/// Simple string-matching search implementation for testing and non-PostgreSQL databases
+/// Uses LIKE-based searching instead of full-text search
+/// </summary>
+public class InMemorySearchService(
+    StorageLabelsDbContext dbContext,
+    ILogger<InMemorySearchService> logger) : ISearchService
+{
+    public async Task<SearchResultsResponseV2> SearchBoxesAndItemsAsync(
+        string query,
+        string userId,
+        long? locationId,
+        Guid? boxId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogDebug("In-memory search: {Query} for user {UserId}", query, userId);
+
+        var searchTerm = query.ToLowerInvariant();
+
+        // Build base query for user's accessible locations
+        var accessibleLocationIds = await dbContext.UserLocations
+            .AsNoTracking()
+            .Where(ul => ul.UserId == userId && ul.AccessLevel != AccessLevels.None)
+            .Select(ul => ul.LocationId)
+            .ToListAsync(cancellationToken);
+
+        if (!accessibleLocationIds.Any())
+        {
+            logger.LogDebug("User {UserId} has no accessible locations", userId);
+            return new SearchResultsResponseV2
+            {
+                Results = new List<SearchResultV2>(),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalResults = 0
+            };
+        }
+
+        // Combined results list
+        var allResults = new List<SearchResultV2>();
+
+        // Search boxes if not filtering by BoxId
+        if (!boxId.HasValue)
+        {
+            var boxQuery = dbContext.Boxes
+                .AsNoTracking()
+                .Include(b => b.Location)
+                .Where(b => accessibleLocationIds.Contains(b.LocationId));
+
+            if (locationId.HasValue)
+            {
+                boxQuery = boxQuery.Where(b => b.LocationId == locationId.Value);
+            }
+
+            var boxes = await boxQuery.ToListAsync(cancellationToken);
+
+            var boxResults = boxes
+                .Where(b =>
+                    (b.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (b.Code?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (b.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+                .Select(b => new SearchResultV2
+                {
+                    Type = "box",
+                    BoxId = b.BoxId.ToString(),
+                    BoxName = b.Name,
+                    BoxCode = b.Code,
+                    ItemId = null,
+                    ItemName = null,
+                    ItemCode = null,
+                    LocationId = b.LocationId.ToString(),
+                    LocationName = b.Location?.Name ?? "Unknown",
+                    Rank = CalculateSimpleRank(searchTerm, b.Name, b.Code, b.Description)
+                })
+                .ToList();
+
+            allResults.AddRange(boxResults);
+        }
+
+        // Search items
+        var itemQuery = dbContext.Items
+            .AsNoTracking()
+            .Include(i => i.Box)
+                .ThenInclude(b => b.Location)
+            .Where(i => accessibleLocationIds.Contains(i.Box.LocationId));
+
+        if (locationId.HasValue)
+        {
+            itemQuery = itemQuery.Where(i => i.Box.LocationId == locationId.Value);
+        }
+
+        if (boxId.HasValue)
+        {
+            itemQuery = itemQuery.Where(i => i.BoxId == boxId.Value);
+        }
+
+        var items = await itemQuery.ToListAsync(cancellationToken);
+
+        var itemResults = items
+            .Where(i =>
+                (i.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (i.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Select(i => new SearchResultV2
+            {
+                Type = "item",
+                BoxId = i.BoxId.ToString(),
+                BoxName = i.Box.Name,
+                BoxCode = i.Box.Code,
+                ItemId = i.ItemId.ToString(),
+                ItemName = i.Name,
+                ItemCode = null,
+                LocationId = i.Box.LocationId.ToString(),
+                LocationName = i.Box.Location?.Name ?? "Unknown",
+                Rank = CalculateSimpleRank(searchTerm, i.Name, null, i.Description)
+            })
+            .ToList();
+
+        allResults.AddRange(itemResults);
+
+        // Sort by rank (descending)
+        allResults = allResults
+            .OrderByDescending(r => r.Rank)
+            .ThenBy(r => r.Type)
+            .ThenBy(r => r.BoxName)
+            .ToList();
+
+        var totalResults = allResults.Count;
+
+        // Apply pagination
+        var skip = (pageNumber - 1) * pageSize;
+        var pagedResults = allResults
+            .Skip(skip)
+            .Take(pageSize)
+            .ToList();
+
+        logger.LogDebug("In-memory search completed: {TotalResults} results, {PagedResults} on page {PageNumber}",
+            totalResults, pagedResults.Count, pageNumber);
+
+        return new SearchResultsResponseV2
+        {
+            Results = pagedResults,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalResults = totalResults
+        };
+    }
+
+    /// <summary>
+    /// Calculate a simple relevance rank based on where the search term appears
+    /// </summary>
+    private static float CalculateSimpleRank(string searchTerm, string? name, string? code, string? description)
+    {
+        float rank = 0f;
+
+        // Exact match in name gets highest score
+        if (name != null && name.Equals(searchTerm, StringComparison.OrdinalIgnoreCase))
+        {
+            rank += 10f;
+        }
+        // Starts with search term
+        else if (name != null && name.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase))
+        {
+            rank += 5f;
+        }
+        // Contains search term
+        else if (name != null && name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        {
+            rank += 2f;
+        }
+
+        // Code matches
+        if (code != null)
+        {
+            if (code.Equals(searchTerm, StringComparison.OrdinalIgnoreCase))
+            {
+                rank += 8f;
+            }
+            else if (code.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            {
+                rank += 3f;
+            }
+        }
+
+        // Description matches (lower priority)
+        if (description != null && description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+        {
+            rank += 1f;
+        }
+
+        // Ensure non-zero rank for any match
+        return rank > 0 ? rank : 0.1f;
+    }
+}

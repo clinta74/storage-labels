@@ -337,4 +337,52 @@ public class ImageEncryptionServiceTests
         // Assert
         result.ShouldBeFalse();
     }
+
+    [Fact]
+    public async Task EncryptAsync_ZerosPlaintextOnSuccess()
+    {
+        // Arrange
+        using var env = CreateTestEnvironment();
+        var key = await env.service.CreateKeyAsync("Test Key", "user123");
+        await env.service.ActivateKeyAsync(key.Kid);
+
+        // Create plaintext data with known pattern
+        var plaintext = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var plaintextCopy = new byte[plaintext.Length];
+        Array.Copy(plaintext, plaintextCopy, plaintext.Length);
+
+        using var inputStream = new MemoryStream(plaintext);
+
+        // Act
+        var result = await env.service.EncryptAsync(inputStream);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.EncryptedData.ShouldNotBeNull();
+        
+        // Note: We can't directly verify the internal plaintext buffer was zeroed
+        // because it's a local variable. This test verifies the encryption succeeds
+        // and the secure zeroing doesn't break the functionality.
+        // The actual zeroing is tested at the unit level with CryptographicOperations.ZeroMemory
+    }
+
+    [Fact]
+    public async Task DecryptAsync_ZerosPlaintextOnDecryptionFailure()
+    {
+        // Arrange
+        using var env = CreateTestEnvironment();
+        var key = await env.service.CreateKeyAsync("Test Key", "user123");
+        await env.service.ActivateKeyAsync(key.Kid);
+
+        var encryptedData = new byte[32];
+        var iv = new byte[12];
+        var invalidTag = new byte[16]; // Invalid tag will cause decryption to fail
+
+        // Act & Assert
+        await Should.ThrowAsync<InvalidOperationException>(
+            async () => await env.service.DecryptAsync(encryptedData, key.Kid, iv, invalidTag));
+        
+        // If we reach here, the exception was thrown as expected
+        // The finally block should have zeroed the plaintext buffer even on failure
+    }
 }

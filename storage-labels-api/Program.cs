@@ -208,6 +208,9 @@ builder.Services.AddSingleton<System.IO.Abstractions.IFileSystem, System.IO.Abst
 // Register TimeProvider
 builder.Services.AddSingleton(TimeProvider.System);
 
+// Register crypto capability detection
+builder.Services.AddSingleton<CryptoCapabilityService>();
+
 // Register encryption services
 builder.Services.AddScoped<IImageEncryptionService, ImageEncryptionService>();
 builder.Services.AddSingleton<IKeyRotationService, KeyRotationService>();
@@ -219,6 +222,19 @@ builder.Services.AddScoped<ISearchService, PostgreSqlSearchService>();
 builder.Services.AddScoped<UserExistsEndpointFilter>();
 
 var app = builder.Build();
+
+// Log cryptographic hardware capabilities
+using (var serviceScope = app.Services.CreateScope())
+{
+    var cryptoService = serviceScope.ServiceProvider.GetRequiredService<CryptoCapabilityService>();
+    var capabilities = cryptoService.DetectCapabilities();
+    app.Logger.LogInformation(
+        "Cryptographic capabilities detected: {Capabilities} (AES-NI: {HasAesNi}, AVX2: {HasAvx2}, SSE2: {HasSse2})",
+        capabilities.GetSummary(),
+        capabilities.HasAesNi,
+        capabilities.HasAvx2,
+        capabilities.HasSse2);
+}
 
 // Initialize database using mediator handler
 using (var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())

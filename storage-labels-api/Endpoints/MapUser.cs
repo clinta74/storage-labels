@@ -140,7 +140,7 @@ internal static partial class EndpointsMapper
         CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        var preferences = await mediator.Send(new Handlers.Users.UpdateUserPreferences(userId, request), cancellationToken);
+        var preferences = await mediator.Send(new UpdateUserPreferences(userId, request), cancellationToken);
         
         return preferences.ToMinimalApiResult();
     }
@@ -176,7 +176,7 @@ internal static partial class EndpointsMapper
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new Handlers.Users.UpdateUserRole(userid, request.Role), cancellationToken);
+        var result = await mediator.Send(new UpdateUserRole(userid, request.Role), cancellationToken);
         return result.ToMinimalApiResult();
     }
 
@@ -185,7 +185,7 @@ internal static partial class EndpointsMapper
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new Handlers.Users.DeleteUser(userid), cancellationToken);
+        var result = await mediator.Send(new DeleteUser(userid), cancellationToken);
         return result.ToMinimalApiResult();
     }
 }

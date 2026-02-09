@@ -1,6 +1,7 @@
 using Ardalis.Result.AspNetCore;
 using Asp.Versioning;
 using Mediator;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Filters;
@@ -16,6 +17,7 @@ internal static partial class EndpointsMapper
     {
         return routeBuilder.MapGroup("search")
             .WithTags("Search")
+            .RequireRateLimiting("search") // Token bucket rate limiting for search
             .AddEndpointFilter<UserExistsEndpointFilter>()
             .MapSearchEndpoints();
     }
@@ -39,7 +41,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<IResult> SearchByQrCode(
         HttpContext context,
-        string code,
+        [FromRoute] string code,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
@@ -69,11 +71,15 @@ internal static partial class EndpointsMapper
         var result = await mediator.Send(
             new SearchBoxesAndItemsQuery(query, userId, locationId, boxId, pageNumber, pageSize), cancellationToken);
 
+        context.Response.Headers["x-total-count"] = result.IsSuccess ? result.Value.TotalResults.ToString() : "0";
+
         return result
-            .Map(searchResults =>
+            .Map(async searchResults =>
             {
-                context.Response.Headers["x-total-count"] = searchResults.TotalResults.ToString();
-                return searchResults.Results.Select(r => new SearchResultResponse(r));
+                var results = await searchResults.Results
+                    .Select(r => new SearchResultResponse(r))
+                    .ToListAsync(cancellationToken);
+                return new SearchResponse(results, searchResults.TotalResults);
             })
             .ToMinimalApiResult();
     }

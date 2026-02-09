@@ -1,5 +1,6 @@
 using Ardalis.Result.AspNetCore;
 using Mediator;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Handlers.EncryptionKeys;
@@ -91,7 +92,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> CreateEncryptionKeyEndpoint(
         CreateEncryptionKeyRequest request,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -109,7 +110,7 @@ internal static partial class EndpointsMapper
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetEncryptionKeysEndpoint(
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetEncryptionKeys(), cancellationToken);
@@ -118,7 +119,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetEncryptionKeyStatsEndpoint(
         [FromRoute] int kid,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetEncryptionKeyStats(kid), cancellationToken);
@@ -127,9 +128,9 @@ internal static partial class EndpointsMapper
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> ActivateEncryptionKeyEndpoint(
         [FromRoute] int kid,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         HttpContext context,
-        bool autoRotate = true,
+        [FromQuery] bool autoRotate = true,
         CancellationToken cancellationToken = default)
     {
         var userId = context.GetUserId();
@@ -141,7 +142,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> RetireEncryptionKeyEndpoint(
         [FromRoute] int kid,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -152,7 +153,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> StartRotationEndpoint(
         StartRotationRequest request,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -170,8 +171,8 @@ internal static partial class EndpointsMapper
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetRotationsEndpoint(
-        IMediator mediator,
-        DataLayer.Models.RotationStatus? status,
+        [FromServices] IMediator mediator,
+        [FromQuery] DataLayer.Models.RotationStatus? status,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetRotations(status), cancellationToken);
@@ -180,7 +181,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetRotationProgressEndpoint(
         [FromRoute] Guid rotationId,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetRotationProgress(rotationId), cancellationToken);
@@ -189,7 +190,7 @@ internal static partial class EndpointsMapper
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> CancelRotationEndpoint(
         [FromRoute] Guid rotationId,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -201,7 +202,7 @@ internal static partial class EndpointsMapper
     private static async Task StreamRotationProgressEndpoint(
         [FromRoute] Guid rotationId,
         HttpContext context,
-        Services.IRotationProgressNotifier progressNotifier,
+        [FromServices] Services.IRotationProgressNotifier progressNotifier,
         CancellationToken cancellationToken)
     {
         context.Response.Headers.Append("Content-Type", "text/event-stream");

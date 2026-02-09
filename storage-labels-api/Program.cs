@@ -36,6 +36,7 @@ builder.Services
     .Configure<AuthenticationSettings>(builder.Configuration.GetSection("Authentication"))
     .Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
     .Configure<RefreshTokenSettings>(builder.Configuration.GetSection("RefreshTokens"))
+    .Configure<RateLimitSettings>(builder.Configuration.GetSection("RateLimit"))
     .AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped)
     .AddLogging()
     .AddOpenApi(OpenApiDocumentName, options =>
@@ -189,7 +190,6 @@ else
 }
 
 builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
-builder.Services.AddSingleton<StorageLabelsApi.Filters.RateLimiter>(sp => new StorageLabelsApi.Filters.RateLimiter(100, TimeSpan.FromMinutes(1)));
 
 builder.Services.AddAuthorization(options =>
 {
@@ -198,6 +198,9 @@ builder.Services.AddAuthorization(options =>
         options.AddPolicy(permission, policy => policy.Requirements.Add(new HasScopeRequirement(permission, authSettings.Mode == AuthenticationMode.Local ? "local" : "none")));
     }
 });
+
+// Configure built-in rate limiting (.NET 10)
+builder.Services.AddConfiguredRateLimiting(builder.Configuration);
 
 // Register file system abstraction
 builder.Services.AddSingleton<System.IO.Abstractions.IFileSystem, System.IO.Abstractions.FileSystem>();
@@ -253,6 +256,7 @@ app.Use(async (context, next) =>
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapAll();
 

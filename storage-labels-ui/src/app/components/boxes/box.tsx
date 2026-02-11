@@ -41,9 +41,8 @@ import WarehouseIcon from '@mui/icons-material/Warehouse';
 import ImageIcon from '@mui/icons-material/Image';
 import { useApi } from '../../../api';
 import { useAlertMessage } from '../../providers/alert-provider';
-import { useSearch } from '../../providers/search-provider';
 import { useLocation } from '../../providers/location-provider';
-import { AuthenticatedImage, SearchBar, SearchResults, Breadcrumbs, EmptyState, FormattedCode } from '../shared';
+import { AuthenticatedImage, SearchBar, Breadcrumbs, EmptyState, FormattedCode } from '../shared';
 
 type Params = Record<'boxId', string>;
 
@@ -52,7 +51,6 @@ export const BoxComponent: React.FC = () => {
     const navigate = useNavigate();
     const alert = useAlertMessage();
     const { Api } = useApi();
-    const { clearSearch, searchQuery, currentPage, pageSize, setCurrentPage, setPaginationInfo, totalPages, totalResults } = useSearch();
     const { location } = useLocation();
     const [box, setBox] = useState<Box | null>(null);
     const [items, setItems] = useState<ItemResponse[]>([]);
@@ -64,8 +62,6 @@ export const BoxComponent: React.FC = () => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [openDeleteBoxDialog, setOpenDeleteBoxDialog] = useState(false);
     const [openMoveBoxDialog, setOpenMoveBoxDialog] = useState(false);
-    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
-    const [searching, setSearching] = useState(false);
     const [boxMenuAnchor, setBoxMenuAnchor] = useState<null | HTMLElement>(null);
     const [forceDelete, setForceDelete] = useState(false);
     const [availableLocations, setAvailableLocations] = useState<StorageLocation[]>([]);
@@ -184,25 +180,6 @@ export const BoxComponent: React.FC = () => {
         }
     };
 
-    const handleSearch = (query: string, page: number = 1) => {
-        // Clear results if query is empty
-        if (!query || !query.trim()) {
-            setSearchResults([]);
-            setPaginationInfo(0, 0);
-            return;
-        }
-        
-        setSearching(true);
-        // Search globally across all locations and boxes
-        Api.Search.searchBoxesAndItems(query, undefined, undefined, page, pageSize)
-            .then(({ data, totalCount, totalPages }) => {
-                setSearchResults(data);
-                setPaginationInfo(totalCount, totalPages);
-            })
-            .catch((error) => alert.addMessage(error))
-            .finally(() => setSearching(false));
-    };
-
     const handleQrCodeScan = (code: string) => {
         Api.Search.searchByQrCode(code)
             .then(({ data }) => {
@@ -214,33 +191,6 @@ export const BoxComponent: React.FC = () => {
             .catch((_error) => {
                 alert.addMessage(`No box or item found with code: ${code}`);
             });
-    };
-
-    const handleSearchResultClick = (result: SearchResultResponse) => {
-        setSearchResults([]); // Clear results
-        clearSearch(); // Clear search box
-        
-        if (result.type === 'box' && result.boxId) {
-            // Navigate to the found box (could be in any location)
-            navigate(`/locations/${result.locationId}/box/${result.boxId}`);
-        } else if (result.type === 'item') {
-            // Check if item is in current box
-            const item = items.find(i => i.itemId === result.itemId);
-            if (item) {
-                // Item is in current box - show details modal
-                handleItemClick(item);
-            } else if (result.boxId) {
-                // Item is in a different box - navigate to that box
-                navigate(`/locations/${result.locationId}/box/${result.boxId}`);
-            }
-        }
-    };
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        if (searchQuery) {
-            handleSearch(searchQuery, page);
-        }
     };
 
     if (!box) {
@@ -273,18 +223,7 @@ export const BoxComponent: React.FC = () => {
                 )}
                 <SearchBar
                     placeholder="Search all boxes and items..."
-                    onSearch={handleSearch}
                     onQrCodeScan={handleQrCodeScan}
-                />
-                <SearchResults
-                    results={searchResults}
-                    onResultClick={handleSearchResultClick}
-                    loading={searching}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalResults={totalResults}
-                    onPageChange={handlePageChange}
-                    showRelevance={true}
                 />
             </Box>
 

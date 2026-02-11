@@ -2,20 +2,16 @@ import { Avatar, Box, Fab, List, ListItem, ListItemAvatar, ListItemButton, ListI
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
-import { useSearch } from '../../providers/search-provider';
 import { useApi } from '../../../api';
 import AddIcon from '@mui/icons-material/Add';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
-import { SearchBar, SearchResults, EmptyState, Breadcrumbs } from '../shared';
+import { SearchBar, EmptyState, Breadcrumbs } from '../shared';
 
 export const Locations: React.FC = () => {
     const alert = useAlertMessage();
     const navigate = useNavigate();
     const { Api } = useApi();
-    const { clearSearch, searchQuery, currentPage, pageSize, setCurrentPage, setPaginationInfo, totalPages, totalResults } = useSearch();
     const [locations, setLocations] = useState<StorageLocation[]>([]);
-    const [searchResults, setSearchResults] = useState<SearchResultV2[]>([]);
-    const [searching, setSearching] = useState(false);
 
     const theme = useTheme();
 
@@ -25,24 +21,6 @@ export const Locations: React.FC = () => {
                 setLocations(data);
             });
     }, []);
-
-    const handleSearch = (query: string, page: number = 1) => {
-        // Clear results if query is empty
-        if (!query || !query.trim()) {
-            setSearchResults([]);
-            setPaginationInfo(0, 0);
-            return;
-        }
-        
-        setSearching(true);
-        Api.Search.searchBoxesAndItems(query, undefined, undefined, page, pageSize)
-            .then(({ data, totalCount, totalPages }) => {
-                setSearchResults(data);
-                setPaginationInfo(totalCount, totalPages);
-            })
-            .catch((error) => alert.addError(error))
-            .finally(() => setSearching(false));
-    };
 
     const handleQrCodeScan = (code: string) => {
         Api.Search.searchByQrCode(code)
@@ -57,24 +35,6 @@ export const Locations: React.FC = () => {
             });
     };
 
-    const handleSearchResultClick = (result: SearchResultResponse) => {
-        setSearchResults([]); // Clear results
-        clearSearch(); // Clear search box
-        
-        if (result.type === 'box' && result.boxId) {
-            navigate(`${result.locationId}/box/${result.boxId}`);
-        } else if (result.type === 'item' && result.boxId) {
-            navigate(`${result.locationId}/box/${result.boxId}`);
-        }
-    };
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        if (searchQuery) {
-            handleSearch(searchQuery, page);
-        }
-    };
-
     return (
         <React.Fragment>
             <Box margin={2} mb={2}>
@@ -84,18 +44,7 @@ export const Locations: React.FC = () => {
             <Box position="relative" margin={2}>
                 <SearchBar
                     placeholder="Search all boxes and items..."
-                    onSearch={handleSearch}
                     onQrCodeScan={handleQrCodeScan}
-                />
-                <SearchResults
-                    results={searchResults}
-                    onResultClick={handleSearchResultClick}
-                    loading={searching}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalResults={totalResults}
-                    onPageChange={handlePageChange}
-                    showRelevance={true}
                 />
             </Box>
 

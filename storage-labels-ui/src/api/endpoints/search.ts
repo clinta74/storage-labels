@@ -8,7 +8,7 @@ export interface SearchEndpoints {
         boxId?: string, 
         pageNumber?: number, 
         pageSize?: number
-    ) => Promise<{data: SearchResultsResponseV2; totalCount: number; totalPages: number}>;
+    ) => Promise<{data: SearchResultResponse[]; totalCount: number; totalPages: number}>;
 }
 
 export const getSearchEndpoints = (client: AxiosInstance): SearchEndpoints => ({
@@ -20,9 +20,9 @@ export const getSearchEndpoints = (client: AxiosInstance): SearchEndpoints => ({
         locationId?: string, 
         boxId?: string, 
         pageNumber: number = 1, 
-        pageSize: number = 20
+        pageSize: number = 10
     ) => {
-        const response = await client.get<SearchResultsResponseV2>('/search', {
+        const response = await client.get<SearchResultResponse[]>('/search', {
             params: {
                 query,
                 locationId,

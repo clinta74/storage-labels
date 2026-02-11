@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
     List,
     ListItem,
@@ -10,9 +10,11 @@ import {
     Typography,
     Chip,
     Box,
+    Button,
     Pagination,
     Stack,
     Rating,
+    CircularProgress,
 } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import LabelIcon from '@mui/icons-material/Label';
@@ -21,6 +23,8 @@ interface SearchResultsProps {
     results: SearchResultResponse[];
     onResultClick: (result: SearchResultResponse) => void;
     loading?: boolean;
+    loadingMore?: boolean;
+    onLoadMore?: () => void;
     // v2 Pagination props
     currentPage?: number;
     totalPages?: number;
@@ -33,13 +37,59 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     results, 
     onResultClick, 
     loading,
+    loadingMore = false,
+    onLoadMore,
     currentPage = 1,
     totalPages = 1,
     totalResults = 0,
     onPageChange,
     showRelevance = true
 }) => {
-    if (loading) {
+    const listRef = useRef<HTMLDivElement>(null);
+    const observerRef = useRef<IntersectionObserver | null>(null);
+    const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
+
+    // Calculate hasMoreResults based on current props
+    const hasMoreResults = currentPage < totalPages;
+
+    // Set up IntersectionObserver for infinite scroll
+    useEffect(() => {
+        if (!onLoadMore || !hasMoreResults || loadingMore) {
+            return;
+        }
+
+        // Wait for the listRef to be available
+        if (!listRef.current) {
+            return;
+        }
+
+        const options = {
+            root: listRef.current, // Use the Paper element as the scroll container
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        observerRef.current = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    onLoadMore();
+                }
+            });
+        }, options);
+
+        const trigger = loadMoreTriggerRef.current;
+        if (trigger) {
+            observerRef.current.observe(trigger);
+        }
+
+        return () => {
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+            }
+        };
+    }, [onLoadMore, hasMoreResults, loadingMore, results.length]);
+
+    if (loading && results.length === 0) {
         return (
             <Paper elevation={2} sx={{ p: 2 }}>
                 <Typography variant="body2" color="text.secondary">
@@ -60,6 +110,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 
     return (
         <Paper 
+            ref={listRef}
             elevation={8} 
             sx={{ 
                 position: 'absolute',
@@ -70,18 +121,32 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                 zIndex: 1200,
                 maxHeight: '500px',
                 overflow: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
             }}
         >
+            {/* Sticky header with result count */}
             {totalResults > 0 && (
-                <Box sx={{ p: 2, pb: 1, borderBottom: 1, borderColor: 'divider' }}>
+                <Box 
+                    sx={{ 
+                        p: 2, 
+                        pb: 1, 
+                        borderBottom: 1, 
+                        borderColor: 'divider',
+                        position: 'sticky',
+                        top: 0,
+                        bgcolor: 'background.paper',
+                        zIndex: 1,
+                    }}
+                >
                     <Typography variant="caption" color="text.secondary">
                         {totalResults} result{totalResults !== 1 ? 's' : ''} found
-                        {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
+                        {results.length < totalResults && ` • Showing ${results.length}`}
                     </Typography>
                 </Box>
             )}
             
-            <List>
+            <List sx={{ flexGrow: 1, overflow: 'visible' }}>
                 {results.map((result, index) => (
                     <ListItem
                         key={`${result.type}-${result.boxId || result.itemId}-${index}`}
@@ -142,20 +207,31 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                     </ListItem>
                 ))}
             </List>
-
-            {totalPages > 1 && onPageChange && (
-                <Box sx={{ p: 2, pt: 1, display: 'flex', justifyContent: 'center', borderTop: 1, borderColor: 'divider' }}>
-                    <Stack spacing={2}>
-                        <Pagination 
-                            count={totalPages} 
-                            page={currentPage} 
-                            onChange={(_, page) => onPageChange(page)}
-                            color="primary"
-                            size="small"
-                            showFirstButton
-                            showLastButton
-                        />
-                    </Stack>
+            
+            {/* Load More button and loading indicator */}
+            {hasMoreResults && (
+                <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', textAlign: 'center', bgcolor: 'background.paper' }}>
+                    {loadingMore ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
+                            <CircularProgress size={24} />
+                            <Typography variant="caption" color="text.secondary">
+                                Loading more results...
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <>
+                            <Button 
+                                variant="outlined" 
+                                size="small" 
+                                onClick={onLoadMore}
+                                fullWidth
+                            >
+                                Load More Results ({results.length} of {totalResults})
+                            </Button>
+                            {/* Invisible trigger for IntersectionObserver */}
+                            <Box ref={loadMoreTriggerRef} sx={{ height: '1px', width: '100%', visibility: 'hidden' }} />
+                        </>
+                    )}
                 </Box>
             )}
         </Paper>

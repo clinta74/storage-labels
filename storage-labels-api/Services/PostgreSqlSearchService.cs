@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
@@ -26,8 +25,9 @@ public class PostgreSqlSearchService(
     {
         logger.LogDebug("PostgreSQL trigram search: {Query} for user {UserId}", query, userId);
 
-        // Split query into words for AND matching
+        // Split query into words for AND matching and pre-compute patterns
         var searchWords = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var searchPatterns = searchWords.Select(w => $"%{w}%").ToArray();
 
         // Build base query for user's accessible locations
         var accessibleLocationIds = dbContext.UserLocations
@@ -35,24 +35,19 @@ public class PostgreSqlSearchService(
             .Where(ul => ul.UserId == userId && ul.AccessLevel != AccessLevels.None)
             .Select(ul => ul.LocationId);
 
-        // Build reusable filter expressions using ILIKE for substring matching (uses trigram indexes)
-        Expression<Func<Box, bool>> boxBaseFilter = b => 
-            accessibleLocationIds.Contains(b.LocationId) &&
-            searchWords.All(word => 
-                EF.Functions.ILike(b.Name, $"%{word}%") ||
-                EF.Functions.ILike(b.Code, $"%{word}%") ||
-                EF.Functions.ILike(b.Description ?? "", $"%{word}%"));
-
-        Expression<Func<Item, bool>> itemBaseFilter = i => 
-            accessibleLocationIds.Contains(i.Box.LocationId) &&
-            searchWords.All(word => 
-                EF.Functions.ILike(i.Name, $"%{word}%") ||
-                EF.Functions.ILike(i.Description ?? "", $"%{word}%"));
-
-        // Build box query with filters
+        // Build box query using ILIKE for substring matching (uses trigram indexes)
         var boxQuery = dbContext.Boxes
             .AsNoTracking()
-            .Where(boxBaseFilter);
+            .Where(b => accessibleLocationIds.Contains(b.LocationId));
+
+        // Apply word filters to boxes
+        foreach (var pattern in searchPatterns)
+        {
+            boxQuery = boxQuery.Where(b =>
+                EF.Functions.ILike(b.Name, pattern) ||
+                EF.Functions.ILike(b.Code, pattern) ||
+                EF.Functions.ILike(b.Description ?? "", pattern));
+        }
 
         if (locationId.HasValue)
         {
@@ -60,10 +55,18 @@ public class PostgreSqlSearchService(
             boxQuery = boxQuery.Where(b => b.LocationId == locId);
         }
 
-        // Build item query with filters
+        // Build item query using ILIKE for substring matching (uses trigram indexes)
         var itemQuery = dbContext.Items
             .AsNoTracking()
-            .Where(itemBaseFilter);
+            .Where(i => accessibleLocationIds.Contains(i.Box.LocationId));
+
+        // Apply word filters to items
+        foreach (var pattern in searchPatterns)
+        {
+            itemQuery = itemQuery.Where(i =>
+                EF.Functions.ILike(i.Name, pattern) ||
+                EF.Functions.ILike(i.Description ?? "", pattern));
+        }
 
         if (locationId.HasValue)
         {

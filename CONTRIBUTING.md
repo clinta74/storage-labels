@@ -12,7 +12,9 @@ Thank you for your interest in contributing to Storage Labels! This document pro
 
 1. **DTOs MUST use constructor mapping pattern** (see [DTOs with Records](#3-dtos-with-records-and-constructor-mapping))
    - ✅ DO: `public record ItemResponse(...) { public ItemResponse(ItemModel item) : this(...) { } }`
+   - ✅ DO: `result.Map(data => data.Results.Select(r => new ResponseDto(r)))` for IAsyncEnumerable
    - ❌ DON'T: Use static `FromEntity()` methods or manual property-by-property mapping
+   - ❌ DON'T: Materialize IAsyncEnumerable early with ToListAsync before mapping
 
 2. **All handlers MUST use MediatR pattern** (see [MediatR for CQRS](#1-mediator-for-cqrs))
    - ✅ DO: `public record CreateItem(...) : IRequest<Result<ItemResponse>>`
@@ -325,6 +327,8 @@ Models/FeatureName/          <- Internal/domain models (used by services/handler
 - Provide default values where sensible
 - Include all necessary data (don't make clients call multiple endpoints)
 - Map at the endpoint boundary: `.Select(model => new ResponseDto(model))`
+- For IAsyncEnumerable results, use Ardalis Result's Map: `result.Map(data => data.Results.Select(r => new ResponseDto(r)))`
+- Let ASP.NET Core serialize IAsyncEnumerable for streaming responses
 
 **❌ DON'T:**
 - Use classes for DTOs unless mutability is required
@@ -333,6 +337,8 @@ Models/FeatureName/          <- Internal/domain models (used by services/handler
 - Use verbose property-by-property mapping when constructor exists
 - Include unnecessary fields (e.g., sensitive data, internal IDs)
 - Mix DTOs and internal models in the same namespace
+- Materialize IAsyncEnumerable early (e.g., calling ToListAsync before mapping)
+- Create custom Map extension methods when constructor mapping works
 
 ---
 

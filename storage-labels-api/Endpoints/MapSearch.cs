@@ -7,6 +7,7 @@ using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Search;
 using StorageLabelsApi.Models.DTO.Search;
+using StorageLabelsApi.Models.Search;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace StorageLabelsApi.Endpoints;
@@ -71,16 +72,13 @@ internal static partial class EndpointsMapper
         var result = await mediator.Send(
             new SearchBoxesAndItemsQuery(query, userId, locationId, boxId, pageNumber, pageSize), cancellationToken);
 
-        context.Response.Headers["x-total-count"] = result.IsSuccess ? result.Value.TotalResults.ToString() : "0";
+        if (result.IsSuccess)
+        {
+            context.Response.Headers["x-total-count"] = result.Value.TotalResults.ToString();
+        }
 
         return result
-            .Map(async searchResults =>
-            {
-                var results = await searchResults.Results
-                    .Select(r => new SearchResultResponse(r))
-                    .ToListAsync(cancellationToken);
-                return new SearchResponse(results, searchResults.TotalResults);
-            })
+            .Map(searchResults => searchResults.Results.Select(r => new SearchResultResponse(r)))
             .ToMinimalApiResult();
     }
 }

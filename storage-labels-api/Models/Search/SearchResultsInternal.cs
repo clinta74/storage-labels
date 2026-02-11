@@ -1,5 +1,7 @@
 namespace StorageLabelsApi.Models.Search;
 
+using StorageLabelsApi.Models.DTO.Search;
+
 /// <summary>
 /// Internal search result model used by service layer
 /// </summary>

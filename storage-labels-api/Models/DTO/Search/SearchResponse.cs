@@ -6,10 +6,10 @@ using StorageLabelsApi.Models.Search;
 /// Paginated search response DTO
 /// </summary>
 public record SearchResponse(
-    IEnumerable<SearchResultResponse> Results,
+    IAsyncEnumerable<SearchResultResponse> Results,
     int TotalResults)
 {
-    public SearchResponse(SearchResultsInternal searchResults, IEnumerable<SearchResultResponse> results) 
+    public SearchResponse(SearchResultsInternal searchResults, IAsyncEnumerable<SearchResultResponse> results) 
         : this(results, searchResults.TotalResults)
     { }
 }

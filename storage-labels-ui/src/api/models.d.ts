@@ -125,23 +125,6 @@ interface ImageMetadataResponse {
 }
 interface SearchResultResponse {
     type: 'box' | 'item';
-    boxId?: string;
-    boxName?: string;
-    boxCode?: string;
-    itemId?: string;
-    itemName?: string;
-    itemCode?: string;
-    locationId: string;
-    locationName: string;
-}
-
-interface SearchResultsResponse {
-    results: SearchResultResponse[];
-}
-
-// v2 Search Models (with pagination and relevance ranking)
-interface SearchResultV2 {
-    type: 'box' | 'item';
     rank: number; // Relevance score from full-text search
     boxId?: string;
     boxName?: string;
@@ -153,8 +136,10 @@ interface SearchResultV2 {
     locationName: string;
 }
 
-// V2 Search returns array directly with x-total-count header
-type SearchResultsResponseV2 = SearchResultV2[];
+interface SearchResponse {
+    results: SearchResultResponse[];
+    totalResults: number;
+}
 
 // Encryption Key Management Models
 type EncryptionKeyStatus = 'Created' | 'Active' | 'Deprecated' | 'Retired';

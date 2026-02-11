@@ -64,7 +64,7 @@ export const BoxComponent: React.FC = () => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [openDeleteBoxDialog, setOpenDeleteBoxDialog] = useState(false);
     const [openMoveBoxDialog, setOpenMoveBoxDialog] = useState(false);
-    const [searchResults, setSearchResults] = useState<SearchResultV2[]>([]);
+    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
     const [searching, setSearching] = useState(false);
     const [boxMenuAnchor, setBoxMenuAnchor] = useState<null | HTMLElement>(null);
     const [forceDelete, setForceDelete] = useState(false);
@@ -216,7 +216,7 @@ export const BoxComponent: React.FC = () => {
             });
     };
 
-    const handleSearchResultClick = (result: SearchResultV2) => {
+    const handleSearchResultClick = (result: SearchResultResponse) => {
         setSearchResults([]); // Clear results
         clearSearch(); // Clear search box
         

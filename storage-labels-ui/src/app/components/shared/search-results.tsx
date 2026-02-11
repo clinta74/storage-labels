@@ -18,8 +18,8 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import LabelIcon from '@mui/icons-material/Label';
 
 interface SearchResultsProps {
-    results: SearchResultV2[];
-    onResultClick: (result: SearchResultV2) => void;
+    results: SearchResultResponse[];
+    onResultClick: (result: SearchResultResponse) => void;
     loading?: boolean;
     // v2 Pagination props
     currentPage?: number;

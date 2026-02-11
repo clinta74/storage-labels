@@ -157,7 +157,7 @@ export const Location: React.FC = () => {
             });
     };
 
-    const handleSearchResultClick = (result: SearchResultV2) => {
+    const handleSearchResultClick = (result: SearchResultResponse) => {
         setSearchResults([]); // Clear results
         clearSearch(); // Clear search box
         

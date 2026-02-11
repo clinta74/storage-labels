@@ -9,8 +9,6 @@ namespace StorageLabelsApi.Migrations
     /// <inheritdoc />
     public partial class InitialPostgreSQL : Migration
     {
-        private static readonly string[] columns = new[] { "LocationId", "Code" };
-
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -175,7 +173,7 @@ namespace StorageLabelsApi.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_boxes_LocationId_Code",
                 table: "boxes",
-                columns: columns,
+                columns: new[] { "LocationId", "Code" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

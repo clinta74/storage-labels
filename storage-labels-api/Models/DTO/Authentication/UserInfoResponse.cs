@@ -1,3 +1,5 @@
+using StorageLabelsApi.Datalayer.Models;
+
 namespace StorageLabelsApi.Models.DTO.Authentication;
 
 /// <summary>
@@ -12,4 +14,17 @@ public record UserInfoResponse(
     string[] Roles,
     string[] Permissions,
     bool IsActive
-);
+)
+{
+    public UserInfoResponse(ApplicationUser user, string[] roles, string[] permissions) : this(
+        user.Id,
+        user.UserName ?? user.Email!,
+        user.Email!,
+        user.FullName,
+        user.ProfilePictureUrl,
+        roles,
+        permissions,
+        user.IsActive
+    )
+    { }
+}

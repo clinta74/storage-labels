@@ -39,7 +39,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImage, Result>
             return Result.Unauthorized("Not authorized to delete this image");
         }
 
-        var hasReferences = image.ReferencedByBoxes.Any() || image.ReferencedByItems.Any();
+        var hasReferences = image.ReferencedByBoxes.Count != 0 || image.ReferencedByItems.Count != 0;
         
         if (hasReferences && !request.Force)
         {

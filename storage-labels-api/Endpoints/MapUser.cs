@@ -19,6 +19,7 @@ internal static partial class EndpointsMapper
 
     private static IEndpointRouteBuilder MapUsersEndpoints(this IEndpointRouteBuilder routeBuilder)
     {
+
         routeBuilder.MapGet("/", GetCurrentUser)
             .Produces<UserResponse>(StatusCodes.Status200OK)
             .Produces<IEnumerable<ProblemDetails>>(StatusCodes.Status404NotFound)
@@ -70,7 +71,7 @@ internal static partial class EndpointsMapper
             .Produces(StatusCodes.Status404NotFound)
             .WithName("Update User Role");
 
-        routeBuilder.MapDelete("/{userid}", DeleteUser)
+        routeBuilder.MapDelete("/{userId}", DeleteUser)
             .RequireAuthorization(Policies.Write_User)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)
@@ -89,7 +90,7 @@ internal static partial class EndpointsMapper
             .ToMinimalApiResult();
     }
 
-    private static async Task<IResult> GetUserById(string userid, [FromServices] IMediator mediator, CancellationToken cancellationToken)
+    private static async Task<IResult> GetUserById([FromRoute] string userid, [FromServices] IMediator mediator, CancellationToken cancellationToken)
     {
         var user = await mediator.Send(new GetUserById(userid), cancellationToken);
         return user
@@ -101,8 +102,13 @@ internal static partial class EndpointsMapper
     {
         var userId = context.TryGetUserId();
 
-        var userExists = userId is null ? false : await mediator.Send(new UserExists(userId), cancellationToken);
-        return Results.Ok(userExists);
+        if (userId is null)
+        {
+            return Results.Ok(false);
+        }
+
+        var result = await mediator.Send(new UserExists(userId), cancellationToken);
+        return Result.Success(result).ToMinimalApiResult();
     }
 
     private static async Task<IResult> CreateUser(HttpContext context, CreateUserRequest request, [FromServices] IMediator mediator, CancellationToken cancellationToken)
@@ -134,29 +140,28 @@ internal static partial class EndpointsMapper
         CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        var preferences = await mediator.Send(new Handlers.Users.UpdateUserPreferences(userId, request), cancellationToken);
+        var preferences = await mediator.Send(new UpdateUserPreferences(userId, request), cancellationToken);
         
         return preferences.ToMinimalApiResult();
     }
 
     private static async Task<IResult> ExportUserData(
         HttpContext context,
-        string exportType,
+        [FromRoute] string exportType,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
         var result = await mediator.Send(new ExportUserDataRequest(userId, exportType), cancellationToken);
 
-        if (!result.IsSuccess)
-        {
-            return Results.BadRequest(new { error = result.Errors });
-        }
-
-        var contentType = "text/csv";
-        var fileName = $"{exportType}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
-        
-        return Results.File(result.Value, contentType, fileName);
+        return result
+            .Map(csvData =>
+            {
+                var contentType = "text/csv";
+                var fileName = $"{exportType}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv";
+                return Results.File(csvData, contentType, fileName);
+            })
+            .ToMinimalApiResult();
     }
 
     private static async Task<IResult> GetAllUsers([FromServices] IMediator mediator, CancellationToken cancellationToken)
@@ -166,21 +171,21 @@ internal static partial class EndpointsMapper
     }
 
     private static async Task<IResult> UpdateUserRole(
-        string userid,
+        [FromRoute] string userid,
         UpdateUserRoleRequest request,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new Handlers.Users.UpdateUserRole(userid, request.Role), cancellationToken);
+        var result = await mediator.Send(new UpdateUserRole(userid, request.Role), cancellationToken);
         return result.ToMinimalApiResult();
     }
 
     private static async Task<IResult> DeleteUser(
-        string userid,
+        [FromRoute] string userid,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(new Handlers.Users.DeleteUser(userid), cancellationToken);
+        var result = await mediator.Send(new DeleteUser(userid), cancellationToken);
         return result.ToMinimalApiResult();
     }
 }

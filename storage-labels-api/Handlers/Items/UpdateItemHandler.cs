@@ -29,7 +29,7 @@ public class UpdateItemHandler(StorageLabelsDbContext dbContext, TimeProvider ti
             return Result.NotFound();
 
         // Validate
-        var validation = await new UpdateItemValidator().ValidateAsync(request);
+        var validation = await new UpdateItemValidator().ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
             return Result<Item>.Invalid(validation.AsErrors());
 

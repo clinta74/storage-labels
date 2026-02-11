@@ -25,6 +25,7 @@ using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.Settings;
 using StorageLabelsApi.Transformer;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using StorageLabelsApi.Middleware;
 
 const string OpenApiDocumentName = "storage-labels-api";
 
@@ -35,11 +36,19 @@ builder.Services
     .Configure<AuthenticationSettings>(builder.Configuration.GetSection("Authentication"))
     .Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
     .Configure<RefreshTokenSettings>(builder.Configuration.GetSection("RefreshTokens"))
+    .Configure<RateLimitSettings>(builder.Configuration.GetSection("RateLimit"))
     .AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped)
     .AddLogging()
     .AddOpenApi(OpenApiDocumentName, options =>
     {
         options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        options.AddDocumentTransformer((document, context, cancellationToken) =>
+        {
+            document.Info.Title = "Storage Labels API";
+            document.Info.Version = "1.0";
+            document.Info.Description = "API for managing storage boxes, items, and locations";
+            return Task.CompletedTask;
+        });
     })
     .AddCors()
     .ConfigureHttpJsonOptions(options =>
@@ -181,15 +190,17 @@ else
 }
 
 builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
-builder.Services.AddSingleton<StorageLabelsApi.Filters.RateLimiter>(sp => new StorageLabelsApi.Filters.RateLimiter(100, TimeSpan.FromMinutes(1)));
 
 builder.Services.AddAuthorization(options =>
 {
-    foreach (var permission in Policies.Permissions)
+    foreach (var permission in Policies.AllPermissions)
     {
         options.AddPolicy(permission, policy => policy.Requirements.Add(new HasScopeRequirement(permission, authSettings.Mode == AuthenticationMode.Local ? "local" : "none")));
     }
 });
+
+// Configure built-in rate limiting (.NET 10)
+builder.Services.AddConfiguredRateLimiting(builder.Configuration);
 
 // Register file system abstraction
 builder.Services.AddSingleton<System.IO.Abstractions.IFileSystem, System.IO.Abstractions.FileSystem>();
@@ -197,14 +208,33 @@ builder.Services.AddSingleton<System.IO.Abstractions.IFileSystem, System.IO.Abst
 // Register TimeProvider
 builder.Services.AddSingleton(TimeProvider.System);
 
+// Register crypto capability detection
+builder.Services.AddSingleton<CryptoCapabilityService>();
+
 // Register encryption services
 builder.Services.AddScoped<IImageEncryptionService, ImageEncryptionService>();
 builder.Services.AddSingleton<IKeyRotationService, KeyRotationService>();
 builder.Services.AddSingleton<IRotationProgressNotifier, RotationProgressNotifier>();
 
+// Register search service (PostgreSQL FTS in production)
+builder.Services.AddScoped<ISearchService, PostgreSqlSearchService>();
+
 builder.Services.AddScoped<UserExistsEndpointFilter>();
 
 var app = builder.Build();
+
+// Log cryptographic hardware capabilities
+using (var serviceScope = app.Services.CreateScope())
+{
+    var cryptoService = serviceScope.ServiceProvider.GetRequiredService<CryptoCapabilityService>();
+    var capabilities = cryptoService.DetectCapabilities();
+    app.Logger.LogInformation(
+        "Cryptographic capabilities detected: {Capabilities} (AES-NI: {HasAesNi}, AVX2: {HasAvx2}, SSE2: {HasSse2})",
+        capabilities.GetSummary(),
+        capabilities.HasAesNi,
+        capabilities.HasAvx2,
+        capabilities.HasSse2);
+}
 
 // Initialize database using mediator handler
 using (var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
@@ -242,6 +272,7 @@ app.Use(async (context, next) =>
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapAll();
 
@@ -251,7 +282,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.DocumentTitle = "Storage Labels API";
-        options.SwaggerEndpoint($"/openapi/{OpenApiDocumentName}.json", OpenApiDocumentName);
+        options.SwaggerEndpoint($"/openapi/{OpenApiDocumentName}.json", "Storage Labels API");
         options.DefaultModelRendering(ModelRendering.Example);
         options.DefaultModelExpandDepth(1);
     });

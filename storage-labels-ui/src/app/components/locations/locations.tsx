@@ -2,20 +2,16 @@ import { Avatar, Box, Fab, List, ListItem, ListItemAvatar, ListItemButton, ListI
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
-import { useSearch } from '../../providers/search-provider';
 import { useApi } from '../../../api';
 import AddIcon from '@mui/icons-material/Add';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
-import { SearchBar, SearchResults, EmptyState, Breadcrumbs } from '../shared';
+import { SearchBar, EmptyState, Breadcrumbs } from '../shared';
 
 export const Locations: React.FC = () => {
     const alert = useAlertMessage();
     const navigate = useNavigate();
     const { Api } = useApi();
-    const { clearSearch } = useSearch();
     const [locations, setLocations] = useState<StorageLocation[]>([]);
-    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
-    const [searching, setSearching] = useState(false);
 
     const theme = useTheme();
 
@@ -25,22 +21,6 @@ export const Locations: React.FC = () => {
                 setLocations(data);
             });
     }, []);
-
-    const handleSearch = (query: string) => {
-        // Clear results if query is empty
-        if (!query || !query.trim()) {
-            setSearchResults([]);
-            return;
-        }
-        
-        setSearching(true);
-        Api.Search.searchBoxesAndItems(query)
-            .then(({ data }) => {
-                setSearchResults(data.results);
-            })
-            .catch((error) => alert.addError(error))
-            .finally(() => setSearching(false));
-    };
 
     const handleQrCodeScan = (code: string) => {
         Api.Search.searchByQrCode(code)
@@ -55,17 +35,6 @@ export const Locations: React.FC = () => {
             });
     };
 
-    const handleSearchResultClick = (result: SearchResultResponse) => {
-        setSearchResults([]); // Clear results
-        clearSearch(); // Clear search box
-        
-        if (result.type === 'box' && result.boxId) {
-            navigate(`${result.locationId}/box/${result.boxId}`);
-        } else if (result.type === 'item' && result.boxId) {
-            navigate(`${result.locationId}/box/${result.boxId}`);
-        }
-    };
-
     return (
         <React.Fragment>
             <Box margin={2} mb={2}>
@@ -75,13 +44,7 @@ export const Locations: React.FC = () => {
             <Box position="relative" margin={2}>
                 <SearchBar
                     placeholder="Search all boxes and items..."
-                    onSearch={handleSearch}
                     onQrCodeScan={handleQrCodeScan}
-                />
-                <SearchResults
-                    results={searchResults}
-                    onResultClick={handleSearchResultClick}
-                    loading={searching}
                 />
             </Box>
 

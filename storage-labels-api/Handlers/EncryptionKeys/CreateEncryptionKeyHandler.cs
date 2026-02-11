@@ -37,7 +37,7 @@ public class CreateEncryptionKeyHandler : IRequestHandler<CreateEncryptionKey, R
 
             _logger.EncryptionKeyCreated(request.UserId, key.Kid, key.Version);
 
-            return Result.Success(EncryptionKeyResponse.FromEntity(key));
+            return Result.Success(new EncryptionKeyResponse(key));
         }
         catch (InvalidOperationException ex)
         {

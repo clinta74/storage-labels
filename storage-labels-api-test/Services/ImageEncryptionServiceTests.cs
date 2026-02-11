@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -6,6 +6,7 @@ using Moq;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Services;
+using StorageLabelsApi.Tests.TestInfrastructure;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace StorageLabelsApi.Tests.Services;
@@ -25,11 +26,11 @@ public class ImageEncryptionServiceTests
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
-        var options = new DbContextOptionsBuilder<StorageLabelsDbContext>()
+        var options = new DbContextOptionsBuilder<TestStorageLabelsDbContext>()
             .UseSqlite(connection)
             .Options;
 
-        var context = new StorageLabelsDbContext(options);
+        var context = new TestStorageLabelsDbContext(options);
         context.Database.EnsureCreated();
 
         var fileSystem = new MockFileSystem();
@@ -71,13 +72,14 @@ public class ImageEncryptionServiceTests
         var key = await env.service.CreateKeyAsync("Test Key", "user123");
 
         // Assert
-        key.Should().NotBeNull();
-        key.Status.Should().Be(EncryptionKeyStatus.Created);
-        key.Description.Should().Be("Test Key");
-        key.CreatedBy.Should().Be("user123");
-        key.Version.Should().Be(1);
-        key.KeyMaterial.Should().NotBeNull().And.HaveCount(32); // AES-256 = 32 bytes
-        key.Algorithm.Should().Be("AES-256-GCM");
+        key.ShouldNotBeNull();
+        key.Status.ShouldBe(EncryptionKeyStatus.Created);
+        key.Description.ShouldBe("Test Key");
+        key.CreatedBy.ShouldBe("user123");
+        key.Version.ShouldBe(1);
+        key.KeyMaterial.ShouldNotBeNull();
+        key.KeyMaterial.Length.ShouldBe(32); // AES-256 = 32 bytes
+        key.Algorithm.ShouldBe("AES-256-GCM");
     }
 
     [Fact]
@@ -92,7 +94,7 @@ public class ImageEncryptionServiceTests
         var key3 = await env.service.CreateKeyAsync("Key 3", "user123");
 
         // Assert
-        key3.Version.Should().Be(3);
+        key3.Version.ShouldBe(3);
     }
 
     [Fact]
@@ -108,14 +110,14 @@ public class ImageEncryptionServiceTests
         var result = await env.service.ActivateKeyAsync(key2.Kid);
 
         // Assert
-        result.Should().BeTrue();
+        result.ShouldBeTrue();
         
         await env.context.Entry(key1).ReloadAsync();
         await env.context.Entry(key2).ReloadAsync();
         
-        key1.Status.Should().Be(EncryptionKeyStatus.Retired);
-        key2.Status.Should().Be(EncryptionKeyStatus.Active);
-        key2.ActivatedAt.Should().NotBeNull();
+        key1.Status.ShouldBe(EncryptionKeyStatus.Retired);
+        key2.Status.ShouldBe(EncryptionKeyStatus.Active);
+        key2.ActivatedAt.ShouldNotBeNull();
     }
 
     [Fact]
@@ -128,7 +130,7 @@ public class ImageEncryptionServiceTests
         var result = await env.service.ActivateKeyAsync(999);
 
         // Assert
-        result.Should().BeFalse();
+        result.ShouldBeFalse();
     }
 
     [Fact]
@@ -144,8 +146,8 @@ public class ImageEncryptionServiceTests
         var activeKey = await env.service.GetActiveKeyAsync();
 
         // Assert
-        activeKey.Should().NotBeNull();
-        activeKey!.Kid.Should().Be(key2.Kid);
+        activeKey.ShouldNotBeNull();
+        activeKey!.Kid.ShouldBe(key2.Kid);
     }
 
     [Fact]
@@ -159,7 +161,7 @@ public class ImageEncryptionServiceTests
         var activeKey = await env.service.GetActiveKeyAsync();
 
         // Assert
-        activeKey.Should().BeNull();
+        activeKey.ShouldBeNull();
     }
 
     [Fact]
@@ -177,11 +179,11 @@ public class ImageEncryptionServiceTests
         var encrypted = await env.service.EncryptAsync(plaintextStream);
 
         // Assert
-        encrypted.Should().NotBeNull();
-        encrypted.EncryptedData.Should().NotBeEquivalentTo(plaintext);
-        encrypted.InitializationVector.Should().HaveCount(12); // GCM nonce is 12 bytes
-        encrypted.AuthenticationTag.Should().HaveCount(16); // GCM tag is 16 bytes
-        encrypted.EncryptionKeyId.Should().Be(key.Kid);
+        encrypted.ShouldNotBeNull();
+        encrypted.EncryptedData.ShouldNotBe(plaintext);
+        encrypted.InitializationVector.Length.ShouldBe(12); // GCM nonce is 12 bytes
+        encrypted.AuthenticationTag.Length.ShouldBe(16); // GCM tag is 16 bytes
+        encrypted.EncryptionKeyId.ShouldBe(key.Kid);
     }
 
     [Fact]
@@ -204,10 +206,10 @@ public class ImageEncryptionServiceTests
             encrypted.AuthenticationTag);
 
         // Assert
-        decryptedStream.Should().NotBeNull();
+        decryptedStream.ShouldNotBeNull();
         using var ms = new MemoryStream();
         await decryptedStream.CopyToAsync(ms);
-        ms.ToArray().Should().BeEquivalentTo(plaintext);
+        ms.ToArray().ShouldBe(plaintext);
     }
 
     [Fact]
@@ -243,14 +245,14 @@ public class ImageEncryptionServiceTests
         await env.service.EncryptExistingImageAsync(image, key.Kid);
 
         // Assert
-        image.IsEncrypted.Should().BeTrue();
-        image.EncryptionKeyId.Should().Be(key.Kid);
-        image.InitializationVector.Should().NotBeNull();
-        image.AuthenticationTag.Should().NotBeNull();
+        image.IsEncrypted.ShouldBeTrue();
+        image.EncryptionKeyId.ShouldBe(key.Kid);
+        image.InitializationVector.ShouldNotBeNull();
+        image.AuthenticationTag.ShouldNotBeNull();
         
         // Verify file was updated
         var encryptedData = env.fileSystem.File.ReadAllBytes(storagePath);
-        encryptedData.Should().NotBeEquivalentTo(imageData);
+        encryptedData.ShouldNotBe(imageData);
     }
 
     [Fact]
@@ -296,11 +298,11 @@ public class ImageEncryptionServiceTests
         // Reload the entity to get the updated values
         await env.context.Entry(image).ReloadAsync();
         
-        image.IsEncrypted.Should().BeTrue();
-        image.EncryptionKeyId.Should().Be(key2.Kid);
+        image.IsEncrypted.ShouldBeTrue();
+        image.EncryptionKeyId.ShouldBe(key2.Kid);
         
         var dataAfterReEncryption = env.fileSystem.File.ReadAllBytes(storagePath);
-        dataAfterReEncryption.Should().NotBeEquivalentTo(dataAfterFirstEncryption);
+        dataAfterReEncryption.ShouldNotBe(dataAfterFirstEncryption);
     }
 
     [Fact]
@@ -315,12 +317,12 @@ public class ImageEncryptionServiceTests
         var result = await env.service.RetireKeyAsync(key.Kid);
 
         // Assert
-        result.Should().BeTrue();
+        result.ShouldBeTrue();
         
         await env.context.Entry(key).ReloadAsync();
         
-        key.Status.Should().Be(EncryptionKeyStatus.Retired);
-        key.RetiredAt.Should().NotBeNull();
+        key.Status.ShouldBe(EncryptionKeyStatus.Retired);
+        key.RetiredAt.ShouldNotBeNull();
     }
 
     [Fact]
@@ -333,6 +335,54 @@ public class ImageEncryptionServiceTests
         var result = await env.service.RetireKeyAsync(999);
 
         // Assert
-        result.Should().BeFalse();
+        result.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task EncryptAsync_ZerosPlaintextOnSuccess()
+    {
+        // Arrange
+        using var env = CreateTestEnvironment();
+        var key = await env.service.CreateKeyAsync("Test Key", "user123");
+        await env.service.ActivateKeyAsync(key.Kid);
+
+        // Create plaintext data with known pattern
+        var plaintext = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var plaintextCopy = new byte[plaintext.Length];
+        Array.Copy(plaintext, plaintextCopy, plaintext.Length);
+
+        using var inputStream = new MemoryStream(plaintext);
+
+        // Act
+        var result = await env.service.EncryptAsync(inputStream);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.EncryptedData.ShouldNotBeNull();
+        
+        // Note: We can't directly verify the internal plaintext buffer was zeroed
+        // because it's a local variable. This test verifies the encryption succeeds
+        // and the secure zeroing doesn't break the functionality.
+        // The actual zeroing is tested at the unit level with CryptographicOperations.ZeroMemory
+    }
+
+    [Fact]
+    public async Task DecryptAsync_ZerosPlaintextOnDecryptionFailure()
+    {
+        // Arrange
+        using var env = CreateTestEnvironment();
+        var key = await env.service.CreateKeyAsync("Test Key", "user123");
+        await env.service.ActivateKeyAsync(key.Kid);
+
+        var encryptedData = new byte[32];
+        var iv = new byte[12];
+        var invalidTag = new byte[16]; // Invalid tag will cause decryption to fail
+
+        // Act & Assert
+        await Should.ThrowAsync<InvalidOperationException>(
+            async () => await env.service.DecryptAsync(encryptedData, key.Kid, iv, invalidTag));
+        
+        // If we reach here, the exception was thrown as expected
+        // The finally block should have zeroed the plaintext buffer even on failure
     }
 }

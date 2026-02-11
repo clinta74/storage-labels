@@ -48,26 +48,36 @@ public class ImageEncryptionService : IImageEncryptionService
         await inputStream.CopyToAsync(inputMemory, cancellationToken);
         var plaintext = inputMemory.ToArray();
 
-        // Generate random IV (nonce) for this encryption
-        var iv = new byte[IVSizeBytes];
-        RandomNumberGenerator.Fill(iv);
+        try
+        {
+            // Generate random IV (nonce) for this encryption
+            var iv = new byte[IVSizeBytes];
+            RandomNumberGenerator.Fill(iv);
 
-        // Prepare buffers
-        var ciphertext = new byte[plaintext.Length];
-        var tag = new byte[TagSizeBytes];
+            // Prepare buffers
+            var ciphertext = new byte[plaintext.Length];
+            var tag = new byte[TagSizeBytes];
 
-        // Encrypt using AES-GCM
-        using var aesGcm = new AesGcm(activeKey.KeyMaterial, TagSizeBytes);
-        aesGcm.Encrypt(iv, plaintext, ciphertext, tag);
+            // Encrypt using AES-GCM with scoped disposal
+            using (var aesGcm = new AesGcm(activeKey.KeyMaterial, TagSizeBytes))
+            {
+                aesGcm.Encrypt(iv, plaintext, ciphertext, tag);
+            }
 
-        _logger.BytesEncrypted(plaintext.Length, activeKey.Kid, activeKey.Version);
+            _logger.BytesEncrypted(plaintext.Length, activeKey.Kid, activeKey.Version);
 
-        return new EncryptionResult(
-            EncryptedData: ciphertext,
-            InitializationVector: iv,
-            AuthenticationTag: tag,
-            EncryptionKeyId: activeKey.Kid
-        );
+            return new EncryptionResult(
+                EncryptedData: ciphertext,
+                InitializationVector: iv,
+                AuthenticationTag: tag,
+                EncryptionKeyId: activeKey.Kid
+            );
+        }
+        finally
+        {
+            // Securely zero plaintext from memory
+            CryptographicOperations.ZeroMemory(plaintext);
+        }
     }
 
     public async Task<MemoryStream> DecryptAsync(
@@ -94,14 +104,18 @@ public class ImageEncryptionService : IImageEncryptionService
         // Prepare plaintext buffer
         var plaintext = new byte[encryptedData.Length];
 
-        // Decrypt using AES-GCM
+        // Decrypt using AES-GCM with scoped disposal
         try
         {
-            using var aesGcm = new AesGcm(key.KeyMaterial, TagSizeBytes);
-            aesGcm.Decrypt(iv, encryptedData, authTag, plaintext);
+            using (var aesGcm = new AesGcm(key.KeyMaterial, TagSizeBytes))
+            {
+                aesGcm.Decrypt(iv, encryptedData, authTag, plaintext);
+            }
         }
         catch (CryptographicException ex)
         {
+            // Zero plaintext buffer even on failure
+            CryptographicOperations.ZeroMemory(plaintext);
             _logger.DecryptionFailed(ex, key.Kid, key.Version);
             throw new InvalidOperationException("Failed to decrypt image. Data integrity check failed.", ex);
         }
@@ -274,49 +288,60 @@ public class ImageEncryptionService : IImageEncryptionService
 
         var unencryptedData = await _fileSystem.File.ReadAllBytesAsync(metadata.StoragePath, cancellationToken);
 
-        // Get the target key
-        var targetKey = await _context.EncryptionKeys
-            .FirstOrDefaultAsync(k => k.Kid == kid, cancellationToken);
-
-        if (targetKey == null)
+        try
         {
-            throw new InvalidOperationException($"Encryption key {kid} not found");
+            // Get the target key
+            var targetKey = await _context.EncryptionKeys
+                .FirstOrDefaultAsync(k => k.Kid == kid, cancellationToken);
+
+            if (targetKey == null)
+            {
+                throw new InvalidOperationException($"Encryption key {kid} not found");
+            }
+
+            // Encrypt the data
+            using var inputStream = new MemoryStream(unencryptedData);
+            var activeKey = await _context.EncryptionKeys
+                .FirstOrDefaultAsync(k => k.Status == EncryptionKeyStatus.Active, cancellationToken);
+
+            if (activeKey == null || activeKey.Kid != kid)
+            {
+                // Temporarily use the specified key
+                activeKey = targetKey;
+            }
+
+            var iv = new byte[12];
+            RandomNumberGenerator.Fill(iv);
+
+            var authTag = new byte[16];
+            var encryptedData = new byte[unencryptedData.Length];
+
+            // Encrypt using AES-GCM with scoped disposal
+            using (var aesGcm = new AesGcm(targetKey.KeyMaterial, authTag.Length))
+            {
+                aesGcm.Encrypt(iv, unencryptedData, encryptedData, authTag);
+            }
+
+            // Write encrypted data back to the same file
+            await _fileSystem.File.WriteAllBytesAsync(metadata.StoragePath, encryptedData, cancellationToken);
+
+            // Update metadata
+            metadata.IsEncrypted = true;
+            metadata.EncryptionKeyId = kid;
+            metadata.InitializationVector = iv;
+            metadata.AuthenticationTag = authTag;
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.UnencryptedImageEncrypted(metadata.ImageId, kid);
+
+            return metadata;
         }
-
-        // Encrypt the data
-        using var inputStream = new MemoryStream(unencryptedData);
-        var activeKey = await _context.EncryptionKeys
-            .FirstOrDefaultAsync(k => k.Status == EncryptionKeyStatus.Active, cancellationToken);
-
-        if (activeKey == null || activeKey.Kid != kid)
+        finally
         {
-            // Temporarily use the specified key
-            activeKey = targetKey;
+            // Securely zero unencrypted data from memory
+            CryptographicOperations.ZeroMemory(unencryptedData);
         }
-
-        var iv = new byte[12];
-        RandomNumberGenerator.Fill(iv);
-
-        var authTag = new byte[16];
-        var encryptedData = new byte[unencryptedData.Length];
-
-        using var aesGcm = new AesGcm(targetKey.KeyMaterial, authTag.Length);
-        aesGcm.Encrypt(iv, unencryptedData, encryptedData, authTag);
-
-        // Write encrypted data back to the same file
-        await _fileSystem.File.WriteAllBytesAsync(metadata.StoragePath, encryptedData, cancellationToken);
-
-        // Update metadata
-        metadata.IsEncrypted = true;
-        metadata.EncryptionKeyId = kid;
-        metadata.InitializationVector = iv;
-        metadata.AuthenticationTag = authTag;
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        _logger.UnencryptedImageEncrypted(metadata.ImageId, kid);
-
-        return metadata;
     }
 
     public async Task<ImageMetadata> ReEncryptImageAsync(

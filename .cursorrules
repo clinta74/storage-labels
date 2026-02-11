@@ -1,0 +1,91 @@
+# Cursor AI Rules for Storage Labels
+
+## Response DTO Pattern - MANDATORY
+
+When creating or modifying response DTOs:
+
+1. Use record with positional parameters
+2. Add constructor accepting the internal/domain model
+3. Map at endpoint boundary with `.Select(model => new ResponseDto(model))`
+
+Example:
+```csharp
+public record ItemResponse(int Id, string Name, string BoxCode)
+{
+    public ItemResponse(ItemModel item) : this(item.Id, item.Name, item.BoxCode) { }
+}
+```
+
+Never use:
+- Static `FromEntity()` methods
+- Property initializer syntax with `new ResponseDto { Prop = value }`
+- Manual property-by-property mapping in Select statements
+
+## MediatR Pattern - MANDATORY
+
+All business logic must go through MediatR handlers:
+
+```csharp
+// Request
+public record CreateItem(string UserId, string Name) : IRequest<Result<ItemResponse>>;
+
+// Handler
+public class CreateItemHandler : IRequestHandler<CreateItem, Result<ItemResponse>>
+{
+    public async ValueTask<Result<ItemResponse>> Handle(CreateItem request, CancellationToken ct)
+    {
+        // Logic here
+        return Result.Success(new ItemResponse(item));
+    }
+}
+```
+
+## Validation Pattern - MANDATORY
+
+Create separate validator classes:
+
+```csharp
+public class CreateItemValidator : AbstractValidator<CreateItem>
+{
+    public CreateItemValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+    }
+}
+```
+
+## Logging Pattern - MANDATORY
+
+Use LoggerMessage source generators in `Logging/LogMessages.*.cs`:
+
+```csharp
+[LoggerMessage(Message = "Created {itemId}", Level = LogLevel.Information)]
+public static partial void ItemCreated(this ILogger logger, int itemId);
+```
+
+Never use string interpolation or concatenation in logging.
+
+## Route Patterns - MANDATORY
+
+- Route parameters: camelCase with type constraints (`/{boxId:guid}`)
+- Endpoint names: Include version suffix if multiple versions exist
+- Always use `.Produces<T>()` for response types
+
+## File Structure
+
+- DTOs: `Models/DTO/Feature/`
+- Internal models: `Models/Feature/`
+- Handlers: `Handlers/Feature/`
+- Endpoints: `Endpoints/MapFeature.cs`
+- Tests: `storage-labels-api-test/Handlers/Feature/`
+
+## Before Generating Code
+
+1. Search for similar existing implementations
+2. Copy the established pattern exactly
+3. Never deviate from these rules
+4. Run `dotnet test` immediately after changes
+
+## Reference
+
+See CONTRIBUTING.md for complete details on all patterns.

@@ -31,6 +31,17 @@ jobs:
           fetch-depth: 0  # Fetch all history for git describe
           token: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub token for pushing tags
 
+      - name: Verify tag is from main branch
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_COMMIT=$(git rev-list -n 1 ${{ github.ref }})
+          MAIN_COMMIT=$(git rev-parse origin/main)
+          if ! git merge-base --is-ancestor $TAG_COMMIT origin/main; then
+            echo "Error: Tag ${{ github.ref_name }} is not on the main branch"
+            exit 1
+          fi
+          echo "Tag ${{ github.ref_name }} verified to be from main branch"
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:

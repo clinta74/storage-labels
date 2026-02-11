@@ -11,7 +11,7 @@ public class CreateBoxHandler(StorageLabelsDbContext dbContext, TimeProvider tim
 {
     public async ValueTask<Result<Box>> Handle(CreateBox request, CancellationToken cancellationToken)
     {
-        var validation = await new CreateBoxValidator().ValidateAsync(request);
+        var validation = await new CreateBoxValidator().ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
         {
             return Result<Box>.Invalid(validation.AsErrors());

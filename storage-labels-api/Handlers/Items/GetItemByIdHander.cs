@@ -12,6 +12,7 @@ public class GetItemByIdHandler(StorageLabelsDbContext dbContext) : IRequestHand
     public async ValueTask<Result<Item>> Handle(GetItemById request, CancellationToken cancellationToken)
     {
         var item = await dbContext.Items
+            .AsNoTracking()
             .Where(i => i.ItemId == request.ItemId)
             .Where(i => i.Box.Location.UserLocations.Any(ul => ul.UserId == request.UserId && ul.AccessLevel >= AccessLevels.View))
             .FirstOrDefaultAsync(cancellationToken);

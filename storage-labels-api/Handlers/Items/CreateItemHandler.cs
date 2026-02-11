@@ -31,7 +31,7 @@ public class CreateItemHandler(StorageLabelsDbContext dbContext, TimeProvider ti
             return Result.Invalid(new ValidationError(nameof(Box), $"Cannot add item to box ({request.BoxId}).", "Access", ValidationSeverity.Error));
         }
 
-        var validation = await new CreateItemValidator().ValidateAsync(request);
+        var validation = await new CreateItemValidator().ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
         {
             return Result<Item>.Invalid(validation.AsErrors());

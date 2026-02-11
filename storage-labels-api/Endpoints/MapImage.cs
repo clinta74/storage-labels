@@ -1,5 +1,6 @@
 using Ardalis.Result.AspNetCore;
 using Mediator;
+using Microsoft.AspNetCore.Mvc;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Filters;
 using StorageLabelsApi.Handlers.Images;
@@ -9,31 +10,35 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints;
 
-public static class MapImage
+internal static partial class EndpointsMapper
 {
-
     public static void MapImageEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("images")
             .WithTags("Images")
             .AddEndpointFilter<UserExistsEndpointFilter>();
+        
 
         group.MapPost("/", UploadImageHandler)
             .DisableAntiforgery()
             .Produces<Microsoft.AspNetCore.Http.IResult>(StatusCodes.Status201Created)
-            .Produces<Microsoft.AspNetCore.Http.IResult>(StatusCodes.Status400BadRequest);
+            .Produces<Microsoft.AspNetCore.Http.IResult>(StatusCodes.Status400BadRequest)
+            .WithName("Upload Image");
 
         group.MapGet("/", GetUserImagesHandler)
             .Produces<List<ImageMetadataResponse>>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithName("Get User Images");
 
         group.MapDelete("/{imageId:guid}", DeleteImageHandler)
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithName("Delete Image");
         
         group.MapDelete("/{imageId:guid}/force", ForceDeleteImageHandler)
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithName("Force Delete Image");
 
         group.MapGet("/{imageId:guid}", GetImageFileHandlerEndpoint)
             .AddEndpointFilter<ImageAccessFilter>()
@@ -41,7 +46,8 @@ public static class MapImage
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status429TooManyRequests)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .WithName("Get Image File");
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> UploadImageHandler(
@@ -68,7 +74,7 @@ public static class MapImage
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> DeleteImageHandler(
-        Guid imageId,
+        [FromRoute] Guid imageId,
         IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -79,7 +85,7 @@ public static class MapImage
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> ForceDeleteImageHandler(
-        Guid imageId,
+        [FromRoute] Guid imageId,
         IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
@@ -90,7 +96,7 @@ public static class MapImage
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetImageFileHandlerEndpoint(
-        Guid imageId,
+        [FromRoute] Guid imageId,
         IMediator mediator,
         HttpContext context,
         IImageEncryptionService encryptionService,

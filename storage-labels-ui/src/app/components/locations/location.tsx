@@ -42,7 +42,7 @@ export const Location: React.FC = () => {
     const navigate = useNavigate();
     const alert = useAlertMessage();
     const { Api } = useApi();
-    const { clearSearch } = useSearch();
+    const { clearSearch, searchQuery, currentPage, pageSize, setCurrentPage, setPaginationInfo, totalPages, totalResults } = useSearch();
     const { location } = useLocation();
     const [boxes, setBoxes] = useState<Box[]>([]);
     const [boxItemCounts, setBoxItemCounts] = useState<Record<string, number>>({});
@@ -50,7 +50,7 @@ export const Location: React.FC = () => {
     const [boxItemCount, setBoxItemCount] = useState<number>(0);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [openDeleteLocationDialog, setOpenDeleteLocationDialog] = useState(false);
-    const [searchResults, setSearchResults] = useState<SearchResultResponse[]>([]);
+    const [searchResults, setSearchResults] = useState<SearchResultV2[]>([]);
     const [searching, setSearching] = useState(false);
     const [settingsMenuAnchor, setSettingsMenuAnchor] = useState<null | HTMLElement>(null);
     const [forceDelete, setForceDelete] = useState(false);
@@ -125,18 +125,20 @@ export const Location: React.FC = () => {
         }
     };
 
-    const handleSearch = (query: string) => {
+    const handleSearch = (query: string, page: number = 1) => {
         // Clear results if query is empty
         if (!query || !query.trim()) {
             setSearchResults([]);
+            setPaginationInfo(0, 0);
             return;
         }
         
         setSearching(true);
         // Search globally, not just in this location
-        Api.Search.searchBoxesAndItems(query)
-            .then(({ data }) => {
-                setSearchResults(data.results);
+        Api.Search.searchBoxesAndItems(query, undefined, undefined, page, pageSize)
+            .then(({ data, totalCount, totalPages }) => {
+                setSearchResults(data);
+                setPaginationInfo(totalCount, totalPages);
             })
             .catch((error) => alert.addError(error))
             .finally(() => setSearching(false));
@@ -168,6 +170,13 @@ export const Location: React.FC = () => {
         }
     };
 
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        if (searchQuery) {
+            handleSearch(searchQuery, page);
+        }
+    };
+
     return (
         <React.Fragment>
             <Box margin={2} mb={2} position="relative">
@@ -187,6 +196,11 @@ export const Location: React.FC = () => {
                     results={searchResults}
                     onResultClick={handleSearchResultClick}
                     loading={searching}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalResults={totalResults}
+                    onPageChange={handlePageChange}
+                    showRelevance={true}
                 />
             </Box>
 

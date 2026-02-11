@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +7,7 @@ using Moq;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Services;
+using StorageLabelsApi.Tests.TestInfrastructure;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 
@@ -59,7 +60,7 @@ public class DelayedMockFileSystem : MockFileSystem
 public class KeyRotationServiceTests : IDisposable
 {
     private readonly SqliteConnection _connection;
-    private readonly StorageLabelsDbContext _context;
+    private readonly TestStorageLabelsDbContext _context;
     private readonly Mock<ILogger<KeyRotationService>> _loggerMock;
     private readonly Mock<ILogger<ImageEncryptionService>> _encryptionLoggerMock;
     private readonly Mock<IRotationProgressNotifier> _progressNotifierMock;
@@ -74,11 +75,11 @@ public class KeyRotationServiceTests : IDisposable
         _connection = new SqliteConnection("DataSource=:memory:");
         _connection.Open();
 
-        var options = new DbContextOptionsBuilder<StorageLabelsDbContext>()
+        var options = new DbContextOptionsBuilder<TestStorageLabelsDbContext>()
             .UseSqlite(_connection)
             .Options;
 
-        _context = new StorageLabelsDbContext(options);
+        _context = new TestStorageLabelsDbContext(options);
         _context.Database.EnsureCreated();
 
         _loggerMock = new Mock<ILogger<KeyRotationService>>();
@@ -89,7 +90,8 @@ public class KeyRotationServiceTests : IDisposable
 
         // Setup service provider for scoped services that doesn't get disposed
         var services = new ServiceCollection();
-        services.AddScoped(_ => _context);
+        services.AddScoped<StorageLabelsDbContext>(_ => _context); // Register as base type
+        services.AddScoped(_ => _context); // Register as derived type
         services.AddScoped<IImageEncryptionService>(_ => _encryptionService);
         _serviceProvider = services.BuildServiceProvider();
 
@@ -157,11 +159,11 @@ public class KeyRotationServiceTests : IDisposable
         var rotation = await _service.StartRotationAsync(options);
 
         // Assert
-        rotation.Should().NotBeNull();
-        rotation.FromKeyId.Should().BeNull();
-        rotation.ToKeyId.Should().Be(key.Kid);
-        rotation.Status.Should().Be(RotationStatus.InProgress);
-        rotation.TotalImages.Should().Be(2);
+        rotation.ShouldNotBeNull();
+        rotation.FromKeyId.ShouldBeNull();
+        rotation.ToKeyId.ShouldBe(key.Kid);
+        rotation.Status.ShouldBe(RotationStatus.InProgress);
+        rotation.TotalImages.ShouldBe(2);
     }
 
     [Fact]
@@ -191,11 +193,11 @@ public class KeyRotationServiceTests : IDisposable
         var rotation = await _service.StartRotationAsync(options);
 
         // Assert
-        rotation.Should().NotBeNull();
-        rotation.FromKeyId.Should().Be(key1.Kid);
-        rotation.ToKeyId.Should().Be(key2.Kid);
-        rotation.Status.Should().Be(RotationStatus.InProgress);
-        rotation.TotalImages.Should().Be(2);
+        rotation.ShouldNotBeNull();
+        rotation.FromKeyId.ShouldBe(key1.Kid);
+        rotation.ToKeyId.ShouldBe(key2.Kid);
+        rotation.Status.ShouldBe(RotationStatus.InProgress);
+        rotation.TotalImages.ShouldBe(2);
     }
 
     [Fact]
@@ -214,8 +216,8 @@ public class KeyRotationServiceTests : IDisposable
         var act = async () => await _service.StartRotationAsync(options);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*Target key 999 not found*");
+        var exception = await Should.ThrowAsync<InvalidOperationException>(act);
+        exception.Message.ShouldContain("Target key 999 not found");
     }
 
     [Fact]
@@ -236,8 +238,8 @@ public class KeyRotationServiceTests : IDisposable
         var act = async () => await _service.StartRotationAsync(options);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage($"*Target key {key.Kid} is not active*");
+        var exception = await Should.ThrowAsync<InvalidOperationException>(act);
+        exception.Message.ShouldContain($"Target key {key.Kid} is not active");
     }
 
     [Fact]
@@ -259,8 +261,8 @@ public class KeyRotationServiceTests : IDisposable
         var act = async () => await _service.StartRotationAsync(options);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*Source key 999 not found*");
+        var exception = await Should.ThrowAsync<InvalidOperationException>(act);
+        exception.Message.ShouldContain("Source key 999 not found");
     }
 
     [Fact]
@@ -288,12 +290,12 @@ public class KeyRotationServiceTests : IDisposable
         var progress = await _service.GetRotationProgressAsync(rotation.Id);
 
         // Assert
-        progress.Should().NotBeNull();
-        progress!.RotationId.Should().Be(rotation.Id);
-        progress.Status.Should().Be(RotationStatus.InProgress);
-        progress.TotalImages.Should().Be(10);
-        progress.ProcessedImages.Should().Be(5);
-        progress.FailedImages.Should().Be(1);
+        progress.ShouldNotBeNull();
+        progress!.RotationId.ShouldBe(rotation.Id);
+        progress.Status.ShouldBe(RotationStatus.InProgress);
+        progress.TotalImages.ShouldBe(10);
+        progress.ProcessedImages.ShouldBe(5);
+        progress.FailedImages.ShouldBe(1);
     }
 
     [Fact]
@@ -303,7 +305,7 @@ public class KeyRotationServiceTests : IDisposable
         var progress = await _service.GetRotationProgressAsync(Guid.NewGuid());
 
         // Assert
-        progress.Should().BeNull();
+        progress.ShouldBeNull();
     }
 
     [Fact]
@@ -313,11 +315,11 @@ public class KeyRotationServiceTests : IDisposable
         var testConnection = new SqliteConnection("DataSource=:memory:");
         testConnection.Open();
         
-        var options = new DbContextOptionsBuilder<StorageLabelsDbContext>()
+        var options = new DbContextOptionsBuilder<TestStorageLabelsDbContext>()
             .UseSqlite(testConnection)
             .Options;
         
-        var testContext = new StorageLabelsDbContext(options);
+        var testContext = new TestStorageLabelsDbContext(options);
         testContext.Database.EnsureCreated();
         
         var delayedFileSystem = new DelayedMockFileSystem(delayMs: 400); // 400ms delay per file operation
@@ -325,12 +327,19 @@ public class KeyRotationServiceTests : IDisposable
         
         // Setup service provider with delayed encryption service
         var services = new ServiceCollection();
-        services.AddScoped(_ => {
+        services.AddScoped<StorageLabelsDbContext>(_ => {
             // Reuse the same connection so all contexts share the same in-memory database  
-            var scopedOptions = new DbContextOptionsBuilder<StorageLabelsDbContext>()
+            var scopedOptions = new DbContextOptionsBuilder<TestStorageLabelsDbContext>()
                 .UseSqlite(testConnection)
                 .Options;
-            return new StorageLabelsDbContext(scopedOptions);
+            return new TestStorageLabelsDbContext(scopedOptions);
+        });
+        services.AddScoped<TestStorageLabelsDbContext>(_ => {
+            // Reuse the same connection so all contexts share the same in-memory database  
+            var scopedOptions = new DbContextOptionsBuilder<TestStorageLabelsDbContext>()
+                .UseSqlite(testConnection)
+                .Options;
+            return new TestStorageLabelsDbContext(scopedOptions);
         });
         services.AddScoped<IImageEncryptionService>(_ => delayedEncryptionService);
         var delayedServiceProvider = services.BuildServiceProvider();
@@ -394,15 +403,16 @@ public class KeyRotationServiceTests : IDisposable
         var progress = await delayedRotationService.GetRotationProgressAsync(rotation.Id);
 
         // Assert
-        progress.Should().NotBeNull();
-        progress!.RotationId.Should().Be(rotation.Id);
-        progress.TotalImages.Should().Be(5);
-        progress.Status.Should().BeOneOf(RotationStatus.InProgress, RotationStatus.Completed);
+        progress.ShouldNotBeNull();
+        progress!.RotationId.ShouldBe(rotation.Id);
+        progress.TotalImages.ShouldBe(5);
+        progress.Status.ShouldBeOneOf(RotationStatus.InProgress, RotationStatus.Completed);
         
         // Should have processed at least one but not all (unless it completed)
         if (progress.Status == RotationStatus.InProgress)
         {
-            progress.ProcessedImages.Should().BeGreaterThan(0).And.BeLessThan(5);
+            progress.ProcessedImages.ShouldBeGreaterThan(0);
+            progress.ProcessedImages.ShouldBeLessThan(5);
         }
         
         // Clean up - cancel to stop background processing
@@ -421,7 +431,7 @@ public class KeyRotationServiceTests : IDisposable
         var result = await _service.CancelRotationAsync(Guid.NewGuid());
 
         // Assert
-        result.Should().BeFalse();
+        result.ShouldBeFalse();
     }
 
     [Fact]
@@ -431,11 +441,11 @@ public class KeyRotationServiceTests : IDisposable
         var testConnection = new SqliteConnection("DataSource=:memory:");
         testConnection.Open();
         
-        var options = new DbContextOptionsBuilder<StorageLabelsDbContext>()
+        var options = new DbContextOptionsBuilder<TestStorageLabelsDbContext>()
             .UseSqlite(testConnection)
             .Options;
         
-        var testContext = new StorageLabelsDbContext(options);
+        var testContext = new TestStorageLabelsDbContext(options);
         testContext.Database.EnsureCreated();
         
         var delayedFileSystem = new DelayedMockFileSystem(delayMs: 300); // 300ms delay per file operation
@@ -443,12 +453,19 @@ public class KeyRotationServiceTests : IDisposable
         
         // Setup service provider with delayed encryption service
         var services = new ServiceCollection();
-        services.AddScoped(_ => {
+        services.AddScoped<StorageLabelsDbContext>(_ => {
             // Reuse the same connection so all contexts share the same in-memory database
-            var scopedOptions = new DbContextOptionsBuilder<StorageLabelsDbContext>()
+            var scopedOptions = new DbContextOptionsBuilder<TestStorageLabelsDbContext>()
                 .UseSqlite(testConnection)
                 .Options;
-            return new StorageLabelsDbContext(scopedOptions);
+            return new TestStorageLabelsDbContext(scopedOptions);
+        });
+        services.AddScoped<TestStorageLabelsDbContext>(_ => {
+            // Reuse the same connection so all contexts share the same in-memory database
+            var scopedOptions = new DbContextOptionsBuilder<TestStorageLabelsDbContext>()
+                .UseSqlite(testConnection)
+                .Options;
+            return new TestStorageLabelsDbContext(scopedOptions);
         });
         services.AddScoped<IImageEncryptionService>(_ => delayedEncryptionService);
         var delayedServiceProvider = services.BuildServiceProvider();
@@ -511,15 +528,15 @@ public class KeyRotationServiceTests : IDisposable
         var result = await delayedRotationService.CancelRotationAsync(rotation.Id);
 
         // Assert
-        result.Should().BeTrue();
+        result.ShouldBeTrue();
         
         // Give time for cancellation to be processed
         await Task.Delay(200);
         
         // Use a fresh context to check the final state
-        using var checkContext = new StorageLabelsDbContext(options);
+        using var checkContext = new TestStorageLabelsDbContext(options);
         var finalRotation = await checkContext.EncryptionKeyRotations.FindAsync(rotation.Id);
-        finalRotation!.Status.Should().Be(RotationStatus.Cancelled);
+        finalRotation!.Status.ShouldBe(RotationStatus.Cancelled);
         
         // Clean up
         delayedServiceProvider.Dispose();
@@ -552,7 +569,7 @@ public class KeyRotationServiceTests : IDisposable
         var result = await _service.CancelRotationAsync(rotation.Id);
 
         // Assert
-        result.Should().BeFalse();
+        result.ShouldBeFalse();
     }
 
     [Fact]
@@ -565,15 +582,22 @@ public class KeyRotationServiceTests : IDisposable
         var options1 = new RotationOptions(null, key.Kid, 100, "user123", false);
         var options2 = new RotationOptions(null, key.Kid, 100, "user123", false);
         
-        await _service.StartRotationAsync(options1);
-        await _service.StartRotationAsync(options2);
+        // Start rotations sequentially to avoid DbContext concurrency issues
+        var rotation1 = await _service.StartRotationAsync(options1);
+        // Small delay to ensure first rotation's background task has started
+        await Task.Delay(50);
+        var rotation2 = await _service.StartRotationAsync(options2);
 
         // Act
         var rotations = await _service.GetRotationsAsync();
 
         // Assert
-        rotations.Should().HaveCount(2);
-        rotations.Should().AllSatisfy(r => r.ToKeyId.Should().Be(key.Kid));
+        rotations.Count.ShouldBe(2);
+        rotations.ShouldAllBe(r => r.ToKeyId == key.Kid);
+        
+        // Cleanup - Cancel rotations to stop background tasks before test ends
+        await _service.CancelRotationAsync(rotation1.Id);
+        await _service.CancelRotationAsync(rotation2.Id);
     }
 
     [Fact]
@@ -609,8 +633,8 @@ public class KeyRotationServiceTests : IDisposable
         var inProgressRotations = await _service.GetRotationsAsync(RotationStatus.InProgress);
 
         // Assert
-        inProgressRotations.Should().ContainSingle();
-        inProgressRotations.First().Status.Should().Be(RotationStatus.InProgress);
+        inProgressRotations.Count.ShouldBe(1);
+        inProgressRotations.First().Status.ShouldBe(RotationStatus.InProgress);
     }
 
     public void Dispose()

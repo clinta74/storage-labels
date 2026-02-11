@@ -125,6 +125,7 @@ interface ImageMetadataResponse {
 }
 interface SearchResultResponse {
     type: 'box' | 'item';
+    rank: number; // Relevance score from full-text search
     boxId?: string;
     boxName?: string;
     boxCode?: string;
@@ -135,8 +136,9 @@ interface SearchResultResponse {
     locationName: string;
 }
 
-interface SearchResultsResponse {
+interface SearchResponse {
     results: SearchResultResponse[];
+    totalResults: number;
 }
 
 // Encryption Key Management Models

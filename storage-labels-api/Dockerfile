@@ -1,5 +1,5 @@
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 # Accept version as build argument
 ARG VERSION=dev
@@ -21,7 +21,7 @@ ARG VERSION=dev
 RUN dotnet publish "storage-labels-api.csproj" -c Release -o /app/publish /p:UseAppHost=false -p:Version=${VERSION}
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 
 # Accept version from build stage
 ARG VERSION=dev

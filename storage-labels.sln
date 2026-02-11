@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "storage-labels-api", "storage-labels-api\storage-labels-api.csproj", "{6F81F22E-16B6-4BB5-B82F-6BF86A2FAF03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "storage-labels-api.Tests", "storage-labels-api.Tests\storage-labels-api.Tests.csproj", "{B2FAD02E-1B78-4D2B-A0D5-79C74067F453}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "storage-labels-api-test", "storage-labels-api-test\storage-labels-api-test.csproj", "{B2FAD02E-1B78-4D2B-A0D5-79C74067F453}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

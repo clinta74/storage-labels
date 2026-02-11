@@ -1,24 +1,28 @@
 using Ardalis.Result.AspNetCore;
 using Mediator;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Extensions;
 using StorageLabelsApi.Handlers.EncryptionKeys;
 using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO.EncryptionKey;
+using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace StorageLabelsApi.Endpoints;
 
-public static class MapEncryptionKey
+internal static partial class EndpointsMapper
 {
     public static void MapEncryptionKeyEndpoints(this IEndpointRouteBuilder app)
     {
+        
         var group = app.MapGroup("admin/encryption-keys")
             .RequireAuthorization()
-            .WithTags("Admin - Encryption Keys")
-            .WithOpenApi();
+            .WithTags("Admin - Encryption Keys");
 
         group.MapPost("/", CreateEncryptionKeyEndpoint)
             .RequireAuthorization(Policies.Write_EncryptionKeys)
-            .WithName("CreateEncryptionKey")
+            .WithName("Create Encryption Key")
             .WithSummary("Create a new encryption key")
             .Produces<EncryptionKeyResponse>(201)
             .ProducesValidationProblem()
@@ -34,7 +38,7 @@ public static class MapEncryptionKey
             .RequireAuthorization(Policies.Read_EncryptionKeys)
             .WithName("GetEncryptionKeyStats")
             .WithSummary("Get statistics for an encryption key")
-            .Produces<Services.EncryptionKeyStats>(200)
+            .Produces<EncryptionKeyStatsResponse>(200)
             .ProducesProblem(404);
 
         group.MapPut("/{kid:int}/activate", ActivateEncryptionKeyEndpoint)
@@ -64,13 +68,13 @@ public static class MapEncryptionKey
             .RequireAuthorization(Policies.Read_EncryptionKeys)
             .WithName("GetRotations")
             .WithSummary("Get all key rotation operations")
-            .Produces<List<DataLayer.Models.EncryptionKeyRotation>>(200);
+            .Produces<List<EncryptionKeyRotationResponse>>(200);
 
         group.MapGet("/rotations/{rotationId:guid}", GetRotationProgressEndpoint)
             .RequireAuthorization(Policies.Read_EncryptionKeys)
             .WithName("GetRotationProgress")
             .WithSummary("Get progress of a rotation operation")
-            .Produces<Services.RotationProgress>(200)
+            .Produces<RotationProgressResponse>(200)
             .ProducesProblem(404);
 
         group.MapDelete("/rotations/{rotationId:guid}", CancelRotationEndpoint)
@@ -90,7 +94,7 @@ public static class MapEncryptionKey
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> CreateEncryptionKeyEndpoint(
         CreateEncryptionKeyRequest request,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -99,16 +103,17 @@ public static class MapEncryptionKey
             new CreateEncryptionKey(request.Description, userId),
             cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            return Results.Created($"/admin/encryption-keys/{result.Value.Kid}", result.Value);
-        }
-
-        return result.ToMinimalApiResult();
+        return result
+            .Map(key =>
+            {
+                context.Response.Headers.Location = $"/admin/encryption-keys/{key.Kid}";
+                return key;
+            })
+            .ToMinimalApiResult();
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetEncryptionKeysEndpoint(
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetEncryptionKeys(), cancellationToken);
@@ -116,19 +121,21 @@ public static class MapEncryptionKey
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetEncryptionKeyStatsEndpoint(
-        int kid,
-        IMediator mediator,
+        [FromRoute] int kid,
+        [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetEncryptionKeyStats(kid), cancellationToken);
-        return result.ToMinimalApiResult();
+        return result
+            .Map(stats => new EncryptionKeyStatsResponse(stats))
+            .ToMinimalApiResult();
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> ActivateEncryptionKeyEndpoint(
-        int kid,
-        IMediator mediator,
+        [FromRoute] int kid,
+        [FromServices] IMediator mediator,
         HttpContext context,
-        bool autoRotate = true,
+        [FromQuery] bool autoRotate = true,
         CancellationToken cancellationToken = default)
     {
         var userId = context.GetUserId();
@@ -139,8 +146,8 @@ public static class MapEncryptionKey
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> RetireEncryptionKeyEndpoint(
-        int kid,
-        IMediator mediator,
+        [FromRoute] int kid,
+        [FromServices] IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -151,7 +158,7 @@ public static class MapEncryptionKey
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> StartRotationEndpoint(
         StartRotationRequest request,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -168,27 +175,31 @@ public static class MapEncryptionKey
         return result.ToMinimalApiResult();
     }
 
-    private static async Task<Microsoft.AspNetCore.Http.IResult> GetRotationsEndpoint(
-        IMediator mediator,
-        DataLayer.Models.RotationStatus? status,
+    private static async Task<IResult> GetRotationsEndpoint(
+        [FromServices] IMediator mediator,
+        [FromQuery] RotationStatus? status,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetRotations(status), cancellationToken);
-        return result.ToMinimalApiResult();
+        return result
+            .Map(rotations => rotations.Select(r => new EncryptionKeyRotationResponse(r)).ToList())
+            .ToMinimalApiResult();
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> GetRotationProgressEndpoint(
-        Guid rotationId,
-        IMediator mediator,
+        [FromRoute] Guid rotationId,
+        [FromServices] IMediator mediator,
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetRotationProgress(rotationId), cancellationToken);
-        return result.ToMinimalApiResult();
+        return result
+            .Map(progress => new RotationProgressResponse(progress))
+            .ToMinimalApiResult();
     }
 
     private static async Task<Microsoft.AspNetCore.Http.IResult> CancelRotationEndpoint(
-        Guid rotationId,
-        IMediator mediator,
+        [FromRoute] Guid rotationId,
+        [FromServices] IMediator mediator,
         HttpContext context,
         CancellationToken cancellationToken)
     {
@@ -198,9 +209,9 @@ public static class MapEncryptionKey
     }
 
     private static async Task StreamRotationProgressEndpoint(
-        Guid rotationId,
+        [FromRoute] Guid rotationId,
         HttpContext context,
-        Services.IRotationProgressNotifier progressNotifier,
+        [FromServices] Services.IRotationProgressNotifier progressNotifier,
         CancellationToken cancellationToken)
     {
         context.Response.Headers.Append("Content-Type", "text/event-stream");

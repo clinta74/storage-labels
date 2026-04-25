@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useAlertMessage } from '../../providers/alert-provider';
-import { useSearch } from '../../providers/search-provider';
 import { useLocation } from '../../providers/location-provider';
 import { useApi } from '../../../api';
 import { 
@@ -35,14 +34,13 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
 import PeopleIcon from '@mui/icons-material/People';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import { SearchBar, SearchResults, Breadcrumbs, EmptyState } from '../shared';
+import { SearchBar, Breadcrumbs, EmptyState } from '../shared';
 
 export const Location: React.FC = () => {
     const params = useParams();
     const navigate = useNavigate();
     const alert = useAlertMessage();
     const { Api } = useApi();
-    const { clearSearch, searchQuery, currentPage, pageSize, setCurrentPage, setPaginationInfo, totalPages, totalResults } = useSearch();
     const { location } = useLocation();
     const [boxes, setBoxes] = useState<Box[]>([]);
     const [boxItemCounts, setBoxItemCounts] = useState<Record<string, number>>({});
@@ -50,8 +48,6 @@ export const Location: React.FC = () => {
     const [boxItemCount, setBoxItemCount] = useState<number>(0);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [openDeleteLocationDialog, setOpenDeleteLocationDialog] = useState(false);
-    const [searchResults, setSearchResults] = useState<SearchResultV2[]>([]);
-    const [searching, setSearching] = useState(false);
     const [settingsMenuAnchor, setSettingsMenuAnchor] = useState<null | HTMLElement>(null);
     const [forceDelete, setForceDelete] = useState(false);
 
@@ -125,25 +121,6 @@ export const Location: React.FC = () => {
         }
     };
 
-    const handleSearch = (query: string, page: number = 1) => {
-        // Clear results if query is empty
-        if (!query || !query.trim()) {
-            setSearchResults([]);
-            setPaginationInfo(0, 0);
-            return;
-        }
-        
-        setSearching(true);
-        // Search globally, not just in this location
-        Api.Search.searchBoxesAndItems(query, undefined, undefined, page, pageSize)
-            .then(({ data, totalCount, totalPages }) => {
-                setSearchResults(data);
-                setPaginationInfo(totalCount, totalPages);
-            })
-            .catch((error) => alert.addError(error))
-            .finally(() => setSearching(false));
-    };
-
     const handleQrCodeScan = (code: string) => {
         Api.Search.searchByQrCode(code)
             .then(({ data }) => {
@@ -155,26 +132,6 @@ export const Location: React.FC = () => {
             .catch((_error) => {
                 alert.addMessage(`No box found with code: ${code}`);
             });
-    };
-
-    const handleSearchResultClick = (result: SearchResultResponse) => {
-        setSearchResults([]); // Clear results
-        clearSearch(); // Clear search box
-        
-        if (result.type === 'box' && result.boxId) {
-            // Navigate to the found box (could be in any location)
-            navigate(`/locations/${result.locationId}/box/${result.boxId}`);
-        } else if (result.type === 'item' && result.boxId) {
-            // Navigate to the box containing the item (could be in any location)
-            navigate(`/locations/${result.locationId}/box/${result.boxId}`);
-        }
-    };
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        if (searchQuery) {
-            handleSearch(searchQuery, page);
-        }
     };
 
     return (
@@ -189,18 +146,7 @@ export const Location: React.FC = () => {
                 )}
                 <SearchBar
                     placeholder="Search all boxes and items..."
-                    onSearch={handleSearch}
                     onQrCodeScan={handleQrCodeScan}
-                />
-                <SearchResults
-                    results={searchResults}
-                    onResultClick={handleSearchResultClick}
-                    loading={searching}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalResults={totalResults}
-                    onPageChange={handlePageChange}
-                    showRelevance={true}
                 />
             </Box>
 

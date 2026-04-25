@@ -59,19 +59,16 @@ export const ChangePassword: React.FC = () => {
             <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
                 Change Password
             </Typography>
-
             {success && (
                 <Alert severity="success" sx={{ mb: 2 }}>
                     Password changed successfully!
                 </Alert>
             )}
-
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                     {error}
                 </Alert>
             )}
-
             <Paper sx={{ p: 3 }}>
                 <form onSubmit={handleSubmit}>
                     <TextField
@@ -108,7 +105,13 @@ export const ChangePassword: React.FC = () => {
                         disabled={isLoading}
                     />
 
-                    <Stack direction="row" spacing={2} padding={2} justifyContent="right">
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        sx={{
+                            padding: 2,
+                            justifyContent: "right"
+                        }}>
                         <Button
                             type="submit"
                             color="primary"

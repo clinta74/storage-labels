@@ -211,14 +211,22 @@ export const RotationsPage: React.FC = () => {
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    minHeight: "400px"
+                }}>
                 <CircularProgress />
             </Box>
         );
     }
 
     return (
-        <Box p={3}>
+        <Box sx={{
+            p: 3
+        }}>
             <Breadcrumbs 
                 items={[
                     { label: 'Rotations' }
@@ -226,7 +234,13 @@ export const RotationsPage: React.FC = () => {
                 homeLabel="Encryption Keys"
                 homePath="/encryption-keys"
             />
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 3
+                }}>
                 <Typography variant="h4">Key Rotation History</Typography>
                 <Box>
                     <Tooltip title="Refresh">
@@ -245,7 +259,6 @@ export const RotationsPage: React.FC = () => {
                     </Authorized>
                 </Box>
             </Box>
-
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
@@ -351,7 +364,6 @@ export const RotationsPage: React.FC = () => {
                     </TableBody>
                 </Table>
             </TableContainer>
-
             {/* Manual Rotation Dialog */}
             <Dialog open={manualRotationOpen} onClose={() => setManualRotationOpen(false)}>
                 <DialogTitle>Start Manual Key Rotation</DialogTitle>
@@ -406,7 +418,6 @@ export const RotationsPage: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* Rotation Progress Dialog */}
             {selectedRotation && rotationProgress && (
                 <Dialog open={true} onClose={() => setSelectedRotation(null)} maxWidth="sm" fullWidth>
@@ -421,8 +432,14 @@ export const RotationsPage: React.FC = () => {
                                     {rotationProgress.rotationId}
                                 </Typography>
                             </Box>
-                            <Box display="flex" gap={2}>
-                                <Box flex={1}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    gap: 2
+                                }}>
+                                <Box sx={{
+                                    flex: 1
+                                }}>
                                     <Typography variant="subtitle2" color="textSecondary">
                                         From Key
                                     </Typography>
@@ -430,7 +447,9 @@ export const RotationsPage: React.FC = () => {
                                         {rotationProgress.fromKeyId === null || rotationProgress.fromKeyId === 0 ? 'Unencrypted' : `kid ${rotationProgress.fromKeyId}`}
                                     </Typography>
                                 </Box>
-                                <Box flex={1}>
+                                <Box sx={{
+                                    flex: 1
+                                }}>
                                     <Typography variant="subtitle2" color="textSecondary">
                                         To Key
                                     </Typography>
@@ -460,7 +479,9 @@ export const RotationsPage: React.FC = () => {
                                     <Typography variant="body2">
                                         {rotationProgress.processedImages} / {rotationProgress.totalImages} images
                                     </Typography>
-                                    <Typography variant="body2" fontWeight="bold">
+                                    <Typography variant="body2" sx={{
+                                        fontWeight: "bold"
+                                    }}>
                                         {rotationProgress.percentComplete}%
                                     </Typography>
                                 </Box>

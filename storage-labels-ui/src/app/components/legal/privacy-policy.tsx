@@ -9,7 +9,9 @@ export const PrivacyPolicy: React.FC = () => {
                     Privacy Notice for Storage Labels
                 </Typography>
                 
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography variant="body2" gutterBottom sx={{
+                    color: "text.secondary"
+                }}>
                     Last updated: {new Date().toLocaleDateString()}
                 </Typography>
 
@@ -17,11 +19,15 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom>
                         Important: Self-Hosted Software
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Storage Labels is self-hosted software that you install and operate on your own infrastructure. 
                         <strong> The software developers do not collect, store, or have access to any of your data.</strong>
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         This notice describes how the software handles data locally in your installation. As the operator, 
                         you are the data controller and are responsible for compliance with applicable privacy laws.
                     </Typography>
@@ -29,7 +35,9 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Data Stored Locally
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Your installation of Storage Labels stores the following data in your database:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -42,7 +50,9 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         How Data is Used
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         The software uses locally stored data to:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -52,7 +62,9 @@ export const PrivacyPolicy: React.FC = () => {
                         <li>Track user preferences</li>
                         <li>Generate QR codes for items</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         All data processing happens within your self-hosted instance. No data is transmitted to 
                         external services or the software developers.
                     </Typography>
@@ -60,7 +72,9 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Data Storage and Security
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         The software implements the following security measures:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -69,7 +83,9 @@ export const PrivacyPolicy: React.FC = () => {
                         <li>Optional JWT token-based authentication</li>
                         <li>Role-based access control (Admin, Auditor, User)</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         <strong>As the operator, you are responsible for:</strong>
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -83,11 +99,15 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Third-Party Services
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         The software does not use any external third-party services by default. All data remains 
                         within your self-hosted environment.
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         If you choose to integrate additional services (email providers, external authentication, 
                         cloud storage, etc.), you are responsible for understanding and complying with their privacy policies.
                     </Typography>
@@ -95,7 +115,9 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         User Rights and Data Control
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         As a self-hosted solution, you (as the operator) have complete control over all data:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -104,7 +126,9 @@ export const PrivacyPolicy: React.FC = () => {
                         <li>Complete audit trail through database logs</li>
                         <li>User management through admin interface</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Users of your installation should contact you (the operator) for any data access, 
                         modification, or deletion requests.
                     </Typography>
@@ -112,7 +136,9 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Data Retention
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Data is retained in your installation until you (the operator) choose to delete it. 
                         The software provides:
                     </Typography>
@@ -121,7 +147,9 @@ export const PrivacyPolicy: React.FC = () => {
                         <li>Manual database cleanup if needed</li>
                         <li>Soft-delete options for some data types</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         You are responsible for implementing data retention policies that comply with applicable laws 
                         in your jurisdiction (GDPR, CCPA, etc.).
                     </Typography>
@@ -129,7 +157,9 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Children&apos;s Privacy
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         The software does not include age verification. As the operator, you are responsible for:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -141,7 +171,9 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Your Responsibilities as Operator
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         By operating this software, you become the data controller and are responsible for:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -156,7 +188,9 @@ export const PrivacyPolicy: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Questions and Support
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         For questions about the software&apos;s data handling:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -164,14 +198,18 @@ export const PrivacyPolicy: React.FC = () => {
                         <li>Check documentation in the repository</li>
                         <li>Ask in community discussions</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         <strong>For privacy concerns about a specific installation, contact that installation&apos;s operator.</strong>
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         Changes to This Notice
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         This privacy notice may be updated with new software versions. Check the documentation when 
                         updating the software for any changes to data handling practices.
                     </Typography>

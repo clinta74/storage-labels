@@ -210,7 +210,12 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
             <DialogTitle>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Stack
+                    direction="row"
+                    sx={{
+                        justifyContent: "space-between",
+                        alignItems: "center"
+                    }}>
                     <span>Capture Image</span>
                     <ToggleButtonGroup
                         value={mode}
@@ -233,25 +238,30 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
                 {mode === 'camera' ? (
                     <Box>
                         {error ? (
-                            <Box textAlign="center" py={4}>
+                            <Box
+                                sx={{
+                                    textAlign: "center",
+                                    py: 4
+                                }}>
                                 <Typography color="error" gutterBottom>
                                     {error}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography variant="body2" sx={{
+                                    color: "text.secondary"
+                                }}>
                                     Please ensure camera permissions are granted or switch to File mode.
                                 </Typography>
                             </Box>
                         ) : capturedImage ? (
-                            <Box 
-                                position="relative"
+                            <Box
                                 sx={{
+                                    position: "relative",
                                     minHeight: '500px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    backgroundColor: '#000',
-                                }}
-                            >
+                                    backgroundColor: '#000'
+                                }}>
                                 <img
                                     src={capturedImage}
                                     alt="Captured"
@@ -264,16 +274,15 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
                                 />
                             </Box>
                         ) : (
-                            <Box 
-                                position="relative"
+                            <Box
                                 sx={{
+                                    position: "relative",
                                     minHeight: '500px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    backgroundColor: '#000',
-                                }}
-                            >
+                                    backgroundColor: '#000'
+                                }}>
                                 <video
                                     ref={videoRef}
                                     autoPlay
@@ -324,7 +333,11 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
                         )}
                     </Box>
                 ) : (
-                    <Box textAlign="center" py={4}>
+                    <Box
+                        sx={{
+                            textAlign: "center",
+                            py: 4
+                        }}>
                         <input
                             ref={fileInputRef}
                             accept="image/*"
@@ -342,7 +355,12 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
                         >
                             {uploading ? 'Uploading...' : 'Choose Image'}
                         </Button>
-                        <Typography variant="body2" color="text.secondary" mt={2}>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                color: "text.secondary",
+                                mt: 2
+                            }}>
                             Select an image from your device
                         </Typography>
                     </Box>

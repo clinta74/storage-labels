@@ -96,7 +96,9 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
         <Dialog open={true} onClose={onCancel} maxWidth="md" fullWidth>
             <DialogTitle>Select or Upload Image</DialogTitle>
             <DialogContent>
-                <Box mb={2}>
+                <Box sx={{
+                    mb: 2
+                }}>
                     <RadioGroup
                         row
                         value={mode}
@@ -108,7 +110,11 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
                 </Box>
 
                 {mode === 'upload' ? (
-                    <Box py={4} textAlign="center">
+                    <Box
+                        sx={{
+                            py: 4,
+                            textAlign: "center"
+                        }}>
                         <Button
                             variant="contained"
                             onClick={() => setCaptureDialogOpen(true)}
@@ -119,11 +125,21 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
                         </Button>
                     </Box>
                 ) : loading ? (
-                    <Box textAlign="center" py={4}>
+                    <Box
+                        sx={{
+                            textAlign: "center",
+                            py: 4
+                        }}>
                         <CircularProgress />
                     </Box>
                 ) : images.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: "text.secondary",
+                            textAlign: "center",
+                            py: 4
+                        }}>
                         No images available. Upload one to get started.
                     </Typography>
                 ) : (
@@ -140,18 +156,30 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
                                     setSelectedImageUrl(image.url);
                                     setSelectedImageId(image.imageId);
                                 }}>
-                                        <Box height="140" display="flex" alignItems="center" justifyContent="center">
+                                        <Box
+                                            sx={{
+                                                height: "140",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center"
+                                            }}>
                                             <AuthenticatedImage
                                                 src={image.url}
                                                 alt={image.fileName}
                                                 style={{ width: '100%', height: '140px', objectFit: 'cover' }}
                                             />
                                         </Box>
-                                        <Box p={1}>
-                                            <Typography variant="caption" noWrap display="block">
+                                        <Box sx={{
+                                            p: 1
+                                        }}>
+                                            <Typography variant="caption" noWrap sx={{
+                                                display: "block"
+                                            }}>
                                                 {image.fileName}
                                             </Typography>
-                                            <Stack direction="row" spacing={0.5} mt={0.5}>
+                                            <Stack direction="row" spacing={0.5} sx={{
+                                                mt: 0.5
+                                            }}>
                                                 {image.boxReferenceCount > 0 && (
                                                     <Chip label={`${image.boxReferenceCount} boxes`} size="small" />
                                                 )}
@@ -183,7 +211,6 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
                     Select
                 </Button>
             </DialogActions>
-
             {/* Image Capture Dialog */}
             <ImageCapture
                 open={captureDialogOpen}

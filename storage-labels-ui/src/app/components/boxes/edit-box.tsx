@@ -111,10 +111,16 @@ export const EditBox: React.FC = () => {
         <React.Fragment>
             <Box>
                 <Paper>
-                    <Box margin={1} textAlign="center">
+                    <Box
+                        sx={{
+                            margin: 1,
+                            textAlign: "center"
+                        }}>
                         <Typography variant="h4">Edit Box</Typography>
                     </Box>
-                    <Box margin={2}>
+                    <Box sx={{
+                        margin: 2
+                    }}>
                         <Stack spacing={2}>
                             <FormControl fullWidth>
                                 <TextField
@@ -197,7 +203,12 @@ export const EditBox: React.FC = () => {
                                     Image
                                 </Typography>
                                 {imageUrl ? (
-                                    <Box mb={2} display="flex" justifyContent="center">
+                                    <Box
+                                        sx={{
+                                            mb: 2,
+                                            display: "flex",
+                                            justifyContent: "center"
+                                        }}>
                                         <AuthenticatedImage
                                             src={imageUrl}
                                             alt="Box image"
@@ -205,8 +216,16 @@ export const EditBox: React.FC = () => {
                                         />
                                     </Box>
                                 ) : (
-                                    <Box mb={2} display="flex" justifyContent="center" py={4}>
-                                        <Typography variant="body2" color="text.secondary">
+                                    <Box
+                                        sx={{
+                                            mb: 2,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            py: 4
+                                        }}>
+                                        <Typography variant="body2" sx={{
+                                            color: "text.secondary"
+                                        }}>
                                             No image set
                                         </Typography>
                                     </Box>
@@ -221,7 +240,13 @@ export const EditBox: React.FC = () => {
                             </Box>
                         </Stack>
                     </Box>
-                    <Stack direction="row" spacing={2} padding={2} justifyContent="right">
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        sx={{
+                            padding: 2,
+                            justifyContent: "right"
+                        }}>
                         <Button color="primary" onClick={handleSave} disabled={saving}>
                             Save
                         </Button>
@@ -231,7 +256,6 @@ export const EditBox: React.FC = () => {
                     </Stack>
                 </Paper>
             </Box>
-
             {showImageSelector && (
                 <ImageSelector
                     currentImageUrl={imageUrl}

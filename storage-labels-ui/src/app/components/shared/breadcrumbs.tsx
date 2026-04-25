@@ -47,11 +47,12 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
                 
                 if (isLast || !item.path) {
                     return (
-                        <Typography 
-                            key={index} 
-                            color="text.primary"
-                            sx={{ fontWeight: 500 }}
-                        >
+                        <Typography
+                            key={index}
+                            sx={{
+                                color: "text.primary",
+                                fontWeight: 500
+                            }}>
                             {item.label}
                         </Typography>
                     );

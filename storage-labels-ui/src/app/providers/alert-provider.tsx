@@ -114,7 +114,11 @@ export const AlertMessage: React.FC = () => {
                                 borderColor: 'divider',
                             }}
                         >
-                            <Box p={1} textAlign="right">
+                            <Box
+                                sx={{
+                                    p: 1,
+                                    textAlign: "right"
+                                }}>
                                 <Button onClick={value.clearMessages} variant="text">Clear</Button>
                             </Box>
                             <Divider />

@@ -38,11 +38,12 @@ export const Register: React.FC = () => {
 
     return (
         <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="60vh"
-        >
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                minHeight: "60vh"
+            }}>
             <Paper elevation={3} sx={{ p: 4, maxWidth: 500, width: '100%' }}>
                 <Typography variant="h4" component="h1" gutterBottom>
                     Register

@@ -134,7 +134,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     };
 
     return (
-        <Box mb={2} position="relative">
+        <Box
+            sx={{
+                mb: 2,
+                position: "relative"
+            }}>
             <Paper elevation={1}>
                 <TextField
                     fullWidth
@@ -177,7 +181,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                     }}
                 />
             </Paper>
-
             <SearchResults
                 results={accumulatedResults}
                 onResultClick={handleSearchResultClick}
@@ -189,7 +192,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 totalResults={totalResults}
                 showRelevance={true}
             />
-
             <Dialog
                 open={scannerOpen}
                 onClose={() => setScannerOpen(false)}

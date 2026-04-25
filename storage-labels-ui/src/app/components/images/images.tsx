@@ -104,7 +104,9 @@ export const Images: React.FC = () => {
                 <Typography variant="h5" gutterBottom>
                     Upload New Image
                 </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography variant="body2" gutterBottom sx={{
+                    color: "text.secondary"
+                }}>
                     Add photos of your storage boxes and items
                 </Typography>
 
@@ -118,22 +120,37 @@ export const Images: React.FC = () => {
                     {uploading ? 'Uploading...' : 'Upload Image'}
                 </Button>
             </Paper>
-
             {/* Images Gallery Section */}
             <Box>
                 <Typography variant="h5" gutterBottom>
                     Your Uploaded Images
                 </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom mb={2}>
+                <Typography
+                    variant="body2"
+                    gutterBottom
+                    sx={{
+                        color: "text.secondary",
+                        mb: 2
+                    }}>
                     Select from these images when adding or editing boxes and items
                 </Typography>
 
                 {loading ? (
-                    <Box textAlign="center" py={4}>
+                    <Box
+                        sx={{
+                            textAlign: "center",
+                            py: 4
+                        }}>
                         <CircularProgress />
                     </Box>
                 ) : images.length === 0 ? (
-                    <Typography variant="body1" color="text.secondary" textAlign="center" py={4}>
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            color: "text.secondary",
+                            textAlign: "center",
+                            py: 4
+                        }}>
                         No images uploaded yet. Upload your first image to get started.
                     </Typography>
                 ) : (
@@ -146,7 +163,6 @@ export const Images: React.FC = () => {
                     </Grid>
                 )}
             </Box>
-
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
                 <DialogTitle>Delete Image</DialogTitle>
@@ -158,11 +174,24 @@ export const Images: React.FC = () => {
                             </DialogContentText>
                             {hasReferences && (
                                 <>
-                                    <Box mt={2} p={2} bgcolor="warning.light" borderRadius={1}>
-                                        <Typography variant="body2" color="text.primary">
+                                    <Box
+                                        sx={{
+                                            mt: 2,
+                                            p: 2,
+                                            bgcolor: "warning.light",
+                                            borderRadius: 1
+                                        }}>
+                                        <Typography variant="body2" sx={{
+                                            color: "text.primary"
+                                        }}>
                                             <strong>Warning:</strong> This image is currently being used by:
                                         </Typography>
-                                        <Box component="ul" mt={1} mb={0}>
+                                        <Box
+                                            component="ul"
+                                            sx={{
+                                                mt: 1,
+                                                mb: 0
+                                            }}>
                                             {selectedImage.boxReferenceCount > 0 && (
                                                 <li>
                                                     <Typography variant="body2">
@@ -178,11 +207,18 @@ export const Images: React.FC = () => {
                                                 </li>
                                             )}
                                         </Box>
-                                        <Typography variant="body2" color="text.primary" mt={1}>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: "text.primary",
+                                                mt: 1
+                                            }}>
                                             To delete this image, you must check the &ldquo;Force Delete&rdquo; option below. This will remove the image from all boxes and items.
                                         </Typography>
                                     </Box>
-                                    <Box mt={2}>
+                                    <Box sx={{
+                                        mt: 2
+                                    }}>
                                         <FormControlLabel
                                             control={
                                                 <Checkbox
@@ -213,7 +249,6 @@ export const Images: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* Image Capture Dialog */}
             <ImageCapture
                 open={captureDialogOpen}

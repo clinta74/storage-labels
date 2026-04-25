@@ -68,7 +68,6 @@ export const Footer: React.FC = () => {
                     )}
                 </IconButton>
             </Box>
-
             {/* Footer content - collapsible on short viewports */}
             <Box
                 sx={{
@@ -100,7 +99,12 @@ export const Footer: React.FC = () => {
                                     gap: 1,
                                 }}
                             >
-                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: "text.secondary",
+                                        fontSize: '0.75rem'
+                                    }}>
                                     © {currentYear} Storage Labels. All rights reserved.
                                 </Typography>
                                 <Box sx={{ display: 'flex', gap: 2 }}>
@@ -109,9 +113,10 @@ export const Footer: React.FC = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         underline="hover"
-                                        color="text.secondary"
-                                        sx={{ fontSize: '0.75rem' }}
-                                    >
+                                        sx={{
+                                            color: "text.secondary",
+                                            fontSize: '0.75rem'
+                                        }}>
                                         Privacy Policy
                                     </Link>
                                     <Link
@@ -119,9 +124,10 @@ export const Footer: React.FC = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         underline="hover"
-                                        color="text.secondary"
-                                        sx={{ fontSize: '0.75rem' }}
-                                    >
+                                        sx={{
+                                            color: "text.secondary",
+                                            fontSize: '0.75rem'
+                                        }}>
                                         Terms of Service
                                     </Link>
                                 </Box>
@@ -130,7 +136,6 @@ export const Footer: React.FC = () => {
                     </Box>
                 </Collapse>
             </Box>
-
             {/* Always visible footer on tall viewports */}
             <Box
                 component="footer"
@@ -157,7 +162,12 @@ export const Footer: React.FC = () => {
                             gap: 2,
                         }}
                     >
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                color: "text.secondary",
+                                fontSize: '0.875rem'
+                            }}>
                             © {currentYear} Storage Labels. All rights reserved.
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 3 }}>
@@ -166,9 +176,10 @@ export const Footer: React.FC = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 underline="hover"
-                                color="text.secondary"
-                                sx={{ fontSize: '0.875rem' }}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    fontSize: '0.875rem'
+                                }}>
                                 Privacy Policy
                             </Link>
                             <Link
@@ -176,9 +187,10 @@ export const Footer: React.FC = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 underline="hover"
-                                color="text.secondary"
-                                sx={{ fontSize: '0.875rem' }}
-                            >
+                                sx={{
+                                    color: "text.secondary",
+                                    fontSize: '0.875rem'
+                                }}>
                                 Terms of Service
                             </Link>
                         </Box>

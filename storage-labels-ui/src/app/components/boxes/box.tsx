@@ -212,7 +212,12 @@ export const BoxComponent: React.FC = () => {
 
     return (
         <React.Fragment>
-            <Box margin={2} mb={2} position="relative">
+            <Box
+                sx={{
+                    margin: 2,
+                    mb: 2,
+                    position: "relative"
+                }}>
                 {location && box && (
                     <Breadcrumbs 
                         items={[
@@ -226,19 +231,25 @@ export const BoxComponent: React.FC = () => {
                     onQrCodeScan={handleQrCodeScan}
                 />
             </Box>
-
-            <Box position="relative">
+            <Box sx={{
+                position: "relative"
+            }}>
                 <Paper>
-                    <Box position="relative">
-                        <Box 
-                            margin={1} 
-                            textAlign="center" 
-                            pb={2}
+                    <Box sx={{
+                        position: "relative"
+                    }}>
+                        <Box
                             sx={{
-                                px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
-                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                            }}
-                        >
+                                margin: 1,
+                                textAlign: "center",
+                                pb: 2,
+
+                                // Extra horizontal padding on mobile to avoid FAB overlap
+                                px: { xs: 8, sm: 2 },
+
+                                // Slightly more top padding on mobile
+                                pt: { xs: 1.5, sm: 1 }
+                            }}>
                         <IconButton
                             aria-label="box settings"
                             title="Box Settings"
@@ -257,15 +268,28 @@ export const BoxComponent: React.FC = () => {
                             {box.name}
                         </Typography>
                         {location && (
-                            <Box display="flex" alignItems="center" justifyContent="center" gap={1} mt={1}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 1,
+                                    mt: 1
+                                }}>
                                 <WarehouseIcon color="action" />
-                                <Typography variant="body1" color="text.secondary">
+                                <Typography variant="body1" sx={{
+                                    color: "text.secondary"
+                                }}>
                                     {location.name}
                                 </Typography>
                             </Box>
                         )}
                     </Box>
-                    <Box margin={2} pb={2}>
+                    <Box
+                        sx={{
+                            margin: 2,
+                            pb: 2
+                        }}>
                         <Grid container spacing={2}>
                             <Grid size={{ xs: 12, md: 6 }}>
                                 <Typography variant="h6" gutterBottom component="div">
@@ -275,7 +299,11 @@ export const BoxComponent: React.FC = () => {
                             </Grid>
                             {box.imageUrl && (
                                 <Grid size={{ xs: 12, md: 6 }}>
-                                    <Box display="flex" justifyContent="center">
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            justifyContent: "center"
+                                        }}>
                                         <AuthenticatedImage
                                             src={box.imageUrl}
                                             alt={box.name}
@@ -289,31 +317,45 @@ export const BoxComponent: React.FC = () => {
                 </Box>
             </Paper>
             </Box>
-
-            <Box position="relative">
-                <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
+            <Box sx={{
+                position: "relative"
+            }}>
+                <Box
+                    sx={{
+                        position: "absolute",
+                        right: theme.spacing(1),
+                        top: theme.spacing(1),
+                        zIndex: 1
+                    }}>
                     <Fab color="primary" title="Add an Item" aria-label="add" component={Link} to="item/add">
                         <AddIcon />
                     </Fab>
                 </Box>
                 <Paper>
-                    <Box position="relative">
-                        <Box 
-                            margin={1} 
-                            textAlign="center" 
-                            pb={2}
+                    <Box sx={{
+                        position: "relative"
+                    }}>
+                        <Box
                             sx={{
-                                px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
-                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                            }}
-                        >
+                                margin: 1,
+                                textAlign: "center",
+                                pb: 2,
+
+                                // Extra horizontal padding on mobile to avoid FAB overlap
+                                px: { xs: 8, sm: 2 },
+
+                                // Slightly more top padding on mobile
+                                pt: { xs: 1.5, sm: 1 }
+                            }}>
                         <Typography variant="h4" sx={{ 
                             fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
                         }}>
                             Items
                         </Typography>
                     </Box>
-                    <Box margin={2}>
+                    <Box sx={{
+                        margin: 2
+                    }}>
                         {items.length === 0 ? (
                             <EmptyState
                                 icon={LabelIcon}
@@ -374,7 +416,6 @@ export const BoxComponent: React.FC = () => {
                 </Box>
                 </Paper>
             </Box>
-
             {/* Item Detail Modal */}
             <Modal
                 open={openModal}
@@ -393,7 +434,11 @@ export const BoxComponent: React.FC = () => {
                                 </Typography>
                             )}
                             {selectedItem.imageUrl ? (
-                                <Box display="flex" justifyContent="center">
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "center"
+                                    }}>
                                     <AuthenticatedImage
                                         src={selectedItem.imageUrl}
                                         alt={selectedItem.name}
@@ -401,13 +446,24 @@ export const BoxComponent: React.FC = () => {
                                     />
                                 </Box>
                             ) : (
-                                <Box display="flex" justifyContent="center" py={4}>
-                                    <Typography variant="body2" color="text.secondary">
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        py: 4
+                                    }}>
+                                    <Typography variant="body2" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         No image available
                                     </Typography>
                                 </Box>
                             )}
-                            <Box display="flex" justifyContent="flex-end">
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "flex-end"
+                                }}>
                                 <Button onClick={handleCloseModal} color="secondary">
                                     Close
                                 </Button>
@@ -416,7 +472,6 @@ export const BoxComponent: React.FC = () => {
                     )}
                 </Box>
             </Modal>
-
             {/* Delete Confirmation Dialog */}
             <Dialog
                 open={openDeleteDialog}
@@ -441,7 +496,6 @@ export const BoxComponent: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* Item Menu */}
             <Menu
                 anchorEl={itemMenuAnchor}
@@ -475,7 +529,6 @@ export const BoxComponent: React.FC = () => {
                     Delete
                 </MenuItem>
             </Menu>
-
             {/* Box Settings Menu */}
             <Menu
                 anchorEl={boxMenuAnchor}
@@ -503,7 +556,6 @@ export const BoxComponent: React.FC = () => {
                     Delete
                 </MenuItem>
             </Menu>
-
             {/* Move Box Dialog */}
             <Dialog
                 open={openMoveBoxDialog}
@@ -518,7 +570,9 @@ export const BoxComponent: React.FC = () => {
                         Select the location where you want to move &ldquo;{box?.name}&rdquo;.
                     </DialogContentText>
                     {availableLocations.length === 0 ? (
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{
+                            color: "text.secondary"
+                        }}>
                             No other locations available. Please create another location first.
                         </Typography>
                     ) : (
@@ -549,7 +603,6 @@ export const BoxComponent: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* Delete Box Confirmation Dialog */}
             <Dialog
                 open={openDeleteBoxDialog}

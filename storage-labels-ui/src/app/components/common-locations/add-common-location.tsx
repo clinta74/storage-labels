@@ -49,10 +49,16 @@ export const AddCommonLocation: React.FC = () => {
         <React.Fragment>
             <Box>
                 <Paper>
-                    <Box margin={1} textAlign="center">
+                    <Box
+                        sx={{
+                            margin: 1,
+                            textAlign: "center"
+                        }}>
                         <Typography variant="h4">Add Common Location</Typography>
                     </Box>
-                    <Box margin={2}>
+                    <Box sx={{
+                        margin: 2
+                    }}>
                         <FormControl fullWidth>
                             <TextField
                                 variant="standard"
@@ -68,7 +74,13 @@ export const AddCommonLocation: React.FC = () => {
                             />
                         </FormControl>
                     </Box>
-                    <Stack direction="row" spacing={2} padding={2} justifyContent="right">
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        sx={{
+                            padding: 2,
+                            justifyContent: "right"
+                        }}>
                         <Button color="primary" onClick={addCommonLocation} disabled={postingJob}>
                             Add
                         </Button>

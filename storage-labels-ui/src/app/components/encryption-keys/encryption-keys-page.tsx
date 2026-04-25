@@ -151,23 +151,38 @@ export const EncryptionKeysPage: React.FC = () => {
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    minHeight: "400px"
+                }}>
                 <CircularProgress />
             </Box>
         );
     }
 
     return (
-        <Box p={3}>
+        <Box sx={{
+            p: 3
+        }}>
             <Breadcrumbs 
                 items={[]} 
                 homeLabel="Encryption Keys"
                 homePath="/encryption-keys"
             />
-            
-            <Box position="relative">
+            <Box sx={{
+                position: "relative"
+            }}>
                 <Authorized permissions={Permissions.Write_EncryptionKeys}>
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            right: theme.spacing(1),
+                            top: theme.spacing(1),
+                            zIndex: 1
+                        }}>
                         <Tooltip title="Create New Key" placement="left">
                             <Fab
                                 color="primary"
@@ -181,16 +196,21 @@ export const EncryptionKeysPage: React.FC = () => {
                 </Authorized>
 
                 <Paper>
-                    <Box position="relative">
-                        <Box 
-                            margin={1} 
-                            textAlign="center"
-                            position="relative"
+                    <Box sx={{
+                        position: "relative"
+                    }}>
+                        <Box
                             sx={{
-                                px: { xs: 6, sm: 2 }, // Extra horizontal padding on mobile to avoid menu button overlap
-                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                            }}
-                        >
+                                margin: 1,
+                                textAlign: "center",
+                                position: "relative",
+
+                                // Extra horizontal padding on mobile to avoid menu button overlap
+                                px: { xs: 6, sm: 2 },
+
+                                // Slightly more top padding on mobile
+                                pt: { xs: 1.5, sm: 1 }
+                            }}>
                             <IconButton
                                 aria-label="encryption settings"
                                 title="Encryption Settings"
@@ -328,7 +348,6 @@ export const EncryptionKeysPage: React.FC = () => {
             </TableContainer>
                 </Paper>
             </Box>
-
             {/* Create Key Dialog */}
             <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)}>
                 <DialogTitle>Create New Encryption Key</DialogTitle>
@@ -350,29 +369,42 @@ export const EncryptionKeysPage: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* Key Stats Dialog */}
             {selectedKey && keyStats[selectedKey] && (
                 <Dialog open={true} onClose={() => setSelectedKey(null)} maxWidth="sm" fullWidth>
                     <DialogTitle>Encryption Key Statistics</DialogTitle>
                     <DialogContent>
                         <Stack spacing={2} sx={{ mt: 1 }}>
-                            <Box display="flex" gap={2}>
-                                <Box flex={1}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    gap: 2
+                                }}>
+                                <Box sx={{
+                                    flex: 1
+                                }}>
                                     <Typography variant="subtitle2" color="textSecondary">
                                         Kid
                                     </Typography>
                                     <Typography variant="h6">{keyStats[selectedKey].kid}</Typography>
                                 </Box>
-                                <Box flex={1}>
+                                <Box sx={{
+                                    flex: 1
+                                }}>
                                     <Typography variant="subtitle2" color="textSecondary">
                                         Version
                                     </Typography>
                                     <Typography variant="h6">v{keyStats[selectedKey].version}</Typography>
                                 </Box>
                             </Box>
-                            <Box display="flex" gap={2}>
-                                <Box flex={1}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    gap: 2
+                                }}>
+                                <Box sx={{
+                                    flex: 1
+                                }}>
                                     <Typography variant="subtitle2" color="textSecondary">
                                         Status
                                     </Typography>
@@ -381,7 +413,9 @@ export const EncryptionKeysPage: React.FC = () => {
                                         color={getStatusColor(keyStats[selectedKey].status)}
                                     />
                                 </Box>
-                                <Box flex={1}>
+                                <Box sx={{
+                                    flex: 1
+                                }}>
                                     <Typography variant="subtitle2" color="textSecondary">
                                         Images Encrypted
                                     </Typography>
@@ -417,7 +451,6 @@ export const EncryptionKeysPage: React.FC = () => {
                     </DialogActions>
                 </Dialog>
             )}
-
             {/* Migrate Unencrypted Images Dialog */}
             <Dialog open={migrateDialogOpen} onClose={() => setMigrateDialogOpen(false)}>
                 <DialogTitle>Migrate Unencrypted Images</DialogTitle>
@@ -444,7 +477,9 @@ export const EncryptionKeysPage: React.FC = () => {
                         )}
                         {!keys.find(k => k.status === 'Active') && (
                             <Box sx={{ bgcolor: 'warning.light', p: 2, borderRadius: 1 }}>
-                                <Typography variant="subtitle2" color="warning.dark">
+                                <Typography variant="subtitle2" sx={{
+                                    color: "warning.dark"
+                                }}>
                                     No active encryption key found. Please activate a key first.
                                 </Typography>
                             </Box>

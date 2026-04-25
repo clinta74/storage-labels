@@ -57,10 +57,16 @@ export const AddLocation: React.FC = () => {
         <React.Fragment>
             <Box>
                 <Paper>
-                    <Box margin={1} textAlign="center">
+                    <Box
+                        sx={{
+                            margin: 1,
+                            textAlign: "center"
+                        }}>
                         <Typography variant='h4'>Add Location</Typography>
                     </Box>
-                    <Box margin={2}>
+                    <Box sx={{
+                        margin: 2
+                    }}>
                         <FormControl fullWidth>
                             <Autocomplete
                                 freeSolo
@@ -92,12 +98,18 @@ export const AddLocation: React.FC = () => {
                             <ErrorMessage isSubmitted={isSubmitted} inputName="name" results={results} />
                         </FormControl>
                     </Box>
-                    <Stack direction="row" spacing={2} padding={2} justifyContent="right">
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        sx={{
+                            padding: 2,
+                            justifyContent: "right"
+                        }}>
                         <Button color="primary" onClick={addLocation} loading={postingJob}>Add</Button>
                         <Button color="secondary" component={Link} to="..">Cancel</Button>
                     </Stack>
                 </Paper>
             </Box>
         </React.Fragment>
-    )
+    );
 }

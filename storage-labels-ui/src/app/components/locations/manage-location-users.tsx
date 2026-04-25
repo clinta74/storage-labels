@@ -136,7 +136,11 @@ export const ManageLocationUsers: React.FC = () => {
 
     return (
         <React.Fragment>
-            <Box margin={2} mb={2}>
+            <Box
+                sx={{
+                    margin: 2,
+                    mb: 2
+                }}>
                 <Breadcrumbs 
                     items={[
                         { label: location.name, path: `/locations/${location.locationId}` },
@@ -146,15 +150,29 @@ export const ManageLocationUsers: React.FC = () => {
             </Box>
             <Box>
                 <Paper>
-                    <Box margin={1} textAlign="center">
+                    <Box
+                        sx={{
+                            margin: 1,
+                            textAlign: "center"
+                        }}>
                         <Typography variant='h4'>Manage Users</Typography>
                     </Box>
-                    <Box margin={2} pb={2}>
+                    <Box
+                        sx={{
+                            margin: 2,
+                            pb: 2
+                        }}>
                         {/* Add User Form */}
-                        <Box mb={2}>
+                        <Box sx={{
+                            mb: 2
+                        }}>
                             <Typography variant='h6' gutterBottom>Add User</Typography>
-                            <Stack direction="row" spacing={2} alignItems="flex-end">
-                                <Box flexGrow={1}>
+                            <Stack direction="row" spacing={2} sx={{
+                                alignItems: "flex-end"
+                            }}>
+                                <Box sx={{
+                                    flexGrow: 1
+                                }}>
                                     <TextField
                                         label="Email Address"
                                         variant="standard"
@@ -194,7 +212,9 @@ export const ManageLocationUsers: React.FC = () => {
                         {/* Users List */}
                         <Typography variant='h6' gutterBottom>Current Users</Typography>
                         {users.length === 0 ? (
-                            <Typography variant="body2" color="text.secondary">
+                            <Typography variant="body2" sx={{
+                                color: "text.secondary"
+                            }}>
                                 No users have access to this location.
                             </Typography>
                         ) : (
@@ -204,11 +224,18 @@ export const ManageLocationUsers: React.FC = () => {
                                         key={user.userId}
                                         secondaryAction={
                                             user.accessLevel === 'Owner' ? (
-                                                <Typography variant="body2" color="text.secondary" sx={{ pr: 2 }}>
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                        color: "text.secondary",
+                                                        pr: 2
+                                                    }}>
                                                     Owner
                                                 </Typography>
                                             ) : (
-                                                <Stack direction="row" spacing={1} alignItems="center">
+                                                <Stack direction="row" spacing={1} sx={{
+                                                    alignItems: "center"
+                                                }}>
                                                     <Select
                                                         value={user.accessLevel}
                                                         onChange={(e) => handleAccessLevelChange(user.userId, e.target.value as AccessLevels)}
@@ -243,7 +270,6 @@ export const ManageLocationUsers: React.FC = () => {
                     </Box>
                 </Paper>
             </Box>
-
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
                 <DialogTitle>Remove User Access</DialogTitle>
@@ -265,7 +291,6 @@ export const ManageLocationUsers: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* User Not Found Dialog */}
             <Dialog open={userNotFoundDialogOpen} onClose={() => setUserNotFoundDialogOpen(false)}>
                 <DialogTitle>User Not Found</DialogTitle>

@@ -33,19 +33,23 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                     opacity: 0.5,
                 }} 
             />
-            <Typography 
-                variant="h6" 
-                color="text.secondary"
+            <Typography
+                variant="h6"
                 gutterBottom
-                sx={{ fontWeight: 500 }}
-            >
+                sx={{
+                    color: "text.secondary",
+                    fontWeight: 500
+                }}>
                 {title}
             </Typography>
-            <Typography 
-                variant="body2" 
-                color="text.secondary" 
-                sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}
-            >
+            <Typography
+                variant="body2"
+                sx={{
+                    color: "text.secondary",
+                    mb: 3,
+                    maxWidth: 400,
+                    mx: 'auto'
+                }}>
                 {message}
             </Typography>
             {actionLabel && onAction && (

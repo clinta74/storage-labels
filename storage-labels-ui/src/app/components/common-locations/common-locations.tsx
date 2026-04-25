@@ -51,32 +51,51 @@ export const CommonLocations: React.FC = () => {
 
     return (
         <React.Fragment>
-            <Box position="relative">
+            <Box sx={{
+                position: "relative"
+            }}>
                 {canWrite && (
-                    <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            right: theme.spacing(1),
+                            top: theme.spacing(1),
+                            zIndex: 1
+                        }}>
                         <Fab color="primary" title="Add a Common Location" aria-label="add" component={Link} to="add">
                             <AddIcon />
                         </Fab>
                     </Box>
                 )}
                 <Paper>
-                    <Box 
-                        margin={1} 
-                        textAlign="center"
+                    <Box
                         sx={{
-                            px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
-                            pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                        }}
-                    >
+                            margin: 1,
+                            textAlign: "center",
+
+                            // Extra horizontal padding on mobile to avoid FAB overlap
+                            px: { xs: 8, sm: 2 },
+
+                            // Slightly more top padding on mobile
+                            pt: { xs: 1.5, sm: 1 }
+                        }}>
                         <Typography variant="h4" sx={{ 
                             fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
                         }}>
                             Common Locations
                         </Typography>
                     </Box>
-                    <Box margin={2}>
+                    <Box sx={{
+                        margin: 2
+                    }}>
                         {locations.length === 0 ? (
-                            <Typography variant="body1" color="text.secondary" textAlign="center" py={4}>
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    color: "text.secondary",
+                                    textAlign: "center",
+                                    py: 4
+                                }}>
                                 No common locations available.
                                 {canWrite && ' Click the + button to add one.'}
                             </Typography>
@@ -112,7 +131,13 @@ export const CommonLocations: React.FC = () => {
                     </Box>
                 </Paper>
                 {!canWrite && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: "text.secondary",
+                            mt: 2,
+                            textAlign: 'center'
+                        }}>
                         You have read-only access. Contact an administrator for write permissions.
                     </Typography>
                 )}

@@ -9,7 +9,9 @@ export const TermsConditions: React.FC = () => {
                     Software License Agreement for Storage Labels
                 </Typography>
                 
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography variant="body2" gutterBottom sx={{
+                    color: "text.secondary"
+                }}>
                     Last updated: {new Date().toLocaleDateString()}
                 </Typography>
 
@@ -17,7 +19,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom>
                         1. License Grant
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Storage Labels is open-source, self-hosted inventory management software. By installing and 
                         using this software, you agree to the terms of the applicable open-source license. This software 
                         is provided &quot;as-is&quot; for your personal or organizational use on infrastructure you control.
@@ -26,7 +30,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         2. Self-Hosted Software
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Storage Labels is self-hosted software that you install and run on your own infrastructure. 
                         The software provides:
                     </Typography>
@@ -37,7 +43,9 @@ export const TermsConditions: React.FC = () => {
                         <li>Search and tracking capabilities</li>
                         <li>QR code generation</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         As the installer and operator of this software, you are responsible for its security, 
                         availability, and compliance with applicable laws.
                     </Typography>
@@ -45,7 +53,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         3. Your Responsibilities
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         As the installer and operator of this self-hosted software, you are responsible for:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -60,14 +70,18 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         4. Authentication
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Storage Labels supports two authentication modes:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
                         <li><strong>Local Authentication:</strong> Users authenticate with username/password managed by the system</li>
                         <li><strong>No Authentication:</strong> Open access mode suitable only for trusted networks</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         You are responsible for choosing an appropriate authentication mode for your deployment 
                         environment and managing user access accordingly.
                     </Typography>
@@ -75,7 +89,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         5. Data Ownership
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         All data stored in your self-hosted instance of Storage Labels belongs to you. This includes:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -84,7 +100,9 @@ export const TermsConditions: React.FC = () => {
                         <li>Uploaded images</li>
                         <li>Configuration and preferences</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         As a self-hosted solution, no data is transmitted to or stored by the software developers. 
                         You maintain complete control over your data.
                     </Typography>
@@ -92,7 +110,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         6. Content Guidelines
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         When uploading images or creating content, you agree that:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -105,7 +125,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         7. Software Updates
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Storage Labels is open-source software that may receive updates and improvements. However:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -114,14 +136,18 @@ export const TermsConditions: React.FC = () => {
                         <li>Backward compatibility is not guaranteed between versions</li>
                         <li>You are responsible for testing updates before deploying to production</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         The availability and performance of your installation is your responsibility as the operator.
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         8. Data Backup and Recovery
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         As the operator of this self-hosted software, you are solely responsible for:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -130,19 +156,25 @@ export const TermsConditions: React.FC = () => {
                         <li>Maintaining disaster recovery plans</li>
                         <li>Securing backup data appropriately</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         The software developers provide no backup services and are not liable for any data loss.
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         9. Limitation of Liability and Warranty Disclaimer
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         This software is provided &quot;as is&quot; without warranty of any kind, either express or implied, 
                         including but not limited to warranties of merchantability, fitness for a particular purpose, 
                         or non-infringement.
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         The developers and contributors shall not be liable for any direct, indirect, incidental, 
                         special, consequential, or punitive damages, including without limitation, loss of profits, 
                         data, use, or other intangible losses, resulting from:
@@ -158,7 +190,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         10. Indemnification
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         You agree to indemnify and hold harmless the developers, contributors, and maintainers of 
                         Storage Labels from any claims, damages, losses, liabilities, and expenses arising from:
                     </Typography>
@@ -172,7 +206,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         11. Open Source License
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Storage Labels is licensed under an open-source license. You are free to:
                     </Typography>
                     <Box component="ul" sx={{ pl: 3 }}>
@@ -181,14 +217,18 @@ export const TermsConditions: React.FC = () => {
                         <li>Distribute copies of the software</li>
                         <li>Contribute improvements back to the project</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         Please refer to the LICENSE file in the source repository for the complete license terms.
                     </Typography>
 
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         12. Changes to Terms
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         These terms may be updated from time to time. Changes will be reflected in software updates. 
                         It is your responsibility to review the terms when updating the software.
                     </Typography>
@@ -196,7 +236,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         13. Governing Law
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         These terms shall be governed by and construed in accordance with applicable laws, without 
                         regard to conflict of law provisions.
                     </Typography>
@@ -204,7 +246,9 @@ export const TermsConditions: React.FC = () => {
                     <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
                         14. Support and Community
                     </Typography>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         As self-hosted open-source software, support is community-driven. For questions, 
                         issues, or contributions:
                     </Typography>
@@ -214,7 +258,9 @@ export const TermsConditions: React.FC = () => {
                         <li>Join community discussions</li>
                         <li>Submit bug reports or feature requests</li>
                     </Box>
-                    <Typography paragraph>
+                    <Typography sx={{
+                        marginBottom: "16px"
+                    }}>
                         No official support is guaranteed. Community assistance is provided on a best-effort basis.
                     </Typography>
                 </Box>

@@ -30,13 +30,14 @@ export const ImageCard: React.FC<ImageCardProps> = ({ image, onDelete }) => {
 
     return (
         <Card>
-            <Box 
-                height={200} 
-                display="flex" 
-                alignItems="center" 
-                justifyContent="center" 
-                sx={{ bgcolor: 'action.hover' }}
-            >
+            <Box
+                sx={{
+                    height: 200,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: 'action.hover'
+                }}>
                 <AuthenticatedImage
                     src={image.url}
                     alt={image.fileName}
@@ -47,10 +48,22 @@ export const ImageCard: React.FC<ImageCardProps> = ({ image, onDelete }) => {
                 <Typography variant="body2" noWrap title={image.fileName}>
                     {image.fileName}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" display="block">
+                <Typography
+                    variant="caption"
+                    sx={{
+                        color: "text.secondary",
+                        display: "block"
+                    }}>
                     {formatFileSize(image.sizeInBytes)} • {formatDate(image.uploadedAt)}
                 </Typography>
-                <Stack direction="row" spacing={0.5} mt={1} flexWrap="wrap" gap={0.5}>
+                <Stack
+                    direction="row"
+                    spacing={0.5}
+                    sx={{
+                        mt: 1,
+                        flexWrap: "wrap",
+                        gap: 0.5
+                    }}>
                     {image.boxReferenceCount > 0 && (
                         <Chip
                             label={`${image.boxReferenceCount} box${image.boxReferenceCount > 1 ? 'es' : ''}`}

@@ -37,35 +37,54 @@ export const Locations: React.FC = () => {
 
     return (
         <React.Fragment>
-            <Box margin={2} mb={2}>
+            <Box
+                sx={{
+                    margin: 2,
+                    mb: 2
+                }}>
                 <Breadcrumbs items={[]} />
             </Box>
-
-            <Box position="relative" margin={2}>
+            <Box
+                sx={{
+                    position: "relative",
+                    margin: 2
+                }}>
                 <SearchBar
                     placeholder="Search all boxes and items..."
                     onQrCodeScan={handleQrCodeScan}
                 />
             </Box>
-
-            <Box position="relative">
-                <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
+            <Box sx={{
+                position: "relative"
+            }}>
+                <Box
+                    sx={{
+                        position: "absolute",
+                        right: theme.spacing(1),
+                        top: theme.spacing(1),
+                        zIndex: 1
+                    }}>
                     <Fab color="primary" title="Add a Location" aria-label="add" component={Link} to={`add`}>
                         <AddIcon />
                     </Fab>
                 </Box>
                 <Paper>
-                    <Box position="relative">
-                        <Box 
-                            margin={1} 
-                            textAlign="center"
-                            position="relative"
-                            pb={2}
+                    <Box sx={{
+                        position: "relative"
+                    }}>
+                        <Box
                             sx={{
-                                px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
-                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                            }}
-                        >
+                                margin: 1,
+                                textAlign: "center",
+                                position: "relative",
+                                pb: 2,
+
+                                // Extra horizontal padding on mobile to avoid FAB overlap
+                                px: { xs: 8, sm: 2 },
+
+                                // Slightly more top padding on mobile
+                                pt: { xs: 1.5, sm: 1 }
+                            }}>
                             <Typography variant='h4' sx={{ 
                                 fontSize: { xs: '1.75rem', sm: '2.125rem' } // Slightly smaller on mobile
                             }}>
@@ -74,7 +93,9 @@ export const Locations: React.FC = () => {
                         </Box>
                     </Box>
 
-                    <Box margin={2}>
+                    <Box sx={{
+                        margin: 2
+                    }}>
                         {locations.length === 0 ? (
                             <EmptyState
                                 icon={WarehouseIcon}

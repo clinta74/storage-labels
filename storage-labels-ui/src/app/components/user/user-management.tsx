@@ -171,7 +171,13 @@ export const UserManagement: React.FC = () => {
     if (loading) {
         return (
             <Container maxWidth="lg">
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        minHeight: "50vh"
+                    }}>
                     <CircularProgress />
                 </Box>
             </Container>
@@ -180,7 +186,9 @@ export const UserManagement: React.FC = () => {
 
     return (
         <Container maxWidth="lg">
-            <Box my={4}>
+            <Box sx={{
+                my: 4
+            }}>
                 <Typography variant="h4" component="h1" gutterBottom>
                     User Management
                 </Typography>
@@ -278,7 +286,11 @@ export const UserManagement: React.FC = () => {
                     </TableContainer>
 
                     {users.length === 0 && (
-                        <Box p={4} textAlign="center">
+                        <Box
+                            sx={{
+                                p: 4,
+                                textAlign: "center"
+                            }}>
                             <Typography variant="body1" color="textSecondary">
                                 No users found
                             </Typography>

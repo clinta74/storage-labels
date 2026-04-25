@@ -18,8 +18,18 @@ export const App: React.FC = () => {
         <React.Fragment>
             <ThemeProvider theme={theme}>
                 <ConfirmProvider>
-                    <Box display="flex" flexDirection="column" minHeight="100vh">
-                        <Box position="relative" zIndex={2} flex="1">
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            minHeight: "100vh"
+                        }}>
+                        <Box
+                            sx={{
+                                position: "relative",
+                                zIndex: 2,
+                                flex: "1"
+                            }}>
                             <AlertProvider>
                                 <SnackbarProvider>
                                     <AlertMessage />

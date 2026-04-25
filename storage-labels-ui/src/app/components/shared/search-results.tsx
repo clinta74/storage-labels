@@ -92,7 +92,9 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     if (loading && results.length === 0) {
         return (
             <Paper elevation={2} sx={{ p: 2 }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{
+                    color: "text.secondary"
+                }}>
                     Searching...
                 </Typography>
             </Paper>
@@ -139,13 +141,14 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                         zIndex: 1,
                     }}
                 >
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" sx={{
+                        color: "text.secondary"
+                    }}>
                         {totalResults} result{totalResults !== 1 ? 's' : ''} found
                         {results.length < totalResults && ` • Showing ${results.length}`}
                     </Typography>
                 </Box>
             )}
-            
             <List sx={{ flexGrow: 1, overflow: 'visible' }}>
                 {results.map((result, index) => (
                     <ListItem
@@ -161,7 +164,12 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                             </ListItemAvatar>
                             <ListItemText
                                 primary={
-                                    <Box display="flex" alignItems="center" gap={1}>
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 1
+                                        }}>
                                         {result.type === 'box' ? result.boxName : result.itemName}
                                         <Chip
                                             label={result.type}
@@ -184,16 +192,22 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                                 secondary={
                                     <>
                                         {result.type === 'box' && result.boxCode && (
-                                            <Typography variant="caption" component="span" display="block">
+                                            <Typography variant="caption" component="span" sx={{
+                                                display: "block"
+                                            }}>
                                                 Code: {result.boxCode}
                                             </Typography>
                                         )}
                                         {result.type === 'item' && (
-                                            <Typography variant="caption" component="span" display="block">
+                                            <Typography variant="caption" component="span" sx={{
+                                                display: "block"
+                                            }}>
                                                 In box: {result.boxName} ({result.boxCode})
                                             </Typography>
                                         )}
-                                        <Typography variant="caption" component="span" color="text.secondary">
+                                        <Typography variant="caption" component="span" sx={{
+                                            color: "text.secondary"
+                                        }}>
                                             Location: {result.locationName}
                                         </Typography>
                                     </>
@@ -207,14 +221,15 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                     </ListItem>
                 ))}
             </List>
-            
             {/* Load More button and loading indicator */}
             {hasMoreResults && (
                 <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', textAlign: 'center', bgcolor: 'background.paper' }}>
                     {loadingMore ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
                             <CircularProgress size={24} />
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography variant="caption" sx={{
+                                color: "text.secondary"
+                            }}>
                                 Loading more results...
                             </Typography>
                         </Box>

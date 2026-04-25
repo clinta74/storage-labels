@@ -57,7 +57,13 @@ export const Preferences: React.FC = () => {
     if (!user) {
         return (
             <Container>
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        minHeight: "200px"
+                    }}>
                     <CircularProgress />
                 </Box>
             </Container>
@@ -69,19 +75,16 @@ export const Preferences: React.FC = () => {
             <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
                 User Preferences
             </Typography>
-
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
                     {error}
                 </Alert>
             )}
-
             {success && (
                 <Alert severity="success" sx={{ mb: 2 }}>
                     Preferences saved successfully!
                 </Alert>
             )}
-
             <Paper sx={{ p: 3 }}>
                 <FormControl component="fieldset" fullWidth sx={{ mb: 3 }}>
                     <FormLabel component="legend">Theme</FormLabel>
@@ -92,7 +95,12 @@ export const Preferences: React.FC = () => {
                         <FormControlLabel value="light" control={<Radio />} label="Light - Off-white background with dark text" />
                         <FormControlLabel value="dark" control={<Radio />} label="Dark - Dark background with light text" />
                     </RadioGroup>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            color: "text.secondary",
+                            mt: 1
+                        }}>
                         Theme changes will apply immediately after saving
                     </Typography>
                 </FormControl>
@@ -109,7 +117,12 @@ export const Preferences: React.FC = () => {
                         }
                         label="Show Images"
                     />
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 4 }}>
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            color: "text.secondary",
+                            ml: 4
+                        }}>
                         When disabled, image placeholders will be shown instead of loading images (saves bandwidth)
                     </Typography>
                 </FormControl>
@@ -128,12 +141,23 @@ export const Preferences: React.FC = () => {
                         placeholder="e.g., 3:primary,2:secondary,*,4:error"
                         helperText="Format: length:color,length:color,... Use * for remaining chars. Colors: primary, secondary, error, warning, info, success"
                     />
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            color: "text.secondary",
+                            mt: 1
+                        }}>
                         Example: &ldquo;3:primary,2:secondary,*,4:error&rdquo; colors first 3 chars primary, next 2 secondary, skip middle, last 4 error
                     </Typography>
                 </FormControl>
 
-                <Stack direction="row" spacing={2} padding={2} justifyContent="right">
+                <Stack
+                    direction="row"
+                    spacing={2}
+                    sx={{
+                        padding: 2,
+                        justifyContent: "right"
+                    }}>
                     <Button
                         color="primary"
                         onClick={handleSave}

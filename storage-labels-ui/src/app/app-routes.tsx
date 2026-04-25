@@ -34,9 +34,18 @@ export const AppRoutes: React.FunctionComponent = () => {
 const AuthenticatedRoutes: React.FC<{ isLoading: boolean; isAuthenticated: boolean; authMode: 'Local' | 'None' | null }> = ({ isLoading, isAuthenticated, authMode }) => {
     if (isLoading) {
         return (
-            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="50vh">
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "50vh"
+                }}>
                 <CircularProgress size='5rem' />
-                <Box mt={4}>
+                <Box sx={{
+                    mt: 4
+                }}>
                     <Typography variant="h5">Putting some things away...</Typography>
                 </Box>
             </Box>

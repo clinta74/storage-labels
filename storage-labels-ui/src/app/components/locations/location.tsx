@@ -136,7 +136,12 @@ export const Location: React.FC = () => {
 
     return (
         <React.Fragment>
-            <Box margin={2} mb={2} position="relative">
+            <Box
+                sx={{
+                    margin: 2,
+                    mb: 2,
+                    position: "relative"
+                }}>
                 {location && (
                     <Breadcrumbs 
                         items={[
@@ -149,25 +154,37 @@ export const Location: React.FC = () => {
                     onQrCodeScan={handleQrCodeScan}
                 />
             </Box>
-
-            <Box position="relative">
-                <Box position="absolute" right={theme.spacing(1)} top={theme.spacing(1)} sx={{ zIndex: 1 }}>
+            <Box sx={{
+                position: "relative"
+            }}>
+                <Box
+                    sx={{
+                        position: "absolute",
+                        right: theme.spacing(1),
+                        top: theme.spacing(1),
+                        zIndex: 1
+                    }}>
                     <Fab color="primary" title="Add a Box" aria-label="add" component={Link} to={`box/add`}>
                         <AddIcon />
                     </Fab>
                 </Box>
                 <Paper>
-                    <Box position="relative">
-                        <Box 
-                            margin={1} 
-                            textAlign="center" 
-                            pb={2}
-                            position="relative"
+                    <Box sx={{
+                        position: "relative"
+                    }}>
+                        <Box
                             sx={{
-                                px: { xs: 8, sm: 2 }, // Extra horizontal padding on mobile to avoid FAB overlap
-                                pt: { xs: 1.5, sm: 1 } // Slightly more top padding on mobile
-                            }}
-                        >
+                                margin: 1,
+                                textAlign: "center",
+                                pb: 2,
+                                position: "relative",
+
+                                // Extra horizontal padding on mobile to avoid FAB overlap
+                                px: { xs: 8, sm: 2 },
+
+                                // Slightly more top padding on mobile
+                                pt: { xs: 1.5, sm: 1 }
+                            }}>
                         <IconButton
                             aria-label="location settings"
                             title="Location Settings"
@@ -186,7 +203,9 @@ export const Location: React.FC = () => {
                             {location?.name}
                         </Typography>
                     </Box>
-                    <Box margin={2}>
+                    <Box sx={{
+                        margin: 2
+                    }}>
                         {boxes.length === 0 ? (
                             <EmptyState
                                 icon={InventoryIcon}
@@ -223,7 +242,6 @@ export const Location: React.FC = () => {
                 </Box>
                 </Paper>
             </Box>
-
             {/* Delete Confirmation Dialog */}
             <Dialog
                 open={openDeleteDialog}
@@ -252,7 +270,6 @@ export const Location: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
             {/* Settings Menu */}
             <Menu
                 anchorEl={settingsMenuAnchor}
@@ -282,7 +299,6 @@ export const Location: React.FC = () => {
                     Delete Location
                 </MenuItem>
             </Menu>
-
             {/* Delete Location Confirmation Dialog */}
             <Dialog
                 open={openDeleteLocationDialog}

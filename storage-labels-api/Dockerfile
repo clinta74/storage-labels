@@ -30,6 +30,11 @@ LABEL org.opencontainers.image.version="${VERSION}"
 
 WORKDIR /app
 
+# Install Kerberos libraries required by Npgsql for PostgreSQL authentication
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create directory for persistent image storage
 RUN mkdir -p /app/data/images
 

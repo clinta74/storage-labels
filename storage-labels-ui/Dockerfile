@@ -7,8 +7,8 @@ ENV APP_VERSION=${VERSION}
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files and npmrc config
+COPY package*.json .npmrc* ./
 
 # Install dependencies
 RUN npm ci

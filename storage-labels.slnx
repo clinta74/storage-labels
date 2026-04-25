@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="storage-labels-api-test/storage-labels-api-test.csproj" />
+  <Project Path="storage-labels-api/storage-labels-api.csproj" />
+</Solution>

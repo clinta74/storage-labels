@@ -1,16 +1,21 @@
-using StorageLabelsApi.Handlers.Users;
+using Microsoft.EntityFrameworkCore;
+using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.Logging;
 
 namespace StorageLabelsApi.Filters;
 
-public class UserExistsEndpointFilter(IMediator mediator, ILogger<UserExistsEndpointFilter> logger) 
+public class UserExistsEndpointFilter(StorageLabelsDbContext dbContext, ILogger<UserExistsEndpointFilter> logger) 
     : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         var userId = context.HttpContext.TryGetUserId();
 
-        if (!await mediator.Send(new UserExists(userId ?? string.Empty)))
+        var exists = await dbContext.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.UserId == (userId ?? string.Empty));
+
+        if (!exists)
         {
             logger.UserNotFound(userId ?? "null");
             return Results.Problem("User not found.");

@@ -1,9 +1,10 @@
 using Ardalis.Result.AspNetCore;
+using Ardalis.Result.FluentValidation;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using StorageLabelsApi.Extensions;
-using StorageLabelsApi.Handlers.Authentication;
 using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO.Authentication;
 using StorageLabelsApi.Models.Settings;
@@ -78,12 +79,18 @@ public static class MapAuthentication
 
     private static async Task<IResult> Login(
         HttpContext context,
-        [FromBody] Login request,
-        IMediator mediator,
+        [FromBody] LoginRequest request,
+        [FromServices] IAuthenticationService authService,
         IOptions<RefreshTokenSettings> refreshTokenOptions,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(request, cancellationToken);
+        var validation = await new LoginValidator().ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return Result<AuthenticationResult>.Invalid(validation.AsErrors()).ToMinimalApiResult();
+        }
+
+        var result = await authService.LoginAsync(request, cancellationToken);
         if (result.IsSuccess)
         {
             IssueRefreshTokenCookie(context, refreshTokenOptions.Value, result.Value);
@@ -93,12 +100,18 @@ public static class MapAuthentication
 
     private static async Task<IResult> Register(
         HttpContext context,
-        [FromBody] Register request,
-        IMediator mediator,
+        [FromBody] RegisterRequest request,
+        [FromServices] IAuthenticationService authService,
         IOptions<RefreshTokenSettings> refreshTokenOptions,
         CancellationToken cancellationToken)
     {
-        var result = await mediator.Send(request, cancellationToken);
+        var validation = await new RegisterValidator().ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return Result<AuthenticationResult>.Invalid(validation.AsErrors()).ToMinimalApiResult();
+        }
+
+        var result = await authService.RegisterAsync(request, cancellationToken);
         if (result.IsSuccess)
         {
             IssueRefreshTokenCookie(context, refreshTokenOptions.Value, result.Value);
@@ -108,7 +121,7 @@ public static class MapAuthentication
 
     private static async Task<IResult> Logout(
         HttpContext context,
-        IMediator mediator,
+        [FromServices] IAuthenticationService authService,
         IOptions<RefreshTokenSettings> refreshTokenOptions,
         CancellationToken cancellationToken)
     {
@@ -118,8 +131,7 @@ public static class MapAuthentication
             return Results.Unauthorized();
         }
 
-        var request = new Logout(userId);
-        var result = await mediator.Send(request, cancellationToken);
+        var result = await authService.LogoutAsync(userId, cancellationToken);
         if (result.IsSuccess)
         {
             ClearRefreshTokenCookie(context, refreshTokenOptions.Value);
@@ -129,7 +141,7 @@ public static class MapAuthentication
 
     private static async Task<IResult> Refresh(
         HttpContext context,
-        IMediator mediator,
+        [FromServices] IAuthenticationService authService,
         IOptions<RefreshTokenSettings> refreshTokenOptions,
         CancellationToken cancellationToken)
     {
@@ -139,14 +151,13 @@ public static class MapAuthentication
             return Results.Unauthorized();
         }
 
-        var request = new RefreshAuthentication(refreshToken);
-        var result = await mediator.Send(request, cancellationToken);
+        var result = await authService.RefreshAsync(refreshToken, cancellationToken);
 
         if (result.IsSuccess)
         {
             IssueRefreshTokenCookie(context, refreshTokenOptions.Value, result.Value);
         }
-        else if (result.Status == ResultStatus.Unauthorized)
+        else if (result.Status == Ardalis.Result.ResultStatus.Unauthorized)
         {
             ClearRefreshTokenCookie(context, refreshTokenOptions.Value);
         }
@@ -156,7 +167,7 @@ public static class MapAuthentication
 
     private static async Task<IResult> GetCurrentUser(
         HttpContext context,
-        IMediator mediator,
+        [FromServices] IAuthenticationService authService,
         CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
@@ -165,18 +176,20 @@ public static class MapAuthentication
             return Results.Unauthorized();
         }
 
-        var request = new GetCurrentUserInfo(userId);
-        var result = await mediator.Send(request, cancellationToken);
+        var result = await authService.GetCurrentUserAsync(userId, cancellationToken);
         return result.ToMinimalApiResult();
     }
 
-    private static async Task<IResult> GetAuthConfig(
-        IMediator mediator,
-        CancellationToken cancellationToken)
+    private static IResult GetAuthConfig(
+        IOptions<AuthenticationSettings> authSettings)
     {
-        var request = new GetAuthConfig();
-        var result = await mediator.Send(request, cancellationToken);
-        return result.ToMinimalApiResult();
+        var s = authSettings.Value;
+        var config = new AuthConfigResponse(
+            s.Mode,
+            s.Local.AllowRegistration,
+            s.Local.RequireEmailConfirmation
+        );
+        return Result.Success(config).ToMinimalApiResult();
     }
 
     private static async Task<IResult> ChangePassword(
@@ -236,7 +249,29 @@ public static class MapAuthentication
 
         context.Response.Cookies.Append(settings.CookieName, string.Empty, cookieOptions);
     }
+
+    private sealed class LoginValidator : AbstractValidator<LoginRequest>
+    {
+        public LoginValidator()
+        {
+            RuleFor(x => x.UsernameOrEmail).NotEmpty().WithMessage("Username or email is required");
+            RuleFor(x => x.Password).NotEmpty().WithMessage("Password is required");
+        }
+    }
+
+    private sealed class RegisterValidator : AbstractValidator<RegisterRequest>
+    {
+        public RegisterValidator()
+        {
+            RuleFor(x => x.Email).NotEmpty().WithMessage("Email is required").EmailAddress().WithMessage("Valid email address is required");
+            RuleFor(x => x.Username).NotEmpty().WithMessage("Username is required").MinimumLength(3).WithMessage("Username must be at least 3 characters");
+            RuleFor(x => x.Password).NotEmpty().WithMessage("Password is required").MinimumLength(8).WithMessage("Password must be at least 8 characters");
+            RuleFor(x => x.FirstName).NotEmpty().WithMessage("First name is required").MinimumLength(2).WithMessage("First name must be at least 2 characters");
+            RuleFor(x => x.LastName).NotEmpty().WithMessage("Last name is required").MinimumLength(2).WithMessage("Last name must be at least 2 characters");
+        }
+    }
 }
 
 public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public record AdminResetPasswordRequest(string UserId, string NewPassword);
+

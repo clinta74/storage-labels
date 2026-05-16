@@ -1,5 +1,5 @@
 using StorageLabelsApi.DataLayer.Models;
-using StorageLabelsApi.Handlers.Locations;
+using LocationModel = StorageLabelsApi.DataLayer.Models.Location;
 
 namespace StorageLabelsApi.Models.DTO.Location;
 
@@ -11,10 +11,10 @@ public record LocationResponse(
     DateTimeOffset Updated
 )
 {
-    public LocationResponse(LocationWithAccess location) : this(
+    public LocationResponse(LocationModel location, AccessLevels accessLevel) : this(
         location.LocationId,
         location.Name,
-        location.AccessLevel,
+        accessLevel,
         location.Created,
         location.Updated)
     { }

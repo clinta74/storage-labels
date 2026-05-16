@@ -1,3 +1,12 @@
+using StorageLabelsApi.Endpoints.Boxes;
+using StorageLabelsApi.Endpoints.CommonLocations;
+using StorageLabelsApi.Endpoints.EncryptionKeys;
+using StorageLabelsApi.Endpoints.Images;
+using StorageLabelsApi.Endpoints.Items;
+using StorageLabelsApi.Endpoints.Locations;
+using StorageLabelsApi.Endpoints.Search;
+using StorageLabelsApi.Endpoints.Users;
+
 namespace StorageLabelsApi.Endpoints;
 
 internal static partial class EndpointsMapper
@@ -17,9 +26,9 @@ internal static partial class EndpointsMapper
         api.MapItem();
         api.MapLocation();
         api.MapUser();
-        api.MapImageEndpoints();
+        api.MapImage();
         api.MapSearch();
-        api.MapEncryptionKeyEndpoints();
+        api.MapEncryptionKeys();
 
         // Root endpoint - redirect to Swagger in development
         routeBuilder.MapGet("/", (HttpContext context) =>

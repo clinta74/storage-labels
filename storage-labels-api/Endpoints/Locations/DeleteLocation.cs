@@ -9,7 +9,7 @@ namespace StorageLabelsApi.Endpoints.Locations;
 
 internal static partial class LocationEndpoints
 {
-    private static async Task<Results<Ok, NotFound<string>, ValidationProblem>> DeleteLocation(HttpContext context, [FromRoute] long locationId, [FromServices] StorageLabelsDbContext dbContext, ILogger logger, CancellationToken cancellationToken, [FromQuery] bool force = false)
+    private static async Task<Results<Ok, NotFound<string>, ValidationProblem>> DeleteLocation(HttpContext context, [FromRoute] long locationId, [FromServices] StorageLabelsDbContext dbContext, [FromServices] ILogger logger, CancellationToken cancellationToken, [FromQuery] bool force = false)
     {
         var userId = context.GetUserId();
 

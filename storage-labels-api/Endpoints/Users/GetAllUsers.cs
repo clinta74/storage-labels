@@ -10,7 +10,7 @@ namespace StorageLabelsApi.Endpoints.Users;
 
 internal static partial class UserEndpoints
 {
-    private static async Task<Results<Ok<List<UserWithRoles>>, ProblemHttpResult>> GetAllUsers([FromServices] UserManager<ApplicationUser> userManager, [FromServices] StorageLabelsDbContext dbContext, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok<List<UserWithRoles>>, ProblemHttpResult>> GetAllUsers([FromServices] UserManager<ApplicationUser> userManager, [FromServices] StorageLabelsDbContext dbContext, [FromServices] ILogger logger, CancellationToken cancellationToken)
     {
         try
         {

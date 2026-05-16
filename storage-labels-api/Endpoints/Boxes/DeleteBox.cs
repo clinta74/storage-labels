@@ -10,7 +10,7 @@ namespace StorageLabelsApi.Endpoints.Boxes;
 
 internal static partial class BoxEndpoints
 {
-    private static async Task<Results<Ok, NotFound<string>, ValidationProblem>> DeleteBox(HttpContext context, [FromRoute] Guid boxId, [FromServices] StorageLabelsDbContext dbContext, ILogger logger, CancellationToken cancellationToken, [FromQuery] bool force = false)
+    private static async Task<Results<Ok, NotFound<string>, ValidationProblem>> DeleteBox(HttpContext context, [FromRoute] Guid boxId, [FromServices] StorageLabelsDbContext dbContext, [FromServices] ILogger logger, CancellationToken cancellationToken, [FromQuery] bool force = false)
     {
         var userId = context.GetUserId();
 

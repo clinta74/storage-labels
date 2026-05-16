@@ -11,7 +11,7 @@ namespace StorageLabelsApi.Endpoints.Items;
 
 internal static partial class ItemEndpoints
 {
-    private static async Task<Results<Created<ItemResponse>, ValidationProblem>> CreateItem(HttpContext context, ItemRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Created<ItemResponse>, ValidationProblem>> CreateItem(HttpContext context, ItemRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, [FromServices] ILogger logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

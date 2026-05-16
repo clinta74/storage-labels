@@ -9,7 +9,7 @@ namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
 internal static partial class EncryptionKeyEndpoints
 {
-    private static async Task<Results<Ok<ActivateEncryptionKeyResult>, NotFound<string>>> ActivateEncryptionKey([FromRoute] int kid, HttpContext context, [FromServices] IImageEncryptionService encryptionService, [FromServices] IKeyRotationService rotationService, [FromServices] StorageLabelsDbContext dbContext, ILogger logger, [FromQuery] bool autoRotate = true, CancellationToken cancellationToken = default)
+    private static async Task<Results<Ok<ActivateEncryptionKeyResult>, NotFound<string>>> ActivateEncryptionKey([FromRoute] int kid, HttpContext context, [FromServices] IImageEncryptionService encryptionService, [FromServices] IKeyRotationService rotationService, [FromServices] StorageLabelsDbContext dbContext, [FromServices] ILogger logger, [FromQuery] bool autoRotate = true, CancellationToken cancellationToken = default)
     {
         var userId = context.GetUserId();
 

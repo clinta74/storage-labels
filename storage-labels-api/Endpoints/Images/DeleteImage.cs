@@ -8,12 +8,12 @@ namespace StorageLabelsApi.Endpoints.Images;
 
 internal static partial class ImageEndpoints
 {
-    private static async Task<Results<Ok, NotFound<string>, ProblemHttpResult>> DeleteImage([FromRoute] Guid imageId, HttpContext context, [FromServices] StorageLabelsDbContext dbContext, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok, NotFound<string>, ProblemHttpResult>> DeleteImage([FromRoute] Guid imageId, HttpContext context, [FromServices] StorageLabelsDbContext dbContext, [FromServices] ILogger logger, CancellationToken cancellationToken)
     {
         return await DeleteImageCore(imageId, context.GetUserId(), false, dbContext, logger, cancellationToken);
     }
 
-    private static async Task<Results<Ok, NotFound<string>, ProblemHttpResult>> ForceDeleteImage([FromRoute] Guid imageId, HttpContext context, [FromServices] StorageLabelsDbContext dbContext, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok, NotFound<string>, ProblemHttpResult>> ForceDeleteImage([FromRoute] Guid imageId, HttpContext context, [FromServices] StorageLabelsDbContext dbContext, [FromServices] ILogger logger, CancellationToken cancellationToken)
     {
         return await DeleteImageCore(imageId, context.GetUserId(), true, dbContext, logger, cancellationToken);
     }

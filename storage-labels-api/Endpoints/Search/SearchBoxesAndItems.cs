@@ -12,7 +12,7 @@ internal static partial class SearchEndpoints
     private static async Task<Results<Ok<List<SearchResultResponse>>, ProblemHttpResult>> SearchBoxesAndItems(
         HttpContext context,
         [FromServices] ISearchService searchService,
-        ILogger logger,
+        [FromServices] ILogger logger,
         [FromQuery] string query,
         [FromQuery] long? locationId = null,
         [FromQuery] Guid? boxId = null,

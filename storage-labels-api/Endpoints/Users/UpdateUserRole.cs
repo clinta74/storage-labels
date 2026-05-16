@@ -9,7 +9,7 @@ namespace StorageLabelsApi.Endpoints.Users;
 
 internal static partial class UserEndpoints
 {
-    private static async Task<Results<Ok, NotFound<string>, ValidationProblem, ProblemHttpResult>> UpdateUserRole([FromRoute] string userid, UpdateUserRoleRequest request, [FromServices] UserManager<ApplicationUser> userManager, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok, NotFound<string>, ValidationProblem, ProblemHttpResult>> UpdateUserRole([FromRoute] string userid, UpdateUserRoleRequest request, [FromServices] UserManager<ApplicationUser> userManager, [FromServices] ILogger logger, CancellationToken cancellationToken)
     {
         var validation = await new UpdateUserRoleValidator().ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)

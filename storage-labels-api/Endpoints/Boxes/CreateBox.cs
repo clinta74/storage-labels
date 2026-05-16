@@ -11,7 +11,7 @@ namespace StorageLabelsApi.Endpoints.Boxes;
 
 internal static partial class BoxEndpoints
 {
-    private static async Task<Results<Created<BoxResponse>, ValidationProblem, ProblemHttpResult>> CreateBox(HttpContext context, BoxRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Created<BoxResponse>, ValidationProblem, ProblemHttpResult>> CreateBox(HttpContext context, BoxRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, [FromServices] ILogger logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

@@ -7,7 +7,7 @@ namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
 internal static partial class EncryptionKeyEndpoints
 {
-    private static async Task<Results<Ok<bool>, NotFound<string>>> CancelRotation([FromRoute] Guid rotationId, HttpContext context, [FromServices] IKeyRotationService rotationService, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok<bool>, NotFound<string>>> CancelRotation([FromRoute] Guid rotationId, HttpContext context, [FromServices] IKeyRotationService rotationService, [FromServices] ILogger logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

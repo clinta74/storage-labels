@@ -10,7 +10,7 @@ namespace StorageLabelsApi.Endpoints.Boxes;
 
 internal static partial class BoxEndpoints
 {
-    private static async Task<Results<Ok<BoxResponse>, NotFound<string>, ValidationProblem>> MoveBox(HttpContext context, [FromRoute] Guid boxId, [FromBody] MoveBoxRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok<BoxResponse>, NotFound<string>, ValidationProblem>> MoveBox(HttpContext context, [FromRoute] Guid boxId, [FromBody] MoveBoxRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, [FromServices] ILogger logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

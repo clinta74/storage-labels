@@ -1318,18 +1318,7 @@ public class CreateBoxRequest
 
 ### Backend (C#)
 
-The test project (`storage-labels-api-test/`) contains two categories of tests controlled by the `Category` trait:
-
-| Category | Description | DB Required |
-|---|---|---|
-| (none / unit) | Handler logic with in-memory or mocked dependencies | No |
-| `Integration` | Full HTTP round-trip against a real PostgreSQL database | Yes |
-
----
-
-#### Unit Tests
-
-**All handlers must have unit tests** using xUnit, Shouldly, and Moq.
+**All handlers must have unit tests** using xUnit, FluentAssertions, and Moq.
 
 **Pattern:**
 ```csharp
@@ -1347,89 +1336,23 @@ public class CreateBoxHandlerTests
         var result = await handler.Handle(request, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.Code.ShouldBe("BOX001");
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Code.Should().Be("BOX001");
+    }
+
+    [Fact]
+    public async Task Handle_DuplicateCode_ReturnsError()
+    {
+        // Arrange, Act, Assert
     }
 }
 ```
 
 **Requirements:**
+- Minimum 80% code coverage
 - Test happy path and error cases
 - Use descriptive test names
-- Use Shouldly for readable assertions
-
-Run unit tests (no database needed):
-```bash
-dotnet test --filter "Category!=Integration"
-```
-
----
-
-#### Integration Tests
-
-Integration tests start a real instance of the API via `WebApplicationFactory<Program>` and run against a PostgreSQL test database. Each test begins with a clean slate — [Respawn](https://github.com/jbogard/Respawn) resets the database between every test.
-
-**Running locally:**
-
-1. Start the test database:
-   ```bash
-   docker compose -f docker-compose.test.yml up -d --wait
-   ```
-
-2. Run integration tests:
-   ```bash
-   dotnet test --filter "Category=Integration"
-   ```
-
-3. Stop the test database when done:
-   ```bash
-   docker compose -f docker-compose.test.yml down
-   ```
-
-The test database runs on port **5433** to avoid conflicts with a local development database on the default port 5432.
-
-**Writing integration tests:**
-
-All integration test classes must:
-- Be in the `Integration/` folder
-- Inherit from `IntegrationTestBase`
-- Be decorated with `[Collection("Integration")]` (inherited from base)
-
-```csharp
-public class MyFeatureIntegrationTests(IntegrationDatabaseFixture fixture)
-    : IntegrationTestBase(fixture)
-{
-    [Fact]
-    public async Task MyEndpoint_WithValidToken_ReturnsOk()
-    {
-        // Seed a user + location (required by UserExistsFilter on most endpoints)
-        var (userId, locationId) = await SeedTestUserWithLocationAsync();
-
-        // Get an authenticated HTTP client (real JWT, matched to the test app's secret)
-        var client = CreateAuthenticatedClient(userId);
-
-        var response = await client.GetAsync("/api/my-endpoint");
-
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
-    }
-}
-```
-
-**Key infrastructure classes:**
-
-| Class | Purpose |
-|---|---|
-| `IntegrationTestWebAppFactory` | `WebApplicationFactory<Program>` — injects test DB config, runs EF migrations |
-| `IntegrationDatabaseFixture` | xUnit collection fixture — owns the factory and Respawn instance |
-| `IntegrationTestCollection` | Binds `[Collection("Integration")]` to the shared fixture |
-| `IntegrationTestBase` | Abstract base — resets DB before each test, provides `CreateAuthenticatedClient` and `SeedTestUserWithLocationAsync` helpers |
-| `JwtTokenHelper` | Generates real JWTs signed with the test secret |
-
-**CI/CD:**
-
-Integration tests run automatically in GitHub Actions. The workflow starts a `postgres:17-alpine` service container on port 5433 and sets the required `POSTGRES_*` environment variables before the `dotnet test` step.
-
----
+- Use FluentAssertions for readable assertions
 
 ### Frontend (React)
 

@@ -1,3 +1,4 @@
+global using Mediator;
 global using Ardalis.Result;
 global using StorageLabelsApi.Extensions;
 
@@ -36,6 +37,7 @@ builder.Services
     .Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
     .Configure<RefreshTokenSettings>(builder.Configuration.GetSection("RefreshTokens"))
     .Configure<RateLimitSettings>(builder.Configuration.GetSection("RateLimit"))
+    .AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped)
     .AddLogging()
     .AddOpenApi(OpenApiDocumentName, options =>
     {
@@ -234,17 +236,12 @@ using (var serviceScope = app.Services.CreateScope())
         capabilities.HasSse2);
 }
 
-// Initialize database
+// Initialize database using mediator handler
 using (var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
 {
-    var sp = serviceScope.ServiceProvider;
-    var handler = new StorageLabelsApi.Handlers.Initialization.InitializeDatabaseHandler(
-        sp.GetRequiredService<StorageLabelsApi.Datalayer.StorageLabelsDbContext>(),
-        sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<StorageLabelsApi.Models.Settings.AuthenticationSettings>>(),
-        sp.GetRequiredService<TimeProvider>(),
-        sp.GetRequiredService<ILogger<StorageLabelsApi.Handlers.Initialization.InitializeDatabaseHandler>>(),
-        sp.GetService<StorageLabelsApi.Services.RoleInitializationService>());
-    var initResult = await handler.Handle(new StorageLabelsApi.Handlers.Initialization.InitializeDatabaseRequest(), default);
+    var mediator = serviceScope.ServiceProvider.GetRequiredService<IMediator>();
+    var initResult = await mediator.Send(new StorageLabelsApi.Handlers.Initialization.InitializeDatabaseRequest());
+    
     if (!initResult.IsSuccess)
     {
         throw new InvalidOperationException("Failed to initialize database");
@@ -299,6 +296,3 @@ app.UseExceptionHandler(exceptionHandlerApp
 app.UseHttpsRedirection();
 
 app.Run();
-
-// Expose Program class for WebApplicationFactory in integration tests
-public partial class Program { }

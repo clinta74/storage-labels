@@ -11,12 +11,12 @@ namespace StorageLabelsApi.Handlers.Initialization;
 /// <summary>
 /// Request to initialize database with required startup data
 /// </summary>
-public record InitializeDatabaseRequest;
+public record InitializeDatabaseRequest : IRequest<Result>;
 
 /// <summary>
 /// Handles database initialization including migrations, roles, and required user records
 /// </summary>
-public class InitializeDatabaseHandler
+public class InitializeDatabaseHandler : IRequestHandler<InitializeDatabaseRequest, Result>
 {
     private readonly StorageLabelsDbContext _context;
     private readonly RoleInitializationService? _roleInitService;

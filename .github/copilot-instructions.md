@@ -20,22 +20,30 @@ public static ItemResponse FromEntity(ItemModel item) { ... }
 new ItemResponse { Id = item.Id, Name = item.Name, ... }
 ```
 
-### 2. MediatR Handler Pattern
+### 2. Endpoint Logic — Direct Handlers (No MediatR)
 ```csharp
-// ✅ CORRECT - Request as record
-public record CreateItem(string UserId, string Name, int BoxId) 
-    : IRequest<Result<ItemResponse>>;
-
-// ✅ CORRECT - Handler implements IRequestHandler
-public class CreateItemHandler : IRequestHandler<CreateItem, Result<ItemResponse>>
+// ✅ CORRECT — business logic lives directly in the endpoint handler
+private static async Task<Results<Created<BoxResponse>, ValidationProblem, ProblemHttpResult>> CreateBox(
+    HttpContext context,
+    BoxRequest request,
+    [FromServices] StorageLabelsDbContext dbContext,
+    [FromServices] TimeProvider timeProvider,
+    [FromServices] ILogger logger,
+    CancellationToken cancellationToken)
 {
-    public async ValueTask<Result<ItemResponse>> Handle(...)
-    {
-        // Business logic here
-        return Result.Success(new ItemResponse(item));
-    }
+    var validation = await new CreateBoxValidator().ValidateAsync(request, cancellationToken);
+    if (!validation.IsValid)
+        return TypedResults.ValidationProblem(validation.ToDictionary());
+    // ... db logic ...
+    return TypedResults.Created($"/api/box/{box.Entity.BoxId}", new BoxResponse(box.Entity));
 }
+
+// ❌ WRONG — do not use MediatR for endpoint logic
+private static async Task<IResult> CreateBox(ISender sender, BoxRequest request)
+    => (await sender.Send(new CreateBoxCommand(request))).ToMinimalApiResult();
 ```
+
+**MediatR may only be used for non-endpoint concerns** such as background processing, initialization flows, or cross-cutting notifications. Never use `ISender.Send()` inside an endpoint handler.
 
 ### 3. Validation Pattern
 ```csharp
@@ -113,3 +121,4 @@ group.MapGet("/{itemId}", GetItemById)
 - ❌ String interpolation in logging instead of LoggerMessage
 - ❌ Duplicate endpoint names across versions
 - ❌ Missing type constraints on route parameters
+- ❌ Using MediatR (`ISender.Send()`) inside an endpoint handler

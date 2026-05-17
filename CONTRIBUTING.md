@@ -16,9 +16,9 @@ Thank you for your interest in contributing to Storage Labels! This document pro
    - ❌ DON'T: Use static `FromEntity()` methods or manual property-by-property mapping
    - ❌ DON'T: Materialize IAsyncEnumerable early with ToListAsync before mapping
 
-2. **All handlers MUST use MediatR pattern** (see [MediatR for CQRS](#1-mediator-for-cqrs))
-   - ✅ DO: `public record CreateItem(...) : IRequest<Result<ItemResponse>>`
-   - ❌ DON'T: Create methods directly in endpoints
+2. **Endpoint handlers live directly in endpoint classes** (see [Endpoint Handler Pattern](#1-endpoint-handler-pattern))
+   - ✅ DO: `private static async Task<Results<Ok<T>, ValidationProblem>> Handler([FromServices] StorageLabelsDbContext db, ...)`
+   - ❌ DON'T: Use MediatR (`ISender.Send()`) inside endpoint handlers
 
 3. **Validation MUST use FluentValidation** (see [FluentValidation](#2-fluentvalidation-for-input-validation))
    - ✅ DO: Create separate `Validator` classes for each request
@@ -142,69 +142,73 @@ The API follows **Clean Architecture** principles with a focus on testability, m
 
 #### Required Patterns
 
-##### 1. Mediator Pattern (MediatR)
+##### 1. Endpoint Handler Pattern
 
-**All business logic must use the Mediator pattern** for separation of concerns and testability.
+**Business logic lives directly in endpoint handler methods.** Each feature area is an `IEndpointModule` implemented as a non-static partial class, enabling typed `ILogger<T>` injection.
 
 **Pattern:**
 ```csharp
-using Mediator;
-using Ardalis.Result;
+namespace StorageLabelsApi.Endpoints.YourFeature;
 
-namespace StorageLabelsApi.Handlers.YourFeature;
-
-// Request record
-public record YourRequest(string Parameter) : IRequest<Result<YourResponse>>;
-
-// Handler class
-public class YourRequestHandler(
-    Dependency1 dep1,
-    Dependency2 dep2,
-    ILogger<YourRequestHandler> logger) 
-    : IRequestHandler<YourRequest, Result<YourResponse>>
+internal partial class YourFeatureEndpoints : IEndpointModule
 {
-    public async ValueTask<Result<YourResponse>> Handle(
-        YourRequest request, 
-        CancellationToken cancellationToken)
+    public void MapEndpoints(IEndpointRouteBuilder routeBuilder)
     {
-        // Validate using FluentValidation
-        var validation = await new YourRequestValidator()
-            .ValidateAsync(request, cancellationToken);
-        
-        if (!validation.IsValid)
-        {
-            return Result<YourResponse>.Invalid(validation.AsErrors());
-        }
+        var group = routeBuilder.MapGroup("your-feature")
+            .WithTags("YourFeature");
 
-        // Business logic here
-        logger.LogInformation("Processing request...");
-        
-        try
-        {
-            // ... implementation
-            return Result<YourResponse>.Success(response);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to process request");
-            return Result<YourResponse>.Error("Error message");
-        }
+        group.MapPost("/", CreateYourThing)
+            .WithName("Create YourThing V2")
+            .Produces<YourThingResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem();
     }
 }
 ```
 
+```csharp
+// CreateYourThing.cs (same partial class, separate file)
+namespace StorageLabelsApi.Endpoints.YourFeature;
+
+internal partial class YourFeatureEndpoints
+{
+    private static async Task<Results<Created<YourThingResponse>, ValidationProblem, ProblemHttpResult>> CreateYourThing(
+        YourThingRequest request,
+        HttpContext context,
+        [FromServices] StorageLabelsDbContext dbContext,
+        [FromServices] TimeProvider timeProvider,
+        [FromServices] ILogger<YourFeatureEndpoints> logger,
+        CancellationToken cancellationToken)
+    {
+        var validation = await new CreateYourThingValidator().ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+            return TypedResults.ValidationProblem(validation.ToDictionary());
+
+        // ... db logic ...
+
+        logger.YourThingCreated(userId, entity.Id);
+        return TypedResults.Created($"/api/your-feature/{entity.Id}", new YourThingResponse(entity));
+    }
+}
+```
+
+**Registration in Program.cs:**
+```csharp
+builder.Services.AddSingleton<IEndpointModule, YourFeatureEndpoints>();
+```
+
 **✅ DO:**
-- Use `IRequest<Result<T>>` for all requests
-- Return `Result<T>` from Ardalis.Result for consistent error handling
-- Use primary constructors for dependency injection
-- Use `ValueTask<Result<T>>` for handler return types
-- Place handlers in `Handlers/FeatureName/` folder
-- Use descriptive record names (e.g., `CreateBox`, `UpdateItem`, `DeleteLocation`)
+- Implement `IEndpointModule` on each feature's endpoint class
+- Use `partial class` to split map + handler files per feature folder
+- Use `TypedResults` for all return values (strongly-typed HTTP results)
+- Inject dependencies via `[FromServices]` on handler parameters
+- Use `ILogger<YourFeatureEndpoints>` for typed logging
+- Return `Results<T1, T2, ...>` union types that enumerate all possible responses
+- Register each endpoint module as `IEndpointModule` singleton in Program.cs
 
 **❌ DON'T:**
-- Put business logic directly in controllers/endpoints
-- Use exceptions for expected validation failures
-- Mix concerns (keep handlers focused on single responsibility)
+- Use MediatR (`ISender`, `IMediator`, `IRequest`) inside endpoint handlers
+- Make the endpoint class `static` (prevents `ILogger<T>` and DI)
+- Put business logic in `MapEndpoints` — that method is routing only
 
 ---
 
@@ -442,25 +446,33 @@ internal static partial class EndpointsMapper
         return routeBuilder;
     }
 
-    private static async Task<IResult> GetAllItems(
-        [FromServices] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var result = await mediator.Send(new GetAllItems(), cancellationToken);
-        return result.ToMinimalApiResult();
-    }
-
-    private static async Task<IResult> CreateItem(
-        CreateItemRequest request,
+    private static async Task<Ok<List<ItemResponse>>> GetAllItems(
         HttpContext context,
-        [FromServices] IMediator mediator,
+        [FromServices] StorageLabelsDbContext dbContext,
         CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
-        var result = await mediator.Send(
-            new CreateItem(userId, request.Name, request.Description, request.BoxId), 
-            cancellationToken);
-        return result.ToMinimalApiResult();
+        var items = await dbContext.Items
+            .AsNoTracking()
+            .Where(i => i.UserId == userId)
+            .ToListAsync(cancellationToken);
+        return TypedResults.Ok(items.Select(i => new ItemResponse(i)).ToList());
+    }
+
+    private static async Task<Results<Created<ItemResponse>, ValidationProblem>> CreateItem(
+        CreateItemRequest request,
+        HttpContext context,
+        [FromServices] StorageLabelsDbContext dbContext,
+        [FromServices] TimeProvider timeProvider,
+        CancellationToken cancellationToken)
+    {
+        var validation = await new CreateItemValidator().ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+            return TypedResults.ValidationProblem(validation.ToDictionary());
+
+        var userId = context.GetUserId();
+        // ... db logic ...
+        return TypedResults.Created($"/api/item/{item.Id}", new ItemResponse(item));
     }
 }
 ```
@@ -470,13 +482,14 @@ internal static partial class EndpointsMapper
 - Use route constraints (`:int`, `:guid`, etc.)
 - Document all possible response types with `.Produces<T>()`
 - Use `HttpContext.GetUserId()` for authenticated user ID
-- Keep endpoint methods thin (just wire to mediator)
-- Use meaningful route names for documentation
+- Keep business logic in handler methods, not in `MapEndpoints`
+- Use meaningful route names with version suffixes (e.g., `"Get Item By ID V2"`)
 
 **❌ DON'T:**
-- Put business logic in endpoint methods
+- Use MediatR inside endpoint methods
 - Use ambiguous routes
 - Forget to specify response types
+- Make the endpoint class `static`
 
 ---
 
@@ -679,15 +692,17 @@ public partial class AddFullTextSearch : Migration
 
 **Handler pattern (v2 search with ranking):**
 ```csharp
-public class SearchBoxesAndItemsV2Handler(
-    StorageLabelsDbContext dbContext,
-    ILogger<SearchBoxesAndItemsV2Handler> logger) 
-    : IRequestHandler<SearchBoxesAndItemsQueryV2, Result<SearchResultsResponseV2>>
+internal partial class SearchEndpoints
 {
-    public async ValueTask<Result<SearchResultsResponseV2>> Handle(
-        SearchBoxesAndItemsQueryV2 request, 
+    private static async Task<Ok<SearchResultsResponseV2>> SearchBoxesAndItemsV2(
+        [FromQuery] string q,
+        [FromQuery] int pageNumber,
+        [FromQuery] int pageSize,
+        HttpContext context,
+        [FromServices] StorageLabelsDbContext dbContext,
         CancellationToken cancellationToken)
     {
+        var userId = context.GetUserId();
         // Use PlainToTsQuery for natural language search
         var boxQuery = dbContext.Boxes
             .AsNoTracking()
@@ -792,44 +807,10 @@ public static class MapSearch
 {
     public static void MapSearchEndpointsV1(this IEndpointRouteBuilder app)
     {
-        app.MapGet("search", async (
-            [FromQuery] string q,
-            [FromServices] IMediator mediator,
-            HttpContext context,
-            CancellationToken cancellationToken) =>
-        {
-            var query = new SearchBoxesAndItemsQuery(q, userId, null, null);
-            var result = await mediator.Send(query, cancellationToken);
-            return result.ToMinimalApiResult();
-        })
-        .MapToApiVersion(1, 0)
-        .WithSummary("Search boxes and items (v1, deprecated)")
-        .WithDescription("Legacy search using LIKE queries. Use v2 for better performance.")
-        .WithOpenApi(op => new(op)
-        {
-            Deprecated = true // Mark as deprecated
-        });
-    }
-
-    public static void MapSearchEndpointsV2(this IEndpointRouteBuilder app)
-    {
-        app.MapGet("search", async (
-            [FromQuery] string q,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 20,
-            [FromServices] IMediator mediator,
-            HttpContext context,
-            CancellationToken cancellationToken) =>
-        {
-            var query = new SearchBoxesAndItemsQueryV2(
-                q, userId, null, null, pageNumber, pageSize);
-            var result = await mediator.Send(query, cancellationToken);
-            return result.ToMinimalApiResult();
-        })
-        .MapToApiVersion(2, 0)
-        .WithSummary("Search boxes and items with FTS (v2)")
-        .WithDescription("Trigram-based search with pagination and relevance ranking")
-        .WithOpenApi();
+        group.MapGet("/", SearchBoxesAndItemsV1)
+            .WithName("Search V1")
+            .WithSummary("Search boxes and items (v1, deprecated)")
+            .WithDescription("Legacy search using LIKE queries. Use v2 for better performance.");
     }
 }
 ```

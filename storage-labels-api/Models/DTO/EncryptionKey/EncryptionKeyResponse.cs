@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Models.DTO.EncryptionKey;
@@ -5,6 +6,7 @@ namespace StorageLabelsApi.Models.DTO.EncryptionKey;
 /// <summary>
 /// Response DTO for encryption key (excludes sensitive data and navigation properties)
 /// </summary>
+[method: JsonConstructor]
 public record EncryptionKeyResponse(
     int Kid,
     int Version,

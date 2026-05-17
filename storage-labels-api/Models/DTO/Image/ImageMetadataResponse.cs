@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
 using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Models.DTO.Image;
 
+[method: JsonConstructor]
 public record ImageMetadataResponse(
     Guid ImageId,
     string FileName,

@@ -1,0 +1,123 @@
+Summary
+  Generated on: 5/17/2026 - 3:51:50 PM
+  Coverage date: 5/17/2026 - 3:51:44 PM
+  Parser: Cobertura
+  Assemblies: 1
+  Classes: 101
+  Files: 131
+  Line coverage: 46.4%
+  Covered lines: 2351
+  Uncovered lines: 2707
+  Coverable lines: 5058
+  Total lines: 9072
+  Branch coverage: 24.7% (274 of 1108)
+  Covered branches: 274
+  Total branches: 1108
+  Method coverage: 48.3% (340 of 703)
+  Full method coverage: 40.9% (288 of 703)
+  Covered methods: 340
+  Fully covered methods: 288
+  Total methods: 703
+
+storage-labels-api                                                          46.4%
+  Microsoft.AspNetCore.OpenApi.Generated                                       1%
+  Program                                                                   79.6%
+  StorageLabelsApi.Authorization.HasScopeHandler                            48.1%
+  StorageLabelsApi.Authorization.HasScopeRequirement                        85.7%
+  StorageLabelsApi.Authorization.NoAuthAuthenticationHandler                   0%
+  StorageLabelsApi.Datalayer.Models.ApplicationRole                           50%
+  StorageLabelsApi.Datalayer.Models.ApplicationUser                            0%
+  StorageLabelsApi.DataLayer.Models.Box                                     92.8%
+  StorageLabelsApi.DataLayer.Models.CommonLocation                           100%
+  StorageLabelsApi.DataLayer.Models.EncryptionKey                           91.6%
+  StorageLabelsApi.DataLayer.Models.EncryptionKeyRotation                   93.3%
+  StorageLabelsApi.DataLayer.Models.ImageMetadata                           92.8%
+  StorageLabelsApi.DataLayer.Models.Item                                    90.9%
+  StorageLabelsApi.DataLayer.Models.Location                                 100%
+  StorageLabelsApi.Datalayer.Models.RefreshToken                               0%
+  StorageLabelsApi.DataLayer.Models.User                                     100%
+  StorageLabelsApi.DataLayer.Models.UserLocation                              50%
+  StorageLabelsApi.Datalayer.StorageLabelsDbContext                          100%
+  StorageLabelsApi.Endpoints.AdminResetPasswordRequest                         0%
+  StorageLabelsApi.Endpoints.Boxes.BoxEndpoints                             87.4%
+  StorageLabelsApi.Endpoints.ChangePasswordRequest                             0%
+  StorageLabelsApi.Endpoints.CommonLocations.CommonLocationEndpoints         100%
+  StorageLabelsApi.Endpoints.EncryptionKeys.ActivateEncryptionKeyResult        0%
+  StorageLabelsApi.Endpoints.EncryptionKeys.EncryptionKeyEndpoints          27.4%
+  StorageLabelsApi.Endpoints.EndpointsMapper                                55.5%
+  StorageLabelsApi.Endpoints.Images.ImageEndpoints                           8.9%
+  StorageLabelsApi.Endpoints.Items.ItemEndpoints                            96.6%
+  StorageLabelsApi.Endpoints.Locations.LocationEndpoints                    55.6%
+  StorageLabelsApi.Endpoints.MapAuthentication                              29.5%
+  StorageLabelsApi.Endpoints.Search.SearchEndpoints                         91.8%
+  StorageLabelsApi.Endpoints.Users.UpdateUserRoleRequest                       0%
+  StorageLabelsApi.Endpoints.Users.UserEndpoints                              30%
+  StorageLabelsApi.Endpoints.Users.UserWithRoles                               0%
+  StorageLabelsApi.Extensions.Base64UrlEncoder                                 0%
+  StorageLabelsApi.Extensions.HttpContextExtensions                          100%
+  StorageLabelsApi.Extensions.RateLimitingExtensions                        64.2%
+  StorageLabelsApi.Extensions.UserIdHasher                                     0%
+  StorageLabelsApi.Filters.ImageAccessFilter                                   0%
+  StorageLabelsApi.Filters.OperationCancelledExceptionFilter                   0%
+  StorageLabelsApi.Filters.UserExistsEndpointFilter                           75%
+  StorageLabelsApi.Handlers.Initialization.InitializeDatabaseHandler        49.1%
+  StorageLabelsApi.Logging.LogMessages                                      33.7%
+  StorageLabelsApi.Middleware.ApiSunsetMiddleware                              0%
+  StorageLabelsApi.Middleware.ApiSunsetMiddlewareExtensions                    0%
+  StorageLabelsApi.Models.DTO.Authentication.AuthConfigResponse                0%
+  StorageLabelsApi.Models.DTO.Authentication.AuthenticationResult              0%
+  StorageLabelsApi.Models.DTO.Authentication.LoginRequest                      0%
+  StorageLabelsApi.Models.DTO.Authentication.RegisterRequest                   0%
+  StorageLabelsApi.Models.DTO.Authentication.UserInfoResponse                  0%
+  StorageLabelsApi.Models.DTO.Box.BoxRequest                                 100%
+  StorageLabelsApi.Models.DTO.Box.BoxResponse                                100%
+  StorageLabelsApi.Models.DTO.Box.MoveBoxRequest                             100%
+  StorageLabelsApi.Models.DTO.CommonLocation.CommonLocationRequest           100%
+  StorageLabelsApi.Models.DTO.CommonLocation.CommonLocationResponse          100%
+  StorageLabelsApi.Models.DTO.EncryptionKey.CreateEncryptionKeyRequest         0%
+  StorageLabelsApi.Models.DTO.EncryptionKey.EncryptionKeyResponse              0%
+  StorageLabelsApi.Models.DTO.EncryptionKey.EncryptionKeyRotationResponse      0%
+  StorageLabelsApi.Models.DTO.EncryptionKey.EncryptionKeyStatsResponse         0%
+  StorageLabelsApi.Models.DTO.EncryptionKey.RotationProgressResponse           0%
+  StorageLabelsApi.Models.DTO.EncryptionKey.StartRotationRequest               0%
+  StorageLabelsApi.Models.DTO.Image.ImageMetadataResponse                      0%
+  StorageLabelsApi.Models.DTO.Item.ItemRequest                               100%
+  StorageLabelsApi.Models.DTO.Item.ItemResponse                              100%
+  StorageLabelsApi.Models.DTO.Location.LocationRequest                       100%
+  StorageLabelsApi.Models.DTO.Location.LocationResponse                      100%
+  StorageLabelsApi.Models.DTO.Search.SearchResponse                            0%
+  StorageLabelsApi.Models.DTO.Search.SearchResultResponse                   47.8%
+  StorageLabelsApi.Models.DTO.User.AddUserLocationRequest                      0%
+  StorageLabelsApi.Models.DTO.User.CreateUserRequest                         100%
+  StorageLabelsApi.Models.DTO.User.UpdateUserLocationRequest                   0%
+  StorageLabelsApi.Models.DTO.User.UserLocationResponse                        0%
+  StorageLabelsApi.Models.DTO.User.UserPreferencesResponse                   100%
+  StorageLabelsApi.Models.DTO.User.UserResponse                               80%
+  StorageLabelsApi.Models.Policies                                            90%
+  StorageLabelsApi.Models.Search.SearchResult                                  0%
+  StorageLabelsApi.Models.Search.SearchResultsInternal                       100%
+  StorageLabelsApi.Models.Settings.AuthenticationSettings                    100%
+  StorageLabelsApi.Models.Settings.AuthRateLimitSettings                     100%
+  StorageLabelsApi.Models.Settings.GlobalRateLimitSettings                   100%
+  StorageLabelsApi.Models.Settings.ImageRateLimitSettings                    100%
+  StorageLabelsApi.Models.Settings.JwtSettings                              57.1%
+  StorageLabelsApi.Models.Settings.LocalAuthSettings                         100%
+  StorageLabelsApi.Models.Settings.RateLimitSettings                         100%
+  StorageLabelsApi.Models.Settings.RefreshTokenSettings                        0%
+  StorageLabelsApi.Models.Settings.SearchRateLimitSettings                   100%
+  StorageLabelsApi.Services.Authentication.RefreshTokenIssueResult             0%
+  StorageLabelsApi.Services.Authentication.RefreshTokenRotationResult          0%
+  StorageLabelsApi.Services.CryptoCapabilities                               100%
+  StorageLabelsApi.Services.CryptoCapabilityService                         88.4%
+  StorageLabelsApi.Services.EncryptionKeyStats                                 0%
+  StorageLabelsApi.Services.EncryptionResult                                 100%
+  StorageLabelsApi.Services.ImageEncryptionService                          77.8%
+  StorageLabelsApi.Services.InMemorySearchService                              0%
+  StorageLabelsApi.Services.KeyRotationService                              89.7%
+  StorageLabelsApi.Services.PostgreSqlSearchService                         89.1%
+  StorageLabelsApi.Services.RoleInitializationService                       23.7%
+  StorageLabelsApi.Services.RotationOptions                                  100%
+  StorageLabelsApi.Services.RotationProgress                                63.6%
+  StorageLabelsApi.Services.RotationProgressNotifier                           0%
+  StorageLabelsApi.Transformer.BearerSecuritySchemeTransformer                 0%
+  System.Runtime.CompilerServices                                              0%

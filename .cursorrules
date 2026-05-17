@@ -21,24 +21,32 @@ Never use:
 - Property initializer syntax with `new ResponseDto { Prop = value }`
 - Manual property-by-property mapping in Select statements
 
-## MediatR Pattern - MANDATORY
+## Endpoint Logic — Direct Handlers (No MediatR)
 
-All business logic must go through MediatR handlers:
+Endpoints contain business logic directly. **Do NOT use MediatR for endpoint request handling.**
 
 ```csharp
-// Request
-public record CreateItem(string UserId, string Name) : IRequest<Result<ItemResponse>>;
-
-// Handler
-public class CreateItemHandler : IRequestHandler<CreateItem, Result<ItemResponse>>
+// ✅ CORRECT — direct handler with [FromServices] injection
+private static async Task<Results<Created<BoxResponse>, ValidationProblem, ProblemHttpResult>> CreateBox(
+    HttpContext context,
+    BoxRequest request,
+    [FromServices] StorageLabelsDbContext dbContext,
+    [FromServices] TimeProvider timeProvider,
+    [FromServices] ILogger logger,
+    CancellationToken cancellationToken)
 {
-    public async ValueTask<Result<ItemResponse>> Handle(CreateItem request, CancellationToken ct)
-    {
-        // Logic here
-        return Result.Success(new ItemResponse(item));
-    }
+    var validation = await new CreateBoxValidator().ValidateAsync(request, cancellationToken);
+    if (!validation.IsValid)
+        return TypedResults.ValidationProblem(validation.ToDictionary());
+    // ... db logic, return TypedResults ...
 }
+
+// ❌ WRONG — MediatR in endpoint
+private static async Task<IResult> CreateBox(ISender sender, BoxRequest request)
+    => (await sender.Send(new CreateBoxCommand(request))).ToMinimalApiResult();
 ```
+
+MediatR may be used for **non-endpoint concerns only** (background processing, initialization, cross-cutting notifications). Never `ISender.Send()` from an endpoint handler.
 
 ## Validation Pattern - MANDATORY
 

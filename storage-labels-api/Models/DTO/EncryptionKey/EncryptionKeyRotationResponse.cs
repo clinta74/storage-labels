@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Models.DTO.EncryptionKey;
@@ -5,6 +6,7 @@ namespace StorageLabelsApi.Models.DTO.EncryptionKey;
 /// <summary>
 /// Information about an encryption key rotation operation
 /// </summary>
+[method: JsonConstructor]
 public record EncryptionKeyRotationResponse(
     Guid Id,
     int? FromKeyId,

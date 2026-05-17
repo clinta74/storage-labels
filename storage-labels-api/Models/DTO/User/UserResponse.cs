@@ -1,8 +1,10 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using UserModel = StorageLabelsApi.DataLayer.Models.User;
 
 namespace StorageLabelsApi.Models.DTO.User;
 
+[method: JsonConstructor]
 public record UserResponse(
     string UserId, 
     string FirstName, 

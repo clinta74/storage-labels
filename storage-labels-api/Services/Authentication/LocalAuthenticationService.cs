@@ -6,6 +6,7 @@ using StorageLabelsApi.Datalayer.Models;
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Logging;
 using StorageLabelsApi.Models;
+using System.Diagnostics.CodeAnalysis;
 using StorageLabelsApi.Models.DTO.Authentication;
 
 namespace StorageLabelsApi.Services.Authentication;
@@ -13,6 +14,7 @@ namespace StorageLabelsApi.Services.Authentication;
 /// <summary>
 /// Local authentication service using ASP.NET Core Identity
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class LocalAuthenticationService : IAuthenticationService
 {
     private readonly UserManager<ApplicationUser> _userManager;

@@ -17,6 +17,9 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     public const string TestJwtIssuer = "storage-labels-api";
     public const string TestJwtAudience = "storage-labels-ui";
 
+    private readonly string _imageStoragePath =
+        Path.Combine(Path.GetTempPath(), "storage-labels-tests", Guid.NewGuid().ToString());
+
     private static string GetEnvOrDefault(string name, string defaultValue) =>
         Environment.GetEnvironmentVariable(name) ?? defaultValue;
 
@@ -36,6 +39,8 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 ["Jwt:Issuer"]        = TestJwtIssuer,
                 ["Jwt:Audience"]      = TestJwtAudience,
                 ["Authentication:Mode"] = "Local",
+                // Use a writable temp directory for image storage in tests
+                ["IMAGE_STORAGE_PATH"] = _imageStoragePath,
                 // Generous rate limits so tests don't get throttled
                 ["RateLimit:Global:PermitLimit"] = "10000",
                 ["RateLimit:Auth:PermitLimit"]   = "10000",
@@ -71,5 +76,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     public new async Task DisposeAsync()
     {
         await base.DisposeAsync();
+        if (Directory.Exists(_imageStoragePath))
+            Directory.Delete(_imageStoragePath, recursive: true);
     }
 }

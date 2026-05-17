@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Services;
 
@@ -6,6 +7,7 @@ namespace StorageLabelsApi.Models.DTO.EncryptionKey;
 /// <summary>
 /// Progress information for an active rotation operation
 /// </summary>
+[method: JsonConstructor]
 public record RotationProgressResponse(
     Guid RotationId,
     RotationStatus Status,

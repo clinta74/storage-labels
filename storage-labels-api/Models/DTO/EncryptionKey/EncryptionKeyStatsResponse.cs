@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using StorageLabelsApi.DataLayer.Models;
 using StorageLabelsApi.Services;
 
@@ -6,6 +7,7 @@ namespace StorageLabelsApi.Models.DTO.EncryptionKey;
 /// <summary>
 /// Statistics about an encryption key's usage
 /// </summary>
+[method: JsonConstructor]
 public record EncryptionKeyStatsResponse(
     int Kid,
     int Version,

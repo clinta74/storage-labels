@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
 using BoxModel = StorageLabelsApi.DataLayer.Models.Box;
 
 namespace StorageLabelsApi.Models.DTO.Box;
 
+[method: JsonConstructor]
 public record BoxResponse(
     Guid BoxId,
     string Code,

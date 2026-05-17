@@ -1,28 +1,22 @@
 namespace StorageLabelsApi.Endpoints;
 
-internal static partial class EndpointsMapper
+internal static class EndpointsMapper
 {
-    internal static IEndpointRouteBuilder MapAll(this IEndpointRouteBuilder routeBuilder)
+    internal static WebApplication MapAll(this WebApplication app)
     {
         // Map public authentication endpoints (no authorization required)
-        routeBuilder.MapAuthenticationEndpoints();
+        app.MapAuthenticationEndpoints();
 
         // Main API
-        var api = routeBuilder.MapGroup("api")
+        var api = app.MapGroup("api")
             .RequireAuthorization()
             .WithGroupName("storage-labels-api");
-        
-        api.MapBox();
-        api.MapCommonLocation();
-        api.MapItem();
-        api.MapLocation();
-        api.MapUser();
-        api.MapImageEndpoints();
-        api.MapSearch();
-        api.MapEncryptionKeyEndpoints();
+
+        foreach (var module in app.Services.GetServices<IEndpointModule>())
+            module.MapEndpoints(api);
 
         // Root endpoint - redirect to Swagger in development
-        routeBuilder.MapGet("/", (HttpContext context) =>
+        app.MapGet("/", (HttpContext context) =>
         {
             var env = context.RequestServices.GetRequiredService<IHostEnvironment>();
             if (env.IsDevelopment())
@@ -40,8 +34,8 @@ internal static partial class EndpointsMapper
         .WithSummary("API root endpoint")
         .ExcludeFromDescription();
 
-        routeBuilder.MapGet("health", () => Results.Ok("Hello world."));
+        app.MapGet("health", () => Results.Ok("Hello world."));
 
-        return routeBuilder;
+        return app;
     }
 }

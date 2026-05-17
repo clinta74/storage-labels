@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
 using ItemModel = StorageLabelsApi.DataLayer.Models.Item;
 
 namespace StorageLabelsApi.Models.DTO.Item;
 
+[method: JsonConstructor]
 public record ItemResponse(
     Guid ItemId,
     Guid BoxId,

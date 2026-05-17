@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace StorageLabelsApi.DataLayer.Models;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum AccessLevels
 {
     None = 0,

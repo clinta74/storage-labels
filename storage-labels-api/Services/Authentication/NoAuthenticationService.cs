@@ -2,11 +2,14 @@ using StorageLabelsApi.Logging;
 using StorageLabelsApi.Models;
 using StorageLabelsApi.Models.DTO.Authentication;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace StorageLabelsApi.Services.Authentication;
 
 /// <summary>
 /// No authentication service - grants all permissions (for trusted networks)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class NoAuthenticationService : IAuthenticationService
 {
     private readonly JwtTokenService _jwtTokenService;

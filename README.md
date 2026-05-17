@@ -17,14 +17,14 @@ The **storage-labels** project is a full-stack application suite designed to str
 - **Unencrypted Image Migration**: Seamlessly encrypt existing unencrypted images with a single click.
 - **Context Providers**: React Context is used for global state management of search and location data, ensuring efficient data sharing and navigation across views.
 - **Responsive UI**: Optimized for both desktop and mobile, with intuitive navigation and clear feedback via snackbars.
-- **Code Quality**: Comprehensive unit test coverage (26 tests) with xUnit, FluentAssertions, and Moq; enforced ESLint rules to maintain clean, maintainable code.
+- **Code Quality**: Comprehensive unit tests and integration tests (xUnit) with Shouldly and Moq; enforced ESLint rules to maintain clean, maintainable code.
 
 ## Architecture
 
 - **Backend**: .NET 9.0, Mediator, Ardalis.Result, Entity Framework Core, PostgreSQL, RESTful endpoints, System.IO.Abstractions for testable file operations, ASP.NET Core Identity
 - **Frontend**: React 18, Parcel, Material-UI v7, @yudiel/react-qr-scanner, React Context API
 - **Database**: PostgreSQL 17 (as of v2.0.0)
-- **Testing**: xUnit, FluentAssertions, Moq, System.IO.Abstractions.TestingHelpers for unit tests; ESLint for code quality
+- **Testing**: xUnit, Shouldly, Moq, System.IO.Abstractions.TestingHelpers for unit tests; WebApplicationFactory + Respawn + PostgreSQL for integration tests; ESLint for code quality
 - **Security**: AES-256-GCM encryption, Local authentication with JWT tokens, role-based access control
 
 ## Security & Encryption

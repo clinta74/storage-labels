@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -10,6 +11,7 @@ namespace StorageLabelsApi.Services;
 /// <summary>
 /// Service for generating and validating JWT tokens
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class JwtTokenService
 {
     private readonly JwtSettings _jwtSettings;

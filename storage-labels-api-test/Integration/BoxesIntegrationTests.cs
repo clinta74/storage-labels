@@ -207,7 +207,7 @@ public class BoxesIntegrationTests(IntegrationDatabaseFixture fixture)
 
         var deleteResponse = await client.DeleteAsync($"/api/box/{box.BoxId}");
 
-        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        deleteResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact]

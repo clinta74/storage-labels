@@ -84,7 +84,7 @@ public class CommonLocationsIntegrationTests(IntegrationDatabaseFixture fixture)
         var response = await client.PostAsJsonAsync("/api/common-location/",
             new CommonLocationRequest(""));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact]

@@ -1,8 +1,11 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using StorageLabelsApi.Datalayer;
 
 namespace StorageLabelsApi.Tests.TestInfrastructure;
@@ -38,6 +41,22 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 ["RateLimit:Auth:PermitLimit"]   = "10000",
                 ["RateLimit:Search:TokenLimit"]  = "10000",
                 ["RateLimit:Images:PermitLimit"] = "1000",
+            });
+        });
+
+        // The JWT signing key is captured at Program.cs startup time from configuration.
+        // Because WebApplicationBuilder reads config before ConfigureAppConfiguration callbacks
+        // run, the app may generate a random secret (from the placeholder in appsettings.json)
+        // before our test override is applied. PostConfigure guarantees the test key is used
+        // for validation regardless of startup order.
+        builder.ConfigureServices(services =>
+        {
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestJwtSecret));
+            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.TokenValidationParameters.IssuerSigningKey = signingKey;
+                options.TokenValidationParameters.ValidIssuer = TestJwtIssuer;
+                options.TokenValidationParameters.ValidAudience = TestJwtAudience;
             });
         });
     }

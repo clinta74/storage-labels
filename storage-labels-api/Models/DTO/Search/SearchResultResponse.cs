@@ -1,10 +1,12 @@
 namespace StorageLabelsApi.Models.DTO.Search;
 
+using System.Text.Json.Serialization;
 using StorageLabelsApi.Models.Search;
 
 /// <summary>
 /// Search result with relevance ranking (v2) - DTO for API response
 /// </summary>
+[method: JsonConstructor]
 public record SearchResultResponse(
     string Type,
     float Rank,

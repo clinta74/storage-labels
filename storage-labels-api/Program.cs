@@ -37,6 +37,7 @@ builder.Services
     .Configure<RefreshTokenSettings>(builder.Configuration.GetSection("RefreshTokens"))
     .Configure<RateLimitSettings>(builder.Configuration.GetSection("RateLimit"))
     .AddLogging()
+    .AddSingleton<ILogger>(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger("StorageLabelsApi"))
     .AddOpenApi(OpenApiDocumentName, options =>
     {
         options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();

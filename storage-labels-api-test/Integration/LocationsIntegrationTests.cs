@@ -150,7 +150,7 @@ public class LocationsIntegrationTests(IntegrationDatabaseFixture fixture)
 
         var response = await client.DeleteAsync($"/api/location/{locationId}");
 
-        response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact]

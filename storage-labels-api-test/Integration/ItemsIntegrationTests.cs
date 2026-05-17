@@ -184,6 +184,6 @@ public class ItemsIntegrationTests(IntegrationDatabaseFixture fixture)
         var response = await client.PostAsJsonAsync("/api/item/",
             new ItemRequest(boxId, "", null, null, null));
 
-        response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 }

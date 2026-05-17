@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
 using StorageLabelsApi.DataLayer.Models;
 using LocationModel = StorageLabelsApi.DataLayer.Models.Location;
 
 namespace StorageLabelsApi.Models.DTO.Location;
 
+[method: JsonConstructor]
 public record LocationResponse(
     long LocationId,
     string Name,

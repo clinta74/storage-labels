@@ -38,6 +38,8 @@ jobs:
 
       - name: Lint
         working-directory: storage-labels-ui
+        env:
+          TYPESCRIPT_ESLINT_PARSER_SUPPRESS_UNSUPPORTED_TYPESCRIPT_WARNING: true
         run: npm run lint
 
       - name: Build

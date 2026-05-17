@@ -47,8 +47,9 @@ export const ChangePassword: React.FC = () => {
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to change password. Please check your current password.');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { error?: string } } };
+            setError(error.response?.data?.error || 'Failed to change password. Please check your current password.');
         } finally {
             setIsLoading(false);
         }

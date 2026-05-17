@@ -11,8 +11,6 @@ import {
     Chip,
     Box,
     Button,
-    Pagination,
-    Stack,
     Rating,
     CircularProgress,
 } from '@mui/material';
@@ -42,7 +40,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     currentPage = 1,
     totalPages = 1,
     totalResults = 0,
-    onPageChange,
+    onPageChange: _onPageChange,
     showRelevance = true
 }) => {
     const listRef = useRef<HTMLDivElement>(null);

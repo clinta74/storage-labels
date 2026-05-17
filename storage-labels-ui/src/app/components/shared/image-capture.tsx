@@ -90,7 +90,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
 
             // Check if torch is supported
             const videoTrack = mediaStream.getVideoTracks()[0];
-            const capabilities = videoTrack.getCapabilities() as any;
+            const capabilities = videoTrack.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
             const torchAvailable = capabilities && 'torch' in capabilities;
             setTorchSupported(torchAvailable);
             
@@ -110,7 +110,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
                 const videoTrack = stream.getVideoTracks()[0];
                 if (videoTrack) {
                     videoTrack.applyConstraints({
-                        // @ts-ignore - torch is not in the standard types yet
+                        // @ts-expect-error - torch is not in the standard types yet
                         advanced: [{ torch: false }]
                     }).catch(err => console.error('Error turning off torch:', err));
                 }
@@ -130,7 +130,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
             const newTorchState = !torchOn;
             
             await videoTrack.applyConstraints({
-                // @ts-ignore - torch is not in the standard types yet
+                // @ts-expect-error - torch is not in the standard types yet
                 advanced: [{ torch: newTorchState }]
             });
             

@@ -116,12 +116,11 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
             persistToken(data.token);
             setCurrentUser(data.user);
             setIsAuthenticated(true);
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.message || error.response?.statusText || error.message || 'Login failed';
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string }; statusText?: string }; message?: string };
+            const errorMessage = err.response?.data?.message || err.response?.statusText || err.message || 'Login failed';
             console.warn('Login failed:', errorMessage);
-            // Re-throw with message property for UI handling
-            error.message = errorMessage;
-            throw error;
+            throw new Error(errorMessage);
         }
     };
 
@@ -145,12 +144,11 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
             // Auto-login after registration
             await login(username, password);
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.message || error.response?.data?.title || error.response?.statusText || error.message || 'Registration failed';
-            console.warn('Registration failed:', errorMessage, error.response?.data);
-            // Re-throw with message property for UI handling
-            error.message = errorMessage;
-            throw error;
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string; title?: string }; statusText?: string }; message?: string };
+            const errorMessage = err.response?.data?.message || err.response?.data?.title || err.response?.statusText || err.message || 'Registration failed';
+            console.warn('Registration failed:', errorMessage, (error as { response?: unknown })?.response);
+            throw new Error(errorMessage);
         }
     };
 

@@ -26,10 +26,10 @@ export const Login: React.FC = () => {
         try {
             await login(usernameOrEmail, password);
             await updateUser();
-            const from = (location.state as any)?.from?.pathname || '/';
+            const from = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? '/';
             navigate(from, { replace: true });
-        } catch (err: any) {
-            setError(err.message || 'Login failed. Please check your credentials.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
         } finally {
             setIsLoading(false);
         }

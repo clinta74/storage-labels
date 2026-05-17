@@ -54,8 +54,9 @@ export const UserManagement: React.FC = () => {
             setError(null);
             const { data } = await Api.User.getAllUsers();
             setUsers(data);
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || 'Failed to load users';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            const errorMessage = error.response?.data?.message || 'Failed to load users';
             setError(errorMessage);
             alert.addError(errorMessage);
         } finally {
@@ -82,8 +83,9 @@ export const UserManagement: React.FC = () => {
             );
             
             showSuccess(`User role updated to ${newRole}`);
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || 'Failed to update user role';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            const errorMessage = error.response?.data?.message || 'Failed to update user role';
             alert.addError(errorMessage);
         } finally {
             setUpdating(null);
@@ -115,8 +117,9 @@ export const UserManagement: React.FC = () => {
             await Api.User.adminResetPassword(resetPasswordDialog.userId, newPassword);
             showSuccess('Password reset successfully');
             handleCloseResetPassword();
-        } catch (err: any) {
-            const errorMessage = err.response?.data?.message || 'Failed to reset password';
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            const errorMessage = error.response?.data?.message || 'Failed to reset password';
             alert.addError(errorMessage);
         }
     };
@@ -144,10 +147,11 @@ export const UserManagement: React.FC = () => {
             setUsers(prevUsers => prevUsers.filter(user => user.userId !== userId));
             
             showSuccess('User deleted successfully');
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Check if error is from cancellation or actual API error
-            if (err?.message) {
-                const errorMessage = err.response?.data?.message || 'Failed to delete user';
+            const error = err as { message?: string; response?: { data?: { message?: string } } };
+            if (error?.message) {
+                const errorMessage = error.response?.data?.message || 'Failed to delete user';
                 alert.addError(errorMessage);
             }
         } finally {

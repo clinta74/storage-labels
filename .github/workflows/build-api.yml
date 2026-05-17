@@ -6,8 +6,8 @@ on:
       - main
     paths:
       - 'storage-labels-api/**'
+      - 'storage-labels-api-test/**'
       - '.github/workflows/build-api.yml'
-      - 'storage-labels-api.Tests/**'
     tags:
       - 'api-v*.*.*'  # Trigger on manual API version tags
   pull_request:
@@ -15,6 +15,7 @@ on:
       - main
     paths:
       - 'storage-labels-api/**'
+      - 'storage-labels-api-test/**'
   workflow_dispatch:
 
 jobs:

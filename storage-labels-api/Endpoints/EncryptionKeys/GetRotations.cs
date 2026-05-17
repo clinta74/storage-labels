@@ -6,7 +6,7 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
-internal static partial class EncryptionKeyEndpoints
+internal partial class EncryptionKeyEndpoints
 {
     private static async Task<Ok<List<EncryptionKeyRotationResponse>>> GetRotations([FromServices] IKeyRotationService rotationService, [FromQuery] RotationStatus? status, CancellationToken cancellationToken)
     {

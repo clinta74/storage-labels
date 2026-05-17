@@ -8,9 +8,9 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints.Images;
 
-internal static partial class ImageEndpoints
+internal partial class ImageEndpoints
 {
-    private static async Task<Results<FileStreamHttpResult, PhysicalFileHttpResult, NotFound<string>, ProblemHttpResult>> GetImageFile([FromRoute] Guid imageId, HttpContext context, [FromServices] StorageLabelsDbContext dbContext, [FromServices] IImageEncryptionService encryptionService, [FromServices] ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<FileStreamHttpResult, PhysicalFileHttpResult, NotFound<string>, ProblemHttpResult>> GetImageFile([FromRoute] Guid imageId, HttpContext context, [FromServices] StorageLabelsDbContext dbContext, [FromServices] IImageEncryptionService encryptionService, [FromServices] ILogger<ImageEndpoints> logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

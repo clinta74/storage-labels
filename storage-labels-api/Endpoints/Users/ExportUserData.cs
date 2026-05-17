@@ -6,7 +6,7 @@ using StorageLabelsApi.Datalayer;
 
 namespace StorageLabelsApi.Endpoints.Users;
 
-internal static partial class UserEndpoints
+internal partial class UserEndpoints
 {
     private static async Task<Results<FileContentHttpResult, ProblemHttpResult>> ExportUserData(HttpContext context, [FromRoute] string exportType, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

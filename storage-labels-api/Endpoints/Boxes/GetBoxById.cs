@@ -7,7 +7,7 @@ using StorageLabelsApi.Models.DTO.Box;
 
 namespace StorageLabelsApi.Endpoints.Boxes;
 
-internal static partial class BoxEndpoints
+internal partial class BoxEndpoints
 {
     private static async Task<Results<Ok<BoxResponse>, NotFound<string>>> GetBoxById(HttpContext context, [FromRoute] Guid boxId, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

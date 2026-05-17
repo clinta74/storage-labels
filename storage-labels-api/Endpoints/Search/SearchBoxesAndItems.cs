@@ -7,12 +7,12 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints.Search;
 
-internal static partial class SearchEndpoints
+internal partial class SearchEndpoints
 {
     private static async Task<Results<Ok<List<SearchResultResponse>>, ProblemHttpResult>> SearchBoxesAndItems(
         HttpContext context,
         [FromServices] ISearchService searchService,
-        [FromServices] ILogger logger,
+        [FromServices] ILogger<SearchEndpoints> logger,
         [FromQuery] string query,
         [FromQuery] long? locationId = null,
         [FromQuery] Guid? boxId = null,

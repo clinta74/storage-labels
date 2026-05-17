@@ -37,7 +37,6 @@ builder.Services
     .Configure<RefreshTokenSettings>(builder.Configuration.GetSection("RefreshTokens"))
     .Configure<RateLimitSettings>(builder.Configuration.GetSection("RateLimit"))
     .AddLogging()
-    .AddSingleton<ILogger>(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger("StorageLabelsApi"))
     .AddOpenApi(OpenApiDocumentName, options =>
     {
         options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
@@ -220,6 +219,17 @@ builder.Services.AddScoped<ISearchService, PostgreSqlSearchService>();
 
 builder.Services.AddScoped<UserExistsEndpointFilter>();
 
+// Register endpoint modules
+builder.Services
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Boxes.BoxEndpoints>()
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.CommonLocations.CommonLocationEndpoints>()
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Items.ItemEndpoints>()
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Locations.LocationEndpoints>()
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Users.UserEndpoints>()
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Images.ImageEndpoints>()
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Search.SearchEndpoints>()
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.EncryptionKeys.EncryptionKeyEndpoints>();
+
 var app = builder.Build();
 
 // Log cryptographic hardware capabilities
@@ -301,5 +311,3 @@ app.UseHttpsRedirection();
 
 app.Run();
 
-// Expose Program class for WebApplicationFactory in integration tests
-public partial class Program { }

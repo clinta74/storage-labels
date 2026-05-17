@@ -6,7 +6,7 @@ using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Endpoints.Locations;
 
-internal static partial class LocationEndpoints
+internal partial class LocationEndpoints
 {
     private static async Task<Results<Ok, NotFound<string>, ProblemHttpResult>> RemoveUserFromLocation(HttpContext context, [FromRoute] long locationId, [FromRoute] string userId, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

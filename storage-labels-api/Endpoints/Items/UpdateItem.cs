@@ -8,7 +8,7 @@ using StorageLabelsApi.Models.DTO.Item;
 
 namespace StorageLabelsApi.Endpoints.Items;
 
-internal static partial class ItemEndpoints
+internal partial class ItemEndpoints
 {
     private static async Task<Results<Ok<ItemResponse>, NotFound, ValidationProblem>> UpdateItem(HttpContext context, [FromRoute] Guid itemId, ItemRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, CancellationToken cancellationToken)
     {

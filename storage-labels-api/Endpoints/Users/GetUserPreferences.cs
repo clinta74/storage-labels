@@ -7,7 +7,7 @@ using StorageLabelsApi.Models.DTO.User;
 
 namespace StorageLabelsApi.Endpoints.Users;
 
-internal static partial class UserEndpoints
+internal partial class UserEndpoints
 {
     private static async Task<Results<Ok<UserPreferencesResponse>, NotFound<string>>> GetUserPreferences(HttpContext context, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

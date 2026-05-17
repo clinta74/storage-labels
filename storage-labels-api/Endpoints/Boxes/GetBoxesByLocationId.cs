@@ -7,7 +7,7 @@ using StorageLabelsApi.Models.DTO.Box;
 
 namespace StorageLabelsApi.Endpoints.Boxes;
 
-internal static partial class BoxEndpoints
+internal partial class BoxEndpoints
 {
     private static async IAsyncEnumerable<BoxResponse> GetBoxesByLocationId(HttpContext context, [FromRoute] long locationId, [FromServices] StorageLabelsDbContext dbContext, [EnumeratorCancellation] CancellationToken cancellationToken)
     {

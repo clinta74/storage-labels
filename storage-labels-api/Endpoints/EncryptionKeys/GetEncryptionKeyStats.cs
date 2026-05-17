@@ -6,9 +6,9 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
-internal static partial class EncryptionKeyEndpoints
+internal partial class EncryptionKeyEndpoints
 {
-    private static async Task<Results<Ok<EncryptionKeyStatsResponse>, NotFound<string>>> GetEncryptionKeyStats([FromRoute] int kid, [FromServices] IImageEncryptionService encryptionService, [FromServices] ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok<EncryptionKeyStatsResponse>, NotFound<string>>> GetEncryptionKeyStats([FromRoute] int kid, [FromServices] IImageEncryptionService encryptionService, [FromServices] ILogger<EncryptionKeyEndpoints> logger, CancellationToken cancellationToken)
     {
         try
         {

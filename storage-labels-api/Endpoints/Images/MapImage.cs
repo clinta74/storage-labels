@@ -2,9 +2,9 @@ using StorageLabelsApi.Filters;
 
 namespace StorageLabelsApi.Endpoints.Images;
 
-internal static partial class ImageEndpoints
+internal partial class ImageEndpoints : IEndpointModule
 {
-    internal static IEndpointRouteBuilder MapImage(this IEndpointRouteBuilder routeBuilder)
+    public void MapEndpoints(IEndpointRouteBuilder routeBuilder)
     {
         var group = routeBuilder.MapGroup("images")
             .WithTags("Images")
@@ -26,7 +26,5 @@ internal static partial class ImageEndpoints
         group.MapGet("/{imageId:guid}", GetImageFile)
             .AddEndpointFilter<ImageAccessFilter>()
             .WithName("Get Image File");
-
-        return routeBuilder;
     }
 }

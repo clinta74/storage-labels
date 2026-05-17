@@ -6,7 +6,7 @@ using StorageLabelsApi.Models.DTO.CommonLocation;
 
 namespace StorageLabelsApi.Endpoints.CommonLocations;
 
-internal static partial class CommonLocationEndpoints
+internal partial class CommonLocationEndpoints
 {
     private static async Task<Results<Created<CommonLocationResponse>, ValidationProblem>> CreateCommonLocation(CommonLocationRequest request, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

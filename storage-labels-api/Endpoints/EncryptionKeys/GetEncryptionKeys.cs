@@ -6,7 +6,7 @@ using StorageLabelsApi.Models.DTO.EncryptionKey;
 
 namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
-internal static partial class EncryptionKeyEndpoints
+internal partial class EncryptionKeyEndpoints
 {
     private static async Task<Ok<List<EncryptionKeyResponse>>> GetEncryptionKeys([FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

@@ -9,9 +9,9 @@ using StorageLabelsApi.Models.DTO.Item;
 
 namespace StorageLabelsApi.Endpoints.Items;
 
-internal static partial class ItemEndpoints
+internal partial class ItemEndpoints
 {
-    private static async Task<Results<Created<ItemResponse>, ValidationProblem>> CreateItem(HttpContext context, ItemRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, [FromServices] ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Created<ItemResponse>, ValidationProblem>> CreateItem(HttpContext context, ItemRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, [FromServices] ILogger<ItemEndpoints> logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

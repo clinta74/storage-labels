@@ -8,9 +8,9 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints.Images;
 
-internal static partial class ImageEndpoints
+internal partial class ImageEndpoints
 {
-    private static async Task<Results<Ok<ImageMetadata>, ProblemHttpResult>> UploadImage(IFormFile file, HttpContext context, [FromServices] StorageLabelsDbContext dbContext, [FromServices] IImageEncryptionService encryptionService, [FromServices] IConfiguration configuration, [FromServices] TimeProvider timeProvider, [FromServices] ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok<ImageMetadata>, ProblemHttpResult>> UploadImage(IFormFile file, HttpContext context, [FromServices] StorageLabelsDbContext dbContext, [FromServices] IImageEncryptionService encryptionService, [FromServices] IConfiguration configuration, [FromServices] TimeProvider timeProvider, [FromServices] ILogger<ImageEndpoints> logger, CancellationToken cancellationToken)
     {
         const long maxFileSizeInBytes = 10 * 1024 * 1024; // 10 MB
 

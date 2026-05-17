@@ -2,27 +2,21 @@ using StorageLabelsApi.Filters;
 
 namespace StorageLabelsApi.Endpoints.Search;
 
-internal static partial class SearchEndpoints
+internal partial class SearchEndpoints : IEndpointModule
 {
-    internal static IEndpointRouteBuilder MapSearch(this IEndpointRouteBuilder routeBuilder)
+    public void MapEndpoints(IEndpointRouteBuilder routeBuilder)
     {
-        return routeBuilder.MapGroup("search")
+        var group = routeBuilder.MapGroup("search")
             .WithTags("Search")
             .RequireRateLimiting("search")
-            .AddEndpointFilter<UserExistsEndpointFilter>()
-            .MapSearchEndpoints();
-    }
+            .AddEndpointFilter<UserExistsEndpointFilter>();
 
-    private static IEndpointRouteBuilder MapSearchEndpoints(this IEndpointRouteBuilder routeBuilder)
-    {
-        routeBuilder.MapGet("qrcode/{code}", SearchByQrCode)
+        group.MapGet("qrcode/{code}", SearchByQrCode)
             .WithName("Search By QR Code")
             .WithSummary("Search for a box or item by exact QR code match");
 
-        routeBuilder.MapGet("", SearchBoxesAndItems)
+        group.MapGet("", SearchBoxesAndItems)
             .WithName("Search Boxes And Items")
             .WithSummary("Search boxes and items with full-text search ranking and pagination. Total count returned in x-total-count header.");
-
-        return routeBuilder;
     }
 }

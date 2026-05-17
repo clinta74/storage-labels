@@ -5,9 +5,9 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
-internal static partial class EncryptionKeyEndpoints
+internal partial class EncryptionKeyEndpoints
 {
-    private static async Task<Results<Ok<bool>, NotFound<string>>> RetireEncryptionKey([FromRoute] int kid, HttpContext context, [FromServices] IImageEncryptionService encryptionService, [FromServices] ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok<bool>, NotFound<string>>> RetireEncryptionKey([FromRoute] int kid, HttpContext context, [FromServices] IImageEncryptionService encryptionService, [FromServices] ILogger<EncryptionKeyEndpoints> logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

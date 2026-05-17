@@ -3,7 +3,7 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
-internal static partial class EncryptionKeyEndpoints
+internal partial class EncryptionKeyEndpoints
 {
     private static async Task StreamRotationProgress([FromRoute] Guid rotationId, HttpContext context, [FromServices] IRotationProgressNotifier progressNotifier, CancellationToken cancellationToken)
     {

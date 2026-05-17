@@ -8,9 +8,9 @@ using StorageLabelsApi.Models.DTO.User;
 
 namespace StorageLabelsApi.Endpoints.Users;
 
-internal static partial class UserEndpoints
+internal partial class UserEndpoints
 {
-    private static async Task<Results<Ok<UserPreferencesResponse>, NotFound<string>>> UpdateUserPreferences(HttpContext context, UserPreferencesResponse request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok<UserPreferencesResponse>, NotFound<string>>> UpdateUserPreferences(HttpContext context, UserPreferencesResponse request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] ILogger<UserEndpoints> logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

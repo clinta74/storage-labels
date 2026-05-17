@@ -7,7 +7,7 @@ using StorageLabelsApi.Models.DTO.Item;
 
 namespace StorageLabelsApi.Endpoints.Items;
 
-internal static partial class ItemEndpoints
+internal partial class ItemEndpoints
 {
     private static async IAsyncEnumerable<ItemResponse> GetItemsByBoxId(HttpContext context, [FromRoute] Guid boxId, [FromServices] StorageLabelsDbContext dbContext, [EnumeratorCancellation] CancellationToken cancellationToken)
     {

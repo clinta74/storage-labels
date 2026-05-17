@@ -4,7 +4,7 @@ using StorageLabelsApi.Datalayer;
 
 namespace StorageLabelsApi.Endpoints.Users;
 
-internal static partial class UserEndpoints
+internal partial class UserEndpoints
 {
     private static async Task<Ok<bool>> GetUserExists(HttpContext context, StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

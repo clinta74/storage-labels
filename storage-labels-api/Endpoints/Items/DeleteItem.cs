@@ -6,7 +6,7 @@ using StorageLabelsApi.DataLayer.Models;
 
 namespace StorageLabelsApi.Endpoints.Items;
 
-internal static partial class ItemEndpoints
+internal partial class ItemEndpoints
 {
     private static async Task<Results<Ok, NotFound>> DeleteItem(HttpContext context, [FromRoute] Guid itemId, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

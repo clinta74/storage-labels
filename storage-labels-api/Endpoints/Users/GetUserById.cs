@@ -6,7 +6,7 @@ using StorageLabelsApi.Models.DTO.User;
 
 namespace StorageLabelsApi.Endpoints.Users;
 
-internal static partial class UserEndpoints
+internal partial class UserEndpoints
 {
     private static async Task<Results<Ok<UserResponse>, NotFound<string>>> GetUserById([FromRoute] string userid, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

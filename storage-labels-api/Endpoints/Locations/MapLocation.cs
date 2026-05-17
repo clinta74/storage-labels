@@ -2,45 +2,39 @@ using StorageLabelsApi.Filters;
 
 namespace StorageLabelsApi.Endpoints.Locations;
 
-internal static partial class LocationEndpoints
+internal partial class LocationEndpoints : IEndpointModule
 {
-    internal static IEndpointRouteBuilder MapLocation(this IEndpointRouteBuilder routeBuilder)
+    public void MapEndpoints(IEndpointRouteBuilder routeBuilder)
     {
-        return routeBuilder.MapGroup("location")
+        var group = routeBuilder.MapGroup("location")
             .WithTags("Location")
-            .AddEndpointFilter<UserExistsEndpointFilter>()
-            .MapLocationEndpoints();
-    }
+            .AddEndpointFilter<UserExistsEndpointFilter>();
 
-    private static IEndpointRouteBuilder MapLocationEndpoints(this IEndpointRouteBuilder routeBuilder)
-    {
-        routeBuilder.MapGet("/", GetLocationsByUserId)
+        group.MapGet("/", GetLocationsByUserId)
             .WithName("Get Current User Locations");
 
-        routeBuilder.MapGet("{locationId:long}", GetLocation)
+        group.MapGet("{locationId:long}", GetLocation)
             .WithName("Get Location");
 
-        routeBuilder.MapPost("/", CreateLocation)
+        group.MapPost("/", CreateLocation)
             .WithName("Create Location");
 
-        routeBuilder.MapPut("{locationId:long}", UpdateLocation)
+        group.MapPut("{locationId:long}", UpdateLocation)
             .WithName("Update Location");
 
-        routeBuilder.MapDelete("{locationId:long}", DeleteLocation)
+        group.MapDelete("{locationId:long}", DeleteLocation)
             .WithName("Delete Location");
 
-        routeBuilder.MapGet("{locationId:long}/users", GetLocationUsers)
+        group.MapGet("{locationId:long}/users", GetLocationUsers)
             .WithName("Get Location Users");
 
-        routeBuilder.MapPost("{locationId:long}/users", AddUserToLocation)
+        group.MapPost("{locationId:long}/users", AddUserToLocation)
             .WithName("Add User To Location");
 
-        routeBuilder.MapPut("{locationId:long}/users/{userId}", UpdateUserLocationAccess)
+        group.MapPut("{locationId:long}/users/{userId}", UpdateUserLocationAccess)
             .WithName("Update User Location Access");
 
-        routeBuilder.MapDelete("{locationId:long}/users/{userId}", RemoveUserFromLocation)
+        group.MapDelete("{locationId:long}/users/{userId}", RemoveUserFromLocation)
             .WithName("Remove User From Location");
-
-        return routeBuilder;
     }
 }

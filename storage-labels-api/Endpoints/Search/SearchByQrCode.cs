@@ -7,7 +7,7 @@ using StorageLabelsApi.Models.DTO.Search;
 
 namespace StorageLabelsApi.Endpoints.Search;
 
-internal static partial class SearchEndpoints
+internal partial class SearchEndpoints
 {
     private static async Task<Results<Ok<SearchResultResponse>, NotFound>> SearchByQrCode(HttpContext context, [FromRoute] string code, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

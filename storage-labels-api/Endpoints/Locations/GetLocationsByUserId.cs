@@ -7,7 +7,7 @@ using StorageLabelsApi.Models.DTO.Location;
 
 namespace StorageLabelsApi.Endpoints.Locations;
 
-internal static partial class LocationEndpoints
+internal partial class LocationEndpoints
 {
     private static async Task<Ok<List<LocationResponse>>> GetLocationsByUserId(HttpContext context, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

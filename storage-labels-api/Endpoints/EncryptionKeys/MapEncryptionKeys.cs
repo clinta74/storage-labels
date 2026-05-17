@@ -3,9 +3,9 @@ using StorageLabelsApi.Models;
 
 namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
-internal static partial class EncryptionKeyEndpoints
+internal partial class EncryptionKeyEndpoints : IEndpointModule
 {
-    internal static IEndpointRouteBuilder MapEncryptionKeys(this IEndpointRouteBuilder routeBuilder)
+    public void MapEndpoints(IEndpointRouteBuilder routeBuilder)
     {
         var group = routeBuilder.MapGroup("admin/encryption-keys")
             .RequireAuthorization()
@@ -61,6 +61,5 @@ internal static partial class EncryptionKeyEndpoints
             .WithName("StreamRotationProgress")
             .WithSummary("Stream real-time progress updates for a rotation operation");
 
-        return routeBuilder;
     }
 }

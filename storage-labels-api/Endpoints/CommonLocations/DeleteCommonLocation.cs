@@ -5,7 +5,7 @@ using StorageLabelsApi.Datalayer;
 
 namespace StorageLabelsApi.Endpoints.CommonLocations;
 
-internal static partial class CommonLocationEndpoints
+internal partial class CommonLocationEndpoints
 {
     private static async Task<Results<Ok, NotFound<string>>> DeleteCommonLocation([FromRoute] int commonLocationId, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

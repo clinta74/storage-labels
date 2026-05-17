@@ -6,9 +6,9 @@ using StorageLabelsApi.Services;
 
 namespace StorageLabelsApi.Endpoints.EncryptionKeys;
 
-internal static partial class EncryptionKeyEndpoints
+internal partial class EncryptionKeyEndpoints
 {
-    private static async Task<Results<Accepted<Guid>, ProblemHttpResult>> StartKeyRotation(StartRotationRequest request, HttpContext context, [FromServices] IKeyRotationService rotationService, [FromServices] ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Accepted<Guid>, ProblemHttpResult>> StartKeyRotation(StartRotationRequest request, HttpContext context, [FromServices] IKeyRotationService rotationService, [FromServices] ILogger<EncryptionKeyEndpoints> logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

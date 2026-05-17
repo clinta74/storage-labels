@@ -7,7 +7,7 @@ using StorageLabelsApi.Datalayer.Models;
 
 namespace StorageLabelsApi.Endpoints.Users;
 
-internal static partial class UserEndpoints
+internal partial class UserEndpoints
 {
     private static async Task<Results<Ok, NotFound<string>, ProblemHttpResult>> DeleteUser([FromRoute] string userId, [FromServices] UserManager<ApplicationUser> userManager, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

@@ -9,9 +9,9 @@ using StorageLabelsApi.Models.DTO.Box;
 
 namespace StorageLabelsApi.Endpoints.Boxes;
 
-internal static partial class BoxEndpoints
+internal partial class BoxEndpoints
 {
-    private static async Task<Results<Ok<BoxResponse>, NotFound<string>, ValidationProblem, ProblemHttpResult>> UpdateBox(HttpContext context, [FromRoute] Guid boxId, BoxRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, [FromServices] ILogger logger, CancellationToken cancellationToken)
+    private static async Task<Results<Ok<BoxResponse>, NotFound<string>, ValidationProblem, ProblemHttpResult>> UpdateBox(HttpContext context, [FromRoute] Guid boxId, BoxRequest request, [FromServices] StorageLabelsDbContext dbContext, [FromServices] TimeProvider timeProvider, [FromServices] ILogger<BoxEndpoints> logger, CancellationToken cancellationToken)
     {
         var userId = context.GetUserId();
 

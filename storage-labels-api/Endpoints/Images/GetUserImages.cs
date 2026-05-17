@@ -6,7 +6,7 @@ using StorageLabelsApi.Models.DTO.Image;
 
 namespace StorageLabelsApi.Endpoints.Images;
 
-internal static partial class ImageEndpoints
+internal partial class ImageEndpoints
 {
     private static async Task<Ok<List<ImageMetadataResponse>>> GetUserImages(HttpContext context, [FromServices] StorageLabelsDbContext dbContext, CancellationToken cancellationToken)
     {

@@ -6,7 +6,7 @@ using StorageLabelsApi.Models.DTO.CommonLocation;
 
 namespace StorageLabelsApi.Endpoints.CommonLocations;
 
-internal static partial class CommonLocationEndpoints
+internal partial class CommonLocationEndpoints
 {
     private static async IAsyncEnumerable<CommonLocationResponse> GetCommonLocations([FromServices] StorageLabelsDbContext dbContext, [EnumeratorCancellation] CancellationToken cancellationToken)
     {

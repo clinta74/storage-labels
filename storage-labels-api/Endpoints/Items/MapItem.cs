@@ -2,33 +2,27 @@ using StorageLabelsApi.Filters;
 
 namespace StorageLabelsApi.Endpoints.Items;
 
-internal static partial class ItemEndpoints
+internal partial class ItemEndpoints : IEndpointModule
 {
-    internal static IEndpointRouteBuilder MapItem(this IEndpointRouteBuilder routeBuilder)
+    public void MapEndpoints(IEndpointRouteBuilder routeBuilder)
     {
-        return routeBuilder.MapGroup("item")
+        var group = routeBuilder.MapGroup("item")
             .WithTags("Items")
-            .AddEndpointFilter<UserExistsEndpointFilter>()
-            .MapItemEndpoints();
-    }
+            .AddEndpointFilter<UserExistsEndpointFilter>();
 
-    private static IEndpointRouteBuilder MapItemEndpoints(this IEndpointRouteBuilder routeBuilder)
-    {
-        routeBuilder.MapPost("/", CreateItem)
+        group.MapPost("/", CreateItem)
             .WithName("Create Item");
 
-        routeBuilder.MapGet("/box/{boxId:guid}/", GetItemsByBoxId)
+        group.MapGet("/box/{boxId:guid}/", GetItemsByBoxId)
             .WithName("Get Items By Box");
 
-        routeBuilder.MapGet("/{itemId:guid}", GetItemById)
+        group.MapGet("/{itemId:guid}", GetItemById)
             .WithName("Get Item");
 
-        routeBuilder.MapPut("/{itemId:guid}", UpdateItem)
+        group.MapPut("/{itemId:guid}", UpdateItem)
             .WithName("Update Item");
 
-        routeBuilder.MapDelete("/{itemId:guid}", DeleteItem)
+        group.MapDelete("/{itemId:guid}", DeleteItem)
             .WithName("Delete Item");
-
-        return routeBuilder;
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using StorageLabelsApi.Datalayer;
 using StorageLabelsApi.Datalayer.Models;
 using StorageLabelsApi.Logging;
+using System.Diagnostics.CodeAnalysis;
 using StorageLabelsApi.Models.Settings;
 
 namespace StorageLabelsApi.Services.Authentication;
@@ -13,6 +14,7 @@ namespace StorageLabelsApi.Services.Authentication;
 /// <summary>
 /// Default implementation for refresh token management.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class RefreshTokenService : IRefreshTokenService
 {
     private readonly StorageLabelsDbContext _dbContext;

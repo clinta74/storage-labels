@@ -221,6 +221,7 @@ builder.Services.AddScoped<UserExistsEndpointFilter>();
 
 // Register endpoint modules
 builder.Services
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Authentication.AuthenticationEndpoints>()
     .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Boxes.BoxEndpoints>()
     .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.CommonLocations.CommonLocationEndpoints>()
     .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Items.ItemEndpoints>()

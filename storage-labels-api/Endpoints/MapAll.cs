@@ -4,9 +4,6 @@ internal static class EndpointsMapper
 {
     internal static WebApplication MapAll(this WebApplication app)
     {
-        // Map public authentication endpoints (no authorization required)
-        app.MapAuthenticationEndpoints();
-
         // Main API
         var api = app.MapGroup("api")
             .RequireAuthorization()

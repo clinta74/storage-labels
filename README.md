@@ -4,8 +4,8 @@
 
 The **storage-labels** project is a full-stack application suite designed to streamline the management, tracking, and retrieval of physical storage items using modern web and cloud technologies. It consists of two main components:
 
-- **storage-labels-api**: A .NET 9.0 Web API backend that provides endpoints for managing storage locations, boxes, items, users, and supports advanced search features including QR code scanning. It uses Mediator and Ardalis.Result for clean architecture and robust error handling. Features end-to-end encryption for stored images with automated key rotation.
-- **storage-labels-ui**: A React 18 web application (built with Parcel and Material-UI v7) that offers a responsive, user-friendly interface for interacting with storage data. It features global search (by text or QR code), real-time notifications, mobile camera support for QR scanning, and encryption key management.
+- **storage-labels-api**: A .NET 10.0 Web API backend that provides endpoints for managing storage locations, boxes, items, users, and supports advanced search features including QR code scanning. It uses Mediator and Ardalis.Result for clean architecture and robust error handling. Features end-to-end encryption for stored images with automated key rotation.
+- **storage-labels-ui**: A React 18 web application (built with Parcel and Material-UI v9) that offers a responsive, user-friendly interface for interacting with storage data. It features global search (by text or QR code), real-time notifications, mobile camera support for QR scanning, and encryption key management.
 
 ## Key Features
 

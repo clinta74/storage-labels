@@ -58,7 +58,7 @@ export const NavigationBar: React.FC = () => {
 
     if ((!isAuthenticated && authMode !== 'None') || !user) {
         return (
-            <AppBar position="static" sx={{ mb: 3 }}>
+            <AppBar position="static" sx={{ mb: 3, '@media print': { display: 'none' } }}>
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         Storage Labels
@@ -71,6 +71,7 @@ export const NavigationBar: React.FC = () => {
     const menuItems = [
         { label: 'Locations', path: '/locations' },
         { label: 'Images', path: '/images' },
+        { label: 'Labels', path: '/labels' },
     ];
 
     // Add Common Locations menu item if user has permission
@@ -95,7 +96,7 @@ export const NavigationBar: React.FC = () => {
                     Running in No Authentication mode - all users have full access
                 </Alert>
             )}
-            <AppBar position="static" sx={{ mb: 3 }}>
+            <AppBar position="static" sx={{ mb: 3, '@media print': { display: 'none' } }}>
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 0, mr: 4 }}>
                         Storage Labels

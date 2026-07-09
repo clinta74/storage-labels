@@ -57,6 +57,7 @@ export const Register: React.FC = () => {
 
                 <form onSubmit={handleSubmit}>
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Email"
                         type="email"
@@ -69,6 +70,7 @@ export const Register: React.FC = () => {
                     />
 
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Username"
                         value={username}
@@ -79,6 +81,7 @@ export const Register: React.FC = () => {
                     />
 
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="First Name"
                         value={firstName}
@@ -89,6 +92,7 @@ export const Register: React.FC = () => {
                     />
 
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Last Name"
                         value={lastName}
@@ -99,6 +103,7 @@ export const Register: React.FC = () => {
                     />
 
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Password"
                         type="password"
@@ -110,6 +115,7 @@ export const Register: React.FC = () => {
                     />
 
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Confirm Password"
                         type="password"

@@ -11,6 +11,7 @@ import { LocationRoutes } from './components/locations/locations-routes';
 import { ImagesRoutes } from './components/images/images-routes';
 import { CommonLocationsRoutes } from './components/common-locations/common-locations-routes';
 import { EncryptionKeysRoutes } from './components/encryption-keys/encryption-keys-routes';
+import { LabelRoutes } from './components/labels/label-routes';
 import { Preferences } from './components/user/preferences';
 import { ChangePassword } from './components/user/change-password';
 import { UserManagement } from './components/user/user-management';
@@ -64,6 +65,7 @@ const AuthenticatedRoutes: React.FC<{ isLoading: boolean; isAuthenticated: boole
                                         <Route path="/images/*" element={<ImagesRoutes />} />
                                         <Route path="/common-locations/*" element={<CommonLocationsRoutes />} />
                                         <Route path="/encryption-keys/*" element={<EncryptionKeysRoutes />} />
+                                        <Route path="/labels/*" element={<LabelRoutes />} />
                                         <Route path="/preferences" element={<Preferences />} />
                                         <Route path="/change-password" element={<ChangePassword />} />
                                         <Route path="/users" element={<UserManagement />} />

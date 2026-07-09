@@ -207,3 +207,51 @@ interface StartRotationRequest {
     toKeyId: number;
     batchSize: number;
 }
+
+// Label Print Job Models
+type LabelFormat = 'Avery94107';
+type LabelIncrementAlgorithm = 'NumericOnly' | 'Base36Suffix';
+
+interface LabelPrintJobResponse {
+    id: string;
+    name: string;
+    labelFormat: LabelFormat;
+    incrementAlgorithm: LabelIncrementAlgorithm;
+    algorithmPrefix?: string;
+    algorithmSuffixLength: number;
+    lastGeneratedIndex: number;
+    totalLabelsGenerated: number;
+    codeColorPattern: string;
+    createdAt: string;
+}
+
+interface CreateLabelPrintJobRequest {
+    name: string;
+    labelFormat: LabelFormat;
+    incrementAlgorithm: LabelIncrementAlgorithm;
+    algorithmPrefix?: string;
+    algorithmSuffixLength: number;
+    startIndex: number;
+    codeColorPattern: string;
+}
+
+interface UpdateLabelPrintJobRequest {
+    name: string;
+    labelFormat: LabelFormat;
+    incrementAlgorithm: LabelIncrementAlgorithm;
+    algorithmPrefix?: string;
+    algorithmSuffixLength: number;
+    codeColorPattern: string;
+}
+
+interface LabelCodeItem {
+    code: string;
+    labelNumber: number;
+}
+
+interface LabelPageResponse {
+    jobId: string;
+    labelFormat: LabelFormat;
+    codeColorPattern: string;
+    labels: LabelCodeItem[];
+}

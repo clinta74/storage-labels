@@ -73,6 +73,7 @@ export const ChangePassword: React.FC = () => {
             <Paper sx={{ p: 3 }}>
                 <form onSubmit={handleSubmit}>
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Current Password"
                         type="password"
@@ -84,6 +85,7 @@ export const ChangePassword: React.FC = () => {
                     />
 
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="New Password"
                         type="password"
@@ -96,6 +98,7 @@ export const ChangePassword: React.FC = () => {
                     />
 
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Confirm New Password"
                         type="password"

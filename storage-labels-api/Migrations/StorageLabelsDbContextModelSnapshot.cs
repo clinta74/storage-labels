@@ -383,6 +383,54 @@ namespace StorageLabelsApi.Migrations
                     b.ToTable("items", (string)null);
                 });
 
+            modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.LabelPrintJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AlgorithmPrefix")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("AlgorithmSuffixLength")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CodeColorPattern")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("IncrementAlgorithm")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LabelFormat")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("LastGeneratedIndex")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("TotalLabelsGenerated")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("labelprintjobs", (string)null);
+                });
+
             modelBuilder.Entity("StorageLabelsApi.DataLayer.Models.Location", b =>
                 {
                     b.Property<long>("LocationId")

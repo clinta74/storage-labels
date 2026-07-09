@@ -190,6 +190,7 @@ export const ManageLocationUsers: React.FC = () => {
                                 <FormControl variant="standard" sx={{ minWidth: 120 }}>
                                     <FormLabel>Access Level</FormLabel>
                                     <Select
+                                        variant="standard"
                                         value={newUserAccessLevel}
                                         onChange={(e) => setNewUserAccessLevel(e.target.value as AccessLevels)}
                                     >

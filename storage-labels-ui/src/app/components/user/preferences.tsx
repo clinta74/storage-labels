@@ -133,6 +133,7 @@ export const Preferences: React.FC = () => {
 
                 <FormControl fullWidth sx={{ mb: 3 }}>
                     <TextField
+                        variant="standard"
                         label="Color Pattern"
                         value={preferences.codeColorPattern}
                         onChange={(e) =>

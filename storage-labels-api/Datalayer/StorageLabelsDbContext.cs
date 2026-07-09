@@ -20,6 +20,7 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : Identi
     public DbSet<ImageMetadata> Images { get; set; } = null!;
     public DbSet<EncryptionKey> EncryptionKeys { get; set; } = null!;
     public DbSet<EncryptionKeyRotation> EncryptionKeyRotations { get; set; } = null!;
+    public DbSet<LabelPrintJob> LabelPrintJobs { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +46,7 @@ public class StorageLabelsDbContext([NotNull] DbContextOptions options) : Identi
         modelBuilder.Entity<ImageMetadata>().ToTable("images");
         modelBuilder.Entity<RefreshToken>().ToTable("refreshtokens");
         modelBuilder.Entity<EncryptionKey>().ToTable("encryptionkeys");
+        modelBuilder.Entity<LabelPrintJob>().ToTable("labelprintjobs");
         modelBuilder.Entity<CommonLocation>().ToTable("commonlocations");
         modelBuilder.Entity<Item>().ToTable("items");
         modelBuilder.Entity<Location>().ToTable("locations");

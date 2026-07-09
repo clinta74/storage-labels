@@ -372,6 +372,7 @@ export const RotationsPage: React.FC = () => {
                         <FormControl fullWidth>
                             <InputLabel>From Key ID</InputLabel>
                             <Select
+                                variant="standard"
                                 value={fromKeyId}
                                 label="From Key ID"
                                 onChange={(e) => setFromKeyId(e.target.value as number)}
@@ -386,6 +387,7 @@ export const RotationsPage: React.FC = () => {
                         <FormControl fullWidth>
                             <InputLabel>To Key ID (Active Keys Only)</InputLabel>
                             <Select
+                                variant="standard"
                                 value={toKeyId}
                                 label="To Key ID (Active Keys Only)"
                                 onChange={(e) => setToKeyId(e.target.value as number)}

@@ -20,6 +20,7 @@ export const Footer: React.FC = () => {
             sx={{
                 position: 'relative',
                 mt: 'auto',
+                '@media print': { display: 'none' },
             }}
         >
             {/* Toggle button - only visible on short viewports */}

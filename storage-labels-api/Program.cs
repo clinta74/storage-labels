@@ -229,7 +229,8 @@ builder.Services
     .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Users.UserEndpoints>()
     .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Images.ImageEndpoints>()
     .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Search.SearchEndpoints>()
-    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.EncryptionKeys.EncryptionKeyEndpoints>();
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.EncryptionKeys.EncryptionKeyEndpoints>()
+    .AddSingleton<IEndpointModule, StorageLabelsApi.Endpoints.Labels.LabelEndpoints>();
 
 var app = builder.Build();
 

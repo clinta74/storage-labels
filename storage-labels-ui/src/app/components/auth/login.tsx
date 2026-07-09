@@ -62,6 +62,7 @@ export const Login: React.FC = () => {
 
                 <form onSubmit={handleSubmit}>
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Username or Email"
                         value={usernameOrEmail}
@@ -73,6 +74,7 @@ export const Login: React.FC = () => {
                     />
 
                     <TextField
+                        variant="standard"
                         fullWidth
                         label="Password"
                         type="password"

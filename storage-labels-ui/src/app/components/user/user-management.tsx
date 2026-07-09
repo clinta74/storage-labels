@@ -238,6 +238,7 @@ export const UserManagement: React.FC = () => {
                                         <TableCell>
                                             <FormControl size="small" sx={{ minWidth: 120 }}>
                                                 <Select
+                                                    variant="standard"
                                                     value={user.roles[0] || 'User'}
                                                     onChange={(e) => handleRoleChange(user.userId, e.target.value)}
                                                     disabled={updating === user.userId}

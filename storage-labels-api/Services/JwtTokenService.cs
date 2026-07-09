@@ -59,7 +59,7 @@ public class JwtTokenService
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = _timeProvider.GetUtcNow().DateTime.AddMinutes(_jwtSettings.ExpirationMinutes);
+        var expires = _timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_jwtSettings.ExpirationMinutes);
 
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
@@ -77,6 +77,6 @@ public class JwtTokenService
     /// </summary>
     public DateTime GetTokenExpiration()
     {
-        return _timeProvider.GetUtcNow().DateTime.AddMinutes(_jwtSettings.ExpirationMinutes);
+        return _timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_jwtSettings.ExpirationMinutes);
     }
 }

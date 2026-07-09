@@ -109,6 +109,11 @@ public class RefreshTokenService : IRefreshTokenService
 
         _logger.RefreshTokenRotated(storedToken.UserId, replacement.Id);
 
+        // Clean up expired tokens on each refresh (fire and forget)
+#pragma warning disable CS4014
+        CleanupExpiredTokensAsync(cancellationToken);
+#pragma warning restore CS4014
+
         return Result.Success(new RefreshTokenRotationResult(
             storedToken.UserId,
             replacement.Id,
@@ -163,5 +168,38 @@ public class RefreshTokenService : IRefreshTokenService
     {
         var bytes = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token));
         return Convert.ToBase64String(bytes);
+    }
+
+    /// <summary>
+    /// Cleans up expired and revoked refresh tokens from the database.
+    /// Runs asynchronously without blocking the refresh response.
+    /// </summary>
+    private async Task CleanupExpiredTokensAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
+
+            // Delete expired tokens
+            var deletedExpired = await _dbContext.RefreshTokens
+                .Where(token => token.ExpiresAt <= now)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            // Delete revoked tokens (they're unusable anyway)
+            var deletedRevoked = await _dbContext.RefreshTokens
+                .Where(token => token.RevokedAt != null)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            var totalDeleted = deletedExpired + deletedRevoked;
+            if (totalDeleted > 0)
+            {
+                _logger.LogInformation("Cleaned up {DeletedCount} expired or revoked refresh tokens.", totalDeleted);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log but don't throw — cleanup failure shouldn't break refresh flow
+            _logger.LogWarning(ex, "Failed to cleanup expired refresh tokens.");
+        }
     }
 }

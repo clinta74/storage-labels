@@ -177,7 +177,9 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
         if (authMode === 'None') {
             return ''; // No token needed in NoAuth mode
         }
-        const currentToken = token ?? localStorage.getItem(TOKEN_KEY);
+        // Always read from localStorage first to ensure we get the latest token
+        // (e.g., after a refresh, state updates may be batched)
+        const currentToken = localStorage.getItem(TOKEN_KEY) ?? token;
         if (!currentToken) {
             throw new Error('Not authenticated');
         }

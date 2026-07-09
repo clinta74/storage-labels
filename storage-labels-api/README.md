@@ -1,6 +1,6 @@
 # Storage Labels API
 
-A .NET 9.0 Web API backend for managing physical storage items with built-in authentication, authorization, and encryption capabilities.
+A .NET 10.0 Web API backend for managing physical storage items with built-in authentication, authorization, and encryption capabilities.
 
 ## Table of Contents
 

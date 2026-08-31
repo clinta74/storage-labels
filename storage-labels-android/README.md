@@ -8,8 +8,9 @@ The full implementation plan, parity checklist and phase breakdown live in
 
 ## Status
 
-Phase 0 (foundations) in progress — project scaffold and containerised build.
-Not yet functional: no server setup, auth or data screens.
+Phases 0–1 in progress. Working end to end: server setup, sign in, session restore,
+token refresh, sign out, and no-auth mode. Not yet built: registration, change password,
+the app shell (drawer, preferences, legal pages) and every data screen.
 
 ## Building
 
@@ -28,9 +29,11 @@ docker compose run --rm android ./gradlew lintDebug       # lint
 docker compose run --rm android cp app/build/outputs/apk/debug/app-debug.apk outputs/
 ```
 
-Gradle's caches and `app/build` live in named volumes (`gradle-cache`, `android-build`)
-rather than on the bind mount — the Windows↔Linux filesystem boundary otherwise dominates
-build time. `docker volume rm storage-labels-android_gradle-cache` for a clean slate.
+Gradle's caches, `app/build` and `.gradle` live in named volumes rather than on the bind
+mount. That is partly speed — the Windows↔Linux filesystem boundary otherwise dominates
+build time — and partly correctness: Gradle memory-maps files under `.gradle`, which fails
+intermittently with `java.io.IOException: Input/output error` over the mount.
+`docker volume rm storage-labels-android_gradle-cache` for a clean slate.
 
 ### With a local SDK
 

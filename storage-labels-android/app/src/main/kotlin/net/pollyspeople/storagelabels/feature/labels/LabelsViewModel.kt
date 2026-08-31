@@ -38,12 +38,8 @@ class LabelsViewModel @Inject constructor(
     private val _state = MutableStateFlow(LabelsState())
     val state: StateFlow<LabelsState> = _state.asStateFlow()
 
-    init {
-        refresh()
-    }
-
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.jobs.isEmpty(), error = null) }
         viewModelScope.launch {
             when (val result = apiCall { api.getJobs() }) {
                 is ApiResult.Success -> _state.update { it.copy(jobs = result.value, loading = false) }
@@ -90,14 +86,13 @@ class LabelJobDetailViewModel @Inject constructor(
     val state: StateFlow<LabelJobDetailState> = _state.asStateFlow()
 
     init {
-        refresh()
         // A page survives process death: the codes are already spent server-side, so losing
         // them would mean a gap in the printed sequence.
         savedStateHandle.get<String>(KEY_PAGE_CODES)?.let { restorePage(it) }
     }
 
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.job == null, error = null) }
         viewModelScope.launch {
             when (val result = apiCall { api.getJob(jobId) }) {
                 is ApiResult.Success -> _state.update { it.copy(job = result.value, loading = false) }

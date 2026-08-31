@@ -43,12 +43,8 @@ class CommonLocationsViewModel @Inject constructor(
     private val _state = MutableStateFlow(CommonLocationsState())
     val state: StateFlow<CommonLocationsState> = _state.asStateFlow()
 
-    init {
-        refresh()
-    }
-
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.locations.isEmpty(), error = null) }
         viewModelScope.launch {
             when (val result = apiCall { api.getCommonLocations() }) {
                 is ApiResult.Success -> _state.update {
@@ -106,12 +102,8 @@ class UserManagementViewModel @Inject constructor(
     private val _state = MutableStateFlow(UserManagementState())
     val state: StateFlow<UserManagementState> = _state.asStateFlow()
 
-    init {
-        refresh()
-    }
-
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.users.isEmpty(), error = null) }
         viewModelScope.launch {
             when (val result = apiCall { api.getAllUsers() }) {
                 is ApiResult.Success -> _state.update { it.copy(users = result.value, loading = false) }
@@ -193,12 +185,8 @@ class EncryptionKeysViewModel @Inject constructor(
 
     private var watchJob: Job? = null
 
-    init {
-        refresh()
-    }
-
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.keys.isEmpty(), error = null) }
         viewModelScope.launch {
             val keys = apiCall { api.getKeys() }
             val rotations = apiCall { api.getRotations() }

@@ -34,11 +34,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.MenuAction
+import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.feature.search.InlineSearchBar
 import net.pollyspeople.storagelabels.data.dto.StorageLocation
 
@@ -51,6 +55,10 @@ fun LocationsScreen(
     viewModel: LocationsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Loads on first show and again whenever the screen comes back to the front, so a
+    // box or item added on a pushed screen is there when you return.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
     var editing by remember { mutableStateOf<StorageLocation?>(null) }
     var creating by remember { mutableStateOf(false) }
@@ -169,19 +177,18 @@ private fun LocationCard(
             }
 
             // Sharing and deleting are the owner's to do; editing needs write access.
-            if (location.accessLevel.canEdit) {
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Rename ${location.name}")
-                }
-            }
-            if (location.accessLevel.canManageUsers) {
-                IconButton(onClick = onManageUsers) {
-                    Icon(Icons.Filled.People, contentDescription = "Share ${location.name}")
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete ${location.name}")
-                }
-            }
+            OverflowMenu(
+                contentDescription = "Actions for ${location.name}",
+                actions = buildList {
+                    if (location.accessLevel.canEdit) {
+                        add(MenuAction("Rename", onEdit, Icons.Filled.Edit))
+                    }
+                    if (location.accessLevel.canManageUsers) {
+                        add(MenuAction("Share", onManageUsers, Icons.Filled.People))
+                        add(MenuAction("Delete", onDelete, Icons.Filled.Delete, destructive = true))
+                    }
+                },
+            )
         }
     }
 }

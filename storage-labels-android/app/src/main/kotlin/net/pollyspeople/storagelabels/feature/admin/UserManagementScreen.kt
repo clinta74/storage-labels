@@ -33,10 +33,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.MenuAction
+import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.data.dto.UserWithRoles
 
 private val Roles = listOf("Admin", "Auditor", "User")
@@ -48,6 +52,10 @@ fun UserManagementScreen(
     viewModel: UserManagementViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Loads on first show and again whenever the screen comes back to the front, so a
+    // box or item added on a pushed screen is there when you return.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
     var resetting by remember { mutableStateOf<UserWithRoles?>(null) }
     var deleting by remember { mutableStateOf<UserWithRoles?>(null) }
 
@@ -96,14 +104,30 @@ fun UserManagementScreen(
                             onSelect = { role -> viewModel.changeRole(user, role, onMessage) },
                         )
 
-                        IconButton(onClick = { resetting = user }) {
-                            Icon(Icons.Filled.LockReset, contentDescription = "Reset password")
-                        }
-                        if (!isSelf) {
-                            IconButton(onClick = { deleting = user }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Delete account")
-                            }
-                        }
+                        OverflowMenu(
+                            contentDescription = "Actions for ${user.displayName}",
+                            actions = buildList {
+                                add(
+                                    MenuAction(
+                                        "Reset password",
+                                        { resetting = user },
+                                        Icons.Filled.LockReset,
+                                    ),
+                                )
+                                // Deleting your own account from here would end the session
+                                // you are using to manage everyone else's.
+                                if (!isSelf) {
+                                    add(
+                                        MenuAction(
+                                            "Delete account",
+                                            { deleting = user },
+                                            Icons.Filled.Delete,
+                                            destructive = true,
+                                        ),
+                                    )
+                                }
+                            },
+                        )
                     }
                 }
             }

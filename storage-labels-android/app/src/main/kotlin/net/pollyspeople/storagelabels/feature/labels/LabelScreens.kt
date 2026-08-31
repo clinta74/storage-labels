@@ -49,6 +49,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.labels.LabelPrinter
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
@@ -56,6 +58,8 @@ import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.FormattedCode
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.MenuAction
+import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.data.dto.LabelIncrementAlgorithm
 import net.pollyspeople.storagelabels.data.dto.LabelPrintJob
 
@@ -68,6 +72,10 @@ fun LabelJobsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var deleting by remember { mutableStateOf<LabelPrintJob?>(null) }
+
+    // Loads on first show and again whenever the screen comes back to the front, so a
+    // box or item added on a pushed screen is there when you return.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
     Box(Modifier.fillMaxSize()) {
         when {
@@ -104,9 +112,18 @@ fun LabelJobsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            IconButton(onClick = { deleting = job }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Delete ${job.name}")
-                            }
+                            OverflowMenu(
+                                contentDescription = "Actions for ${job.name}",
+                                actions = listOf(
+                                    MenuAction("Open", { onOpenJob(job.id) }),
+                                    MenuAction(
+                                        "Delete",
+                                        { deleting = job },
+                                        Icons.Filled.Delete,
+                                        destructive = true,
+                                    ),
+                                ),
+                            )
                         }
                     }
                 }
@@ -144,6 +161,10 @@ fun LabelJobDetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    // Loads on first show and again whenever the screen comes back to the front, so a
+    // box or item added on a pushed screen is there when you return.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
     val job = state.job
 
     if (state.loading && job == null) {
@@ -202,10 +223,10 @@ fun LabelJobDetailScreen(
                     }
                     Text("Generate next sheet")
                 }
-                TextButton(onClick = onEdit) {
-                    Icon(Icons.Filled.Edit, contentDescription = null)
-                    Text(" Edit")
-                }
+                OverflowMenu(
+                    contentDescription = "Actions for this label run",
+                    actions = listOf(MenuAction("Edit", onEdit, Icons.Filled.Edit)),
+                )
             }
         }
 

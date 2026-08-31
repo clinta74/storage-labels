@@ -30,12 +30,9 @@ class LocationsViewModel @Inject constructor(
     private val _state = MutableStateFlow(LocationsState())
     val state: StateFlow<LocationsState> = _state.asStateFlow()
 
-    init {
-        refresh()
-    }
-
+    /** Quiet once something is on screen, so returning to the list doesn't flash a spinner. */
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.locations.isEmpty(), error = null) }
         viewModelScope.launch {
             when (val result = locations.list()) {
                 is ApiResult.Success -> _state.update {

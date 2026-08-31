@@ -35,9 +35,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.MenuAction
+import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.data.dto.AccessLevel
 import net.pollyspeople.storagelabels.data.dto.LocationUser
 
@@ -49,6 +53,10 @@ fun LocationUsersScreen(
     viewModel: LocationUsersViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Loads on first show and again whenever the screen comes back to the front, so a
+    // box or item added on a pushed screen is there when you return.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
     var removing by remember { mutableStateOf<LocationUser?>(null) }
 
     if (state.loading) {
@@ -132,9 +140,17 @@ fun LocationUsersScreen(
                         enabled = true,
                         onSelect = { level -> viewModel.changeAccess(user, level, onMessage) },
                     )
-                    IconButton(onClick = { removing = user }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Remove ${user.displayName}")
-                    }
+                    OverflowMenu(
+                        contentDescription = "Actions for ${user.displayName}",
+                        actions = listOf(
+                            MenuAction(
+                                "Remove",
+                                { removing = user },
+                                Icons.Filled.Delete,
+                                destructive = true,
+                            ),
+                        ),
+                    )
                 }
             }
         }

@@ -49,7 +49,6 @@ class BoxDetailViewModel @Inject constructor(
     val state: StateFlow<BoxDetailState> = _state.asStateFlow()
 
     init {
-        refresh()
         viewModelScope.launch {
             userRepository.preferences.collect { preferences ->
                 _state.update {
@@ -63,7 +62,7 @@ class BoxDetailViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.box == null, error = null) }
         viewModelScope.launch {
             val boxResult = boxes.get(route.boxId)
             if (boxResult is ApiResult.Failure) {

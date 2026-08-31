@@ -41,12 +41,8 @@ class LocationUsersViewModel @Inject constructor(
     private val _state = MutableStateFlow(LocationUsersState())
     val state: StateFlow<LocationUsersState> = _state.asStateFlow()
 
-    init {
-        refresh()
-    }
-
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.users.isEmpty(), error = null) }
         viewModelScope.launch {
             when (val result = locations.users(locationId)) {
                 is ApiResult.Success -> _state.update {

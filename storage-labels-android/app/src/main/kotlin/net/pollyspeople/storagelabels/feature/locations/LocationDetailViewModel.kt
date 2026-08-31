@@ -48,7 +48,6 @@ class LocationDetailViewModel @Inject constructor(
     val state: StateFlow<LocationDetailState> = _state.asStateFlow()
 
     init {
-        refresh()
         viewModelScope.launch {
             userRepository.preferences.collect { preferences ->
                 _state.update { it.copy(codeColorPattern = preferences?.codeColorPattern.orEmpty()) }
@@ -57,7 +56,7 @@ class LocationDetailViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.boxes.isEmpty(), error = null) }
         viewModelScope.launch {
             val locationResult = locations.get(locationId)
             val boxesResult = boxes.listByLocation(locationId)

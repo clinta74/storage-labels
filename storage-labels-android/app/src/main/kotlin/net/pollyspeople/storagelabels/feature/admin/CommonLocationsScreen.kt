@@ -31,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.permissions.LocalPermissions
 import net.pollyspeople.storagelabels.core.permissions.Permissions
@@ -39,6 +41,8 @@ import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.MenuAction
+import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.data.dto.CommonLocation
 
 @Composable
@@ -47,6 +51,10 @@ fun CommonLocationsScreen(
     viewModel: CommonLocationsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Loads on first show and again whenever the screen comes back to the front, so a
+    // box or item added on a pushed screen is there when you return.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
     val canWrite = LocalPermissions.current.hasPermission(Permissions.WRITE_COMMON_LOCATIONS)
 
     var adding by remember { mutableStateOf(false) }
@@ -85,12 +93,17 @@ fun CommonLocationsScreen(
                                 modifier = Modifier.weight(1f),
                             )
                             if (canWrite) {
-                                IconButton(onClick = { deleting = location }) {
-                                    Icon(
-                                        Icons.Filled.Delete,
-                                        contentDescription = "Delete ${location.name}",
-                                    )
-                                }
+                                OverflowMenu(
+                                    contentDescription = "Actions for ${location.name}",
+                                    actions = listOf(
+                                        MenuAction(
+                                            "Delete",
+                                            { deleting = location },
+                                            Icons.Filled.Delete,
+                                            destructive = true,
+                                        ),
+                                    ),
+                                )
                             }
                         }
                     }

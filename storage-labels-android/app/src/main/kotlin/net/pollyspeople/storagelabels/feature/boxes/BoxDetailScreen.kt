@@ -35,6 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.ui.AuthenticatedImage
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
@@ -42,6 +44,8 @@ import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.FormattedCode
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.MenuAction
+import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.feature.search.InlineSearchBar
 import net.pollyspeople.storagelabels.data.dto.Item
 
@@ -57,6 +61,10 @@ fun BoxDetailScreen(
     viewModel: BoxDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Loads on first show and again whenever the screen comes back to the front, so a
+    // box or item added on a pushed screen is there when you return.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
     var itemToDelete by remember { mutableStateOf<Item?>(null) }
     var deletingBox by remember { mutableStateOf(false) }
@@ -84,15 +92,40 @@ fun BoxDetailScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Column(Modifier.fillMaxWidth()) {
-                    Text(box.name, style = MaterialTheme.typography.headlineSmall)
-                    FormattedCode(
-                        code = box.code,
-                        pattern = state.codeColorPattern,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    if (!box.description.isNullOrBlank()) {
-                        Text(box.description, style = MaterialTheme.typography.bodyMedium)
+                Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.weight(1f)) {
+                        Text(box.name, style = MaterialTheme.typography.headlineSmall)
+                        FormattedCode(
+                            code = box.code,
+                            pattern = state.codeColorPattern,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        if (!box.description.isNullOrBlank()) {
+                            Text(box.description, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+
+                    if (state.canEdit) {
+                        OverflowMenu(
+                            contentDescription = "Actions for this box",
+                            actions = listOf(
+                                MenuAction("Edit", onEditBox, Icons.Filled.Edit),
+                                MenuAction(
+                                    "Move to another location",
+                                    {
+                                        viewModel.loadMoveTargets()
+                                        moving = true
+                                    },
+                                    Icons.AutoMirrored.Filled.DriveFileMove,
+                                ),
+                                MenuAction(
+                                    "Delete box",
+                                    { deletingBox = true },
+                                    Icons.Filled.Delete,
+                                    destructive = true,
+                                ),
+                            ),
+                        )
                     }
                 }
             }
@@ -107,28 +140,6 @@ fun BoxDetailScreen(
                             .fillMaxWidth()
                             .height(220.dp),
                     )
-                }
-            }
-
-            if (state.canEdit) {
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = onEditBox) {
-                            Icon(Icons.Filled.Edit, contentDescription = null)
-                            Text(" Edit")
-                        }
-                        TextButton(onClick = {
-                            viewModel.loadMoveTargets()
-                            moving = true
-                        }) {
-                            Icon(Icons.AutoMirrored.Filled.DriveFileMove, contentDescription = null)
-                            Text(" Move")
-                        }
-                        TextButton(onClick = { deletingBox = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = null)
-                            Text(" Delete")
-                        }
-                    }
                 }
             }
 
@@ -287,12 +298,13 @@ private fun ItemRow(
                 }
             }
             if (canEdit) {
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Edit ${item.name}")
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete ${item.name}")
-                }
+                OverflowMenu(
+                    contentDescription = "Actions for ${item.name}",
+                    actions = listOf(
+                        MenuAction("Edit", onEdit, Icons.Filled.Edit),
+                        MenuAction("Delete", onDelete, Icons.Filled.Delete, destructive = true),
+                    ),
+                )
             }
         }
     }

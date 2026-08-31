@@ -33,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.permissions.LocalPermissions
 import net.pollyspeople.storagelabels.core.permissions.Permissions
@@ -40,6 +42,8 @@ import net.pollyspeople.storagelabels.core.permissions.hasPermission
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.MenuAction
+import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.data.dto.EncryptionKey
 import net.pollyspeople.storagelabels.data.dto.EncryptionKeyStatus
 
@@ -49,6 +53,10 @@ fun EncryptionKeysScreen(
     viewModel: EncryptionKeysViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Loads on first show and again whenever the screen comes back to the front, so a
+    // box or item added on a pushed screen is there when you return.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
     val canWrite = LocalPermissions.current.hasPermission(Permissions.WRITE_ENCRYPTION_KEYS)
 
     var creating by remember { mutableStateOf(false) }
@@ -272,15 +280,18 @@ private fun KeyCard(
             }
 
             if (canWrite) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (key.status == EncryptionKeyStatus.Created) {
-                        TextButton(onClick = onActivate) { Text("Activate") }
-                    }
-                    // Retiring is only safe once nothing is encrypted under the key.
-                    if (key.status == EncryptionKeyStatus.Deprecated && (stats?.imageCount ?: 0) == 0) {
-                        TextButton(onClick = onRetire) { Text("Retire") }
-                    }
-                }
+                OverflowMenu(
+                    contentDescription = "Actions for key version ${key.version}",
+                    actions = buildList {
+                        if (key.status == EncryptionKeyStatus.Created) {
+                            add(MenuAction("Activate", onActivate))
+                        }
+                        // Retiring is only safe once nothing is encrypted under the key.
+                        if (key.status == EncryptionKeyStatus.Deprecated && (stats?.imageCount ?: 0) == 0) {
+                            add(MenuAction("Retire", onRetire, destructive = true))
+                        }
+                    },
+                )
             }
         }
     }

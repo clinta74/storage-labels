@@ -35,7 +35,6 @@ class ImagesViewModel @Inject constructor(
     val state: StateFlow<ImagesState> = _state.asStateFlow()
 
     init {
-        refresh()
         viewModelScope.launch {
             userRepository.preferences.collect { preferences ->
                 _state.update { it.copy(showImages = preferences?.showImages ?: true) }
@@ -44,7 +43,7 @@ class ImagesViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _state.update { it.copy(loading = true, error = null) }
+        _state.update { it.copy(loading = it.images.isEmpty(), error = null) }
         viewModelScope.launch {
             when (val result = images.list()) {
                 is ApiResult.Success -> _state.update {

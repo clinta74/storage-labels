@@ -36,10 +36,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import net.pollyspeople.storagelabels.core.permissions.LocalPermissions
 import net.pollyspeople.storagelabels.data.dto.AuthMode
 import net.pollyspeople.storagelabels.feature.auth.ChangePasswordScreen
+import net.pollyspeople.storagelabels.feature.boxes.BoxDetailScreen
+import net.pollyspeople.storagelabels.feature.boxes.BoxEditScreen
+import net.pollyspeople.storagelabels.feature.items.ItemEditScreen
+import net.pollyspeople.storagelabels.feature.locations.LocationDetailScreen
+import net.pollyspeople.storagelabels.feature.locations.LocationUsersScreen
+import net.pollyspeople.storagelabels.feature.locations.LocationsScreen
 import net.pollyspeople.storagelabels.feature.preferences.PreferencesScreen
 import kotlin.reflect.KClass
 
@@ -73,7 +80,7 @@ fun AppShell(
     val navigateTo: (Route) -> Unit = { route ->
         scope.launch { drawerState.close() }
         navController.navigate(route) {
-            popUpTo(Route.Locations) { inclusive = false }
+            popUpTo(Route.Locations) { inclusive = route == Route.Locations }
             launchSingleTop = true
         }
     }
@@ -149,7 +156,66 @@ fun AppShell(
                     NoAuthBanner()
                 }
                 NavHost(navController = navController, startDestination = Route.Locations) {
-                    composable<Route.Locations> { ComingSoon("Locations", "Phase 2") }
+                    composable<Route.Locations> {
+                        LocationsScreen(
+                            onOpenLocation = { navController.navigate(Route.LocationDetail(it)) },
+                            onManageUsers = { navController.navigate(Route.LocationUsers(it)) },
+                            onMessage = showMessage,
+                        )
+                    }
+                    composable<Route.LocationDetail> { entry ->
+                        val route = entry.toRoute<Route.LocationDetail>()
+                        LocationDetailScreen(
+                            onOpenBox = { boxId ->
+                                navController.navigate(Route.BoxDetail(route.locationId, boxId))
+                            },
+                            onAddBox = { navController.navigate(Route.BoxEdit(route.locationId)) },
+                            onMessage = showMessage,
+                        )
+                    }
+                    composable<Route.LocationUsers> {
+                        LocationUsersScreen(onMessage = showMessage)
+                    }
+                    composable<Route.BoxEdit> {
+                        BoxEditScreen(
+                            onSaved = { message ->
+                                showMessage(message)
+                                navController.popBackStack()
+                            },
+                        )
+                    }
+                    composable<Route.BoxDetail> { entry ->
+                        val route = entry.toRoute<Route.BoxDetail>()
+                        BoxDetailScreen(
+                            onEditBox = {
+                                navController.navigate(Route.BoxEdit(route.locationId, route.boxId))
+                            },
+                            onAddItem = {
+                                navController.navigate(Route.ItemEdit(route.locationId, route.boxId))
+                            },
+                            onEditItem = { itemId ->
+                                navController.navigate(
+                                    Route.ItemEdit(route.locationId, route.boxId, itemId),
+                                )
+                            },
+                            onDeleted = { navController.popBackStack() },
+                            onMoved = { destination ->
+                                // The box now lives elsewhere, so go to where it went rather
+                                // than back to a list it has left.
+                                navController.popBackStack()
+                                navController.navigate(Route.LocationDetail(destination))
+                            },
+                            onMessage = showMessage,
+                        )
+                    }
+                    composable<Route.ItemEdit> {
+                        ItemEditScreen(
+                            onSaved = { message ->
+                                showMessage(message)
+                                navController.popBackStack()
+                            },
+                        )
+                    }
                     composable<Route.Images> { ComingSoon("Images", "Phase 3") }
                     composable<Route.Labels> { ComingSoon("Labels", "Phase 4") }
                     composable<Route.CommonLocations> { ComingSoon("Common locations", "Phase 5") }

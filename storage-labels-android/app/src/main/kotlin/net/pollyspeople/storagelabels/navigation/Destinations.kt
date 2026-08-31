@@ -17,6 +17,20 @@ sealed interface Route {
     @Serializable data object Users : Route
     @Serializable data object Preferences : Route
     @Serializable data object ChangePassword : Route
+
+    @Serializable data class LocationDetail(val locationId: Long) : Route
+    @Serializable data class LocationUsers(val locationId: Long) : Route
+
+    /** [boxId] null means "create a box here". */
+    @Serializable data class BoxEdit(val locationId: Long, val boxId: String? = null) : Route
+    @Serializable data class BoxDetail(val locationId: Long, val boxId: String) : Route
+
+    /** [itemId] null means "add an item to this box". */
+    @Serializable data class ItemEdit(
+        val locationId: Long,
+        val boxId: String,
+        val itemId: String? = null,
+    ) : Route
 }
 
 /**

@@ -1,0 +1,100 @@
+package net.pollyspeople.storagelabels.feature.locations
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import net.pollyspeople.storagelabels.core.inventory.LocationRepository
+import net.pollyspeople.storagelabels.core.result.ApiResult
+import net.pollyspeople.storagelabels.core.ui.userMessage
+import net.pollyspeople.storagelabels.data.dto.StorageLocation
+import javax.inject.Inject
+
+data class LocationsState(
+    val locations: List<StorageLocation> = emptyList(),
+    val loading: Boolean = true,
+    val error: String? = null,
+    val saving: Boolean = false,
+    val message: String? = null,
+)
+
+@HiltViewModel
+class LocationsViewModel @Inject constructor(
+    private val locations: LocationRepository,
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(LocationsState())
+    val state: StateFlow<LocationsState> = _state.asStateFlow()
+
+    init {
+        refresh()
+    }
+
+    fun refresh() {
+        _state.update { it.copy(loading = true, error = null) }
+        viewModelScope.launch {
+            when (val result = locations.list()) {
+                is ApiResult.Success -> _state.update {
+                    it.copy(locations = result.value, loading = false)
+                }
+                is ApiResult.Failure -> _state.update {
+                    it.copy(loading = false, error = result.error.userMessage())
+                }
+            }
+        }
+    }
+
+    fun create(name: String, onDone: (String) -> Unit) {
+        if (name.isBlank()) return
+        _state.update { it.copy(saving = true) }
+        viewModelScope.launch {
+            when (val result = locations.create(name.trim())) {
+                is ApiResult.Success -> {
+                    _state.update { it.copy(saving = false) }
+                    onDone("Created ${result.value.name}.")
+                    refresh()
+                }
+                is ApiResult.Failure -> _state.update {
+                    it.copy(saving = false, error = result.error.userMessage())
+                }
+            }
+        }
+    }
+
+    fun rename(locationId: Long, name: String, onDone: (String) -> Unit) {
+        if (name.isBlank()) return
+        _state.update { it.copy(saving = true) }
+        viewModelScope.launch {
+            when (val result = locations.rename(locationId, name.trim())) {
+                is ApiResult.Success -> {
+                    _state.update { it.copy(saving = false) }
+                    onDone("Renamed to ${result.value.name}.")
+                    refresh()
+                }
+                is ApiResult.Failure -> _state.update {
+                    it.copy(saving = false, error = result.error.userMessage())
+                }
+            }
+        }
+    }
+
+    fun delete(location: StorageLocation, force: Boolean, onDone: (String) -> Unit) {
+        viewModelScope.launch {
+            when (val result = locations.delete(location.locationId, force)) {
+                is ApiResult.Success -> {
+                    onDone("Deleted ${location.name}.")
+                    refresh()
+                }
+                is ApiResult.Failure -> _state.update {
+                    it.copy(error = result.error.userMessage())
+                }
+            }
+        }
+    }
+
+    fun clearError() = _state.update { it.copy(error = null) }
+}

@@ -7,6 +7,9 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import net.pollyspeople.storagelabels.BuildConfig
 import net.pollyspeople.storagelabels.data.api.AuthApi
+import net.pollyspeople.storagelabels.data.api.BoxApi
+import net.pollyspeople.storagelabels.data.api.ItemApi
+import net.pollyspeople.storagelabels.data.api.LocationApi
 import net.pollyspeople.storagelabels.data.api.UserApi
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -85,6 +88,26 @@ object NetworkModule {
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
 
+    /**
+     * Images are fetched by absolute URL (the API returns paths like /api/images/{id}), so
+     * this client deliberately omits the host-rewriting interceptor while keeping the bearer
+     * token and refresh behaviour.
+     */
+    @Provides
+    @Singleton
+    @Named("images")
+    fun provideImageClient(
+        auth: AuthInterceptor,
+        authenticator: TokenAuthenticator,
+        cookieJar: PersistentCookieJar,
+    ): OkHttpClient = OkHttpClient.Builder()
+        .cookieJar(cookieJar)
+        .addInterceptor(auth)
+        .authenticator(authenticator)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .build()
+
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit = retrofit(client, json)
@@ -102,6 +125,18 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideUserApi(retrofit: Retrofit): UserApi = retrofit.create(UserApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideLocationApi(retrofit: Retrofit): LocationApi = retrofit.create(LocationApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideBoxApi(retrofit: Retrofit): BoxApi = retrofit.create(BoxApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideItemApi(retrofit: Retrofit): ItemApi = retrofit.create(ItemApi::class.java)
 
     @Provides
     @Singleton

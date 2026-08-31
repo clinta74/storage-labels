@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -26,6 +27,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -127,16 +130,34 @@ private fun BoxCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            RowThumbnail(
-                imageUrl = box.photoUrl,
-                contentDescription = "Photo of ${box.name}",
-                showImages = showImages,
-                fallbackIcon = Icons.Filled.Inventory2,
-            )
+            // The web app anchors the count to the avatar, and hides it at zero.
+            BadgedBox(
+                badge = {
+                    if (itemCount != null && itemCount > 0) {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.semantics {
+                                contentDescription =
+                                    "$itemCount item${if (itemCount == 1) "" else "s"}"
+                            },
+                        ) {
+                            Text("$itemCount")
+                        }
+                    }
+                },
+            ) {
+                RowThumbnail(
+                    imageUrl = box.photoUrl,
+                    contentDescription = "Photo of ${box.name}",
+                    showImages = showImages,
+                    fallbackIcon = Icons.Filled.Inventory2,
+                )
+            }
 
             Column(Modifier.weight(1f)) {
                 Text(box.name, style = MaterialTheme.typography.titleMedium)
@@ -152,10 +173,6 @@ private fun BoxCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            }
-
-            if (itemCount != null) {
-                Badge { Text("$itemCount") }
             }
         }
     }

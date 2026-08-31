@@ -29,6 +29,7 @@ data class LocationDetailState(
     val boxes: List<Box> = emptyList(),
     val itemCounts: Map<String, Int> = emptyMap(),
     val codeColorPattern: String = "",
+    val showImages: Boolean = true,
     val loading: Boolean = true,
     val error: String? = null,
 )
@@ -50,7 +51,12 @@ class LocationDetailViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             userRepository.preferences.collect { preferences ->
-                _state.update { it.copy(codeColorPattern = preferences?.codeColorPattern.orEmpty()) }
+                _state.update {
+                    it.copy(
+                        codeColorPattern = preferences?.codeColorPattern.orEmpty(),
+                        showImages = preferences?.showImages ?: true,
+                    )
+                }
             }
         }
     }
@@ -98,20 +104,6 @@ class LocationDetailViewModel @Inject constructor(
             current.copy(
                 itemCounts = counts.mapNotNull { (id, count) -> count?.let { id to it } }.toMap(),
             )
-        }
-    }
-
-    fun deleteBox(box: Box, force: Boolean, onDone: (String) -> Unit) {
-        viewModelScope.launch {
-            when (val result = boxes.delete(box.boxId, force)) {
-                is ApiResult.Success -> {
-                    onDone("Deleted ${box.name}.")
-                    refresh()
-                }
-                is ApiResult.Failure -> _state.update {
-                    it.copy(error = result.error.userMessage())
-                }
-            }
         }
     }
 

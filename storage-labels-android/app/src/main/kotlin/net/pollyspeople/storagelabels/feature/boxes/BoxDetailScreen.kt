@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.automirrored.filled.DriveFileMove
@@ -44,6 +45,7 @@ import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.FormattedCode
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.RowThumbnail
 import net.pollyspeople.storagelabels.core.ui.MenuAction
 import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.feature.search.InlineSearchBar
@@ -167,6 +169,7 @@ fun BoxDetailScreen(
                     ItemRow(
                         item = item,
                         canEdit = state.canEdit,
+                        showImages = state.showImages,
                         onOpen = { viewing = item },
                         onEdit = { onEditItem(item.itemId) },
                         onDelete = { itemToDelete = item },
@@ -276,6 +279,7 @@ fun BoxDetailScreen(
 private fun ItemRow(
     item: Item,
     canEdit: Boolean,
+    showImages: Boolean,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -286,7 +290,16 @@ private fun ItemRow(
                 .fillMaxWidth()
                 .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            RowThumbnail(
+                imageUrl = item.imageUrl,
+                contentDescription = "Photo of ${item.name}",
+                showImages = showImages,
+                fallbackIcon = Icons.AutoMirrored.Filled.Label,
+                size = 40.dp,
+            )
+
             Column(Modifier.weight(1f)) {
                 Text(item.name, style = MaterialTheme.typography.bodyLarge)
                 if (!item.description.isNullOrBlank()) {

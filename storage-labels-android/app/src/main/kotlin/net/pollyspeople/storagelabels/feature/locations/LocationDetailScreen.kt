@@ -132,7 +132,7 @@ private fun BoxCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             RowThumbnail(
-                imageUrl = box.imageUrl,
+                imageUrl = box.photoUrl,
                 contentDescription = "Photo of ${box.name}",
                 showImages = showImages,
                 fallbackIcon = Icons.Filled.Inventory2,

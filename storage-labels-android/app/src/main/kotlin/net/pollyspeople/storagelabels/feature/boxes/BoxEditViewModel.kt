@@ -68,7 +68,7 @@ class BoxEditViewModel @Inject constructor(
                         code = result.value.code,
                         name = result.value.name,
                         description = result.value.description.orEmpty(),
-                        imageUrl = result.value.imageUrl,
+                        imageUrl = result.value.photoUrl,
                         imageMetadataId = result.value.imageMetadataId,
                         loading = false,
                     )

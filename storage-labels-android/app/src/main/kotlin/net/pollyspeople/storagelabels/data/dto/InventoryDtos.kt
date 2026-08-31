@@ -46,7 +46,14 @@ data class Box(
     val created: String? = null,
     val updated: String? = null,
     val lastAccessed: String? = null,
-)
+) {
+    /**
+     * Boxes saved before the upload response was understood carry an id but no url, so fall
+     * back to the id. Either way this is what the UI should show.
+     */
+    val photoUrl: String? get() = imageUrl?.takeIf(String::isNotBlank)
+        ?: imageMetadataId?.takeIf(String::isNotBlank)?.let(::imagePath)
+}
 
 @Serializable
 data class BoxRequest(
@@ -71,7 +78,10 @@ data class Item(
     val imageMetadataId: String? = null,
     val created: String? = null,
     val updated: String? = null,
-)
+) {
+    val photoUrl: String? get() = imageUrl?.takeIf(String::isNotBlank)
+        ?: imageMetadataId?.takeIf(String::isNotBlank)?.let(::imagePath)
+}
 
 @Serializable
 data class ItemRequest(

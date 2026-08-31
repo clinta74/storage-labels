@@ -132,10 +132,10 @@ fun BoxDetailScreen(
                 }
             }
 
-            if (!box.imageUrl.isNullOrBlank()) {
+            if (!box.photoUrl.isNullOrBlank()) {
                 item {
                     AuthenticatedImage(
-                        url = box.imageUrl,
+                        url = box.photoUrl,
                         contentDescription = "Photo of ${box.name}",
                         showImages = state.showImages,
                         modifier = Modifier
@@ -198,9 +198,9 @@ fun BoxDetailScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(item.description?.takeIf(String::isNotBlank) ?: "No description.")
-                    if (!item.imageUrl.isNullOrBlank()) {
+                    if (!item.photoUrl.isNullOrBlank()) {
                         AuthenticatedImage(
-                            url = item.imageUrl,
+                            url = item.photoUrl,
                             contentDescription = "Photo of ${item.name}",
                             showImages = state.showImages,
                             modifier = Modifier
@@ -293,7 +293,7 @@ private fun ItemRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             RowThumbnail(
-                imageUrl = item.imageUrl,
+                imageUrl = item.photoUrl,
                 contentDescription = "Photo of ${item.name}",
                 showImages = showImages,
                 fallbackIcon = Icons.AutoMirrored.Filled.Label,

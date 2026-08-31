@@ -125,7 +125,7 @@ private fun ImageCard(
     Card {
         Column {
             AuthenticatedImage(
-                url = image.url,
+                url = image.resolvedUrl,
                 contentDescription = image.fileName,
                 showImages = showImages,
                 modifier = Modifier

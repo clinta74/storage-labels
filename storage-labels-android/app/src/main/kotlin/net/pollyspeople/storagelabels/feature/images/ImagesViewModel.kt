@@ -76,7 +76,7 @@ class ImagesViewModel @Inject constructor(
         when (result) {
             is ApiResult.Success -> {
                 _state.update { it.copy(uploading = false) }
-                onUploaded(result.value.url, result.value.imageId)
+                onUploaded(result.value.resolvedUrl, result.value.imageId)
                 refresh()
             }
             is ApiResult.Failure -> _state.update {

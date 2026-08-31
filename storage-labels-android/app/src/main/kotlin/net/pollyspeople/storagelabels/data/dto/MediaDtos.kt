@@ -15,7 +15,17 @@ data class ImageMetadata(
     val itemReferenceCount: Int = 0,
 ) {
     val isReferenced: Boolean get() = boxReferenceCount > 0 || itemReferenceCount > 0
+
+    /**
+     * The upload endpoint returns the ImageMetadata entity, which carries no url — only
+     * the list endpoint's response DTO builds one. Derive it the same way the server does
+     * so an image is usable the moment it is uploaded.
+     */
+    val resolvedUrl: String get() = url.ifBlank { imagePath(imageId) }
 }
+
+/** The API's route for fetching an image by id. */
+fun imagePath(imageId: String): String = "/api/images/" + imageId
 
 @Serializable
 data class SearchResult(

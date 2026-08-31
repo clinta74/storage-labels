@@ -60,7 +60,7 @@ class ItemEditViewModel @Inject constructor(
                     it.copy(
                         name = result.value.name,
                         description = result.value.description.orEmpty(),
-                        imageUrl = result.value.imageUrl,
+                        imageUrl = result.value.photoUrl,
                         imageMetadataId = result.value.imageMetadataId,
                         loading = false,
                     )

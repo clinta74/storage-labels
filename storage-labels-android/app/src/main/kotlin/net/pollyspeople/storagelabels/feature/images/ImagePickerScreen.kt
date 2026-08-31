@@ -87,7 +87,7 @@ fun ImagePickerScreen(
         when (tab) {
             0 -> ExistingImages(
                 state = state,
-                onSelect = { image -> onPicked(image.url, image.imageId) },
+                onSelect = { image -> onPicked(image.resolvedUrl, image.imageId) },
             )
 
             else -> CaptureTab(
@@ -124,7 +124,7 @@ private fun ExistingImages(
         items(state.images, key = { it.imageId }) { image ->
             Card(onClick = { onSelect(image) }) {
                 AuthenticatedImage(
-                    url = image.url,
+                    url = image.resolvedUrl,
                     contentDescription = image.fileName,
                     showImages = state.showImages,
                     modifier = Modifier

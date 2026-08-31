@@ -47,6 +47,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
@@ -68,6 +70,10 @@ fun ImagePickerScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) }
+
+    // Nothing else loads the list here, and the state starts out loading, so without this the
+    // "Your photos" tab sits blank forever. On resume, so a photo taken meanwhile shows up.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
     Column(Modifier.fillMaxSize()) {
         Row(
@@ -106,11 +112,17 @@ private fun ExistingImages(
     state: ImagesState,
     onSelect: (net.pollyspeople.storagelabels.data.dto.ImageMetadata) -> Unit,
 ) {
-    if (state.images.isEmpty() && !state.loading) {
-        EmptyState(
-            title = "No photos yet",
-            message = "Take one on the next tab and it'll appear here.",
-        )
+    if (state.images.isEmpty()) {
+        if (state.loading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            EmptyState(
+                title = "No photos yet",
+                message = "Take one on the next tab and it'll appear here.",
+            )
+        }
         return
     }
 

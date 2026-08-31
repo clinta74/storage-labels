@@ -11,6 +11,13 @@ import net.pollyspeople.storagelabels.core.permissions.Permissions
 sealed interface Route {
     @Serializable data object Locations : Route
     @Serializable data object Images : Route
+    @Serializable data object Search : Route
+
+    /** Picks a photo and hands it back to the box or item form that opened it. */
+    @Serializable data object ImagePicker : Route
+
+    /** Scans a label and hands the code back to the box form. */
+    @Serializable data object CodeScanner : Route
     @Serializable data object Labels : Route
     @Serializable data object CommonLocations : Route
     @Serializable data object EncryptionKeys : Route
@@ -44,6 +51,7 @@ data class NavEntry(
 )
 
 val PrimaryNavEntries = listOf(
+    NavEntry("Search", Route.Search),
     NavEntry("Locations", Route.Locations),
     NavEntry("Images", Route.Images),
     NavEntry("Labels", Route.Labels),

@@ -24,12 +24,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -43,11 +47,17 @@ import net.pollyspeople.storagelabels.data.dto.AuthMode
 import net.pollyspeople.storagelabels.feature.auth.ChangePasswordScreen
 import net.pollyspeople.storagelabels.feature.boxes.BoxDetailScreen
 import net.pollyspeople.storagelabels.feature.boxes.BoxEditScreen
+import net.pollyspeople.storagelabels.feature.boxes.BoxEditViewModel
+import net.pollyspeople.storagelabels.feature.images.ImagePickerScreen
+import net.pollyspeople.storagelabels.feature.images.ImagesScreen
 import net.pollyspeople.storagelabels.feature.items.ItemEditScreen
+import net.pollyspeople.storagelabels.feature.items.ItemEditViewModel
 import net.pollyspeople.storagelabels.feature.locations.LocationDetailScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationUsersScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationsScreen
 import net.pollyspeople.storagelabels.feature.preferences.PreferencesScreen
+import net.pollyspeople.storagelabels.feature.search.CodeScannerScreen
+import net.pollyspeople.storagelabels.feature.search.SearchScreen
 import kotlin.reflect.KClass
 
 /**
@@ -176,12 +186,19 @@ fun AppShell(
                     composable<Route.LocationUsers> {
                         LocationUsersScreen(onMessage = showMessage)
                     }
-                    composable<Route.BoxEdit> {
+                    composable<Route.BoxEdit> { entry ->
+                        val boxViewModel: BoxEditViewModel = hiltViewModel()
+                        PickedImageEffect(entry) { url, id -> boxViewModel.onImageSelected(url, id) }
+                        ScannedCodeEffect(entry) { code -> boxViewModel.onCodeChange(code) }
+
                         BoxEditScreen(
                             onSaved = { message ->
                                 showMessage(message)
                                 navController.popBackStack()
                             },
+                            onScanCode = { navController.navigate(Route.CodeScanner) },
+                            onPickImage = { navController.navigate(Route.ImagePicker) },
+                            viewModel = boxViewModel,
                         )
                     }
                     composable<Route.BoxDetail> { entry ->
@@ -200,23 +217,62 @@ fun AppShell(
                             },
                             onDeleted = { navController.popBackStack() },
                             onMoved = { destination ->
-                                // The box now lives elsewhere, so go to where it went rather
-                                // than back to a list it has left.
+                                // The box lives elsewhere now, so go where it went rather than
+                                // back to a list it has left.
                                 navController.popBackStack()
                                 navController.navigate(Route.LocationDetail(destination))
                             },
                             onMessage = showMessage,
                         )
                     }
-                    composable<Route.ItemEdit> {
+                    composable<Route.ItemEdit> { entry ->
+                        val itemViewModel: ItemEditViewModel = hiltViewModel()
+                        PickedImageEffect(entry) { url, id -> itemViewModel.onImageSelected(url, id) }
+
                         ItemEditScreen(
                             onSaved = { message ->
                                 showMessage(message)
                                 navController.popBackStack()
                             },
+                            onPickImage = { navController.navigate(Route.ImagePicker) },
+                            viewModel = itemViewModel,
                         )
                     }
-                    composable<Route.Images> { ComingSoon("Images", "Phase 3") }
+                    composable<Route.Search> {
+                        SearchScreen(
+                            onOpenBox = { locationId, boxId ->
+                                navController.navigate(Route.BoxDetail(locationId, boxId))
+                            },
+                        )
+                    }
+                    composable<Route.Images> {
+                        ImagesScreen(
+                            onAddPhoto = { navController.navigate(Route.ImagePicker) },
+                            onMessage = showMessage,
+                        )
+                    }
+                    composable<Route.ImagePicker> {
+                        ImagePickerScreen(
+                            onPicked = { imageUrl, imageId ->
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set(PICKED_IMAGE, listOf(imageUrl, imageId))
+                                navController.popBackStack()
+                            },
+                            onCancel = { navController.popBackStack() },
+                        )
+                    }
+                    composable<Route.CodeScanner> {
+                        CodeScannerScreen(
+                            onCode = { code ->
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set(SCANNED_CODE, code)
+                                navController.popBackStack()
+                            },
+                            onCancel = { navController.popBackStack() },
+                        )
+                    }
                     composable<Route.Labels> { ComingSoon("Labels", "Phase 4") }
                     composable<Route.CommonLocations> { ComingSoon("Common locations", "Phase 5") }
                     composable<Route.EncryptionKeys> { ComingSoon("Encryption keys", "Phase 5") }
@@ -227,6 +283,38 @@ fun AppShell(
                     }
                 }
             }
+        }
+    }
+}
+
+internal const val PICKED_IMAGE = "picked_image"
+internal const val SCANNED_CODE = "scanned_code"
+
+/**
+ * Results from a pushed screen come back through the caller's saved state, which survives
+ * configuration changes and process death — the half-filled form is still there when the
+ * user returns from the camera.
+ */
+@Composable
+private fun PickedImageEffect(entry: NavBackStackEntry, onPicked: (String, String) -> Unit) {
+    val handle = entry.savedStateHandle
+    LaunchedEffect(entry) {
+        val picked = handle.get<List<String>>(PICKED_IMAGE)
+        if (picked != null && picked.size == 2) {
+            handle.remove<List<String>>(PICKED_IMAGE)
+            onPicked(picked[0], picked[1])
+        }
+    }
+}
+
+@Composable
+private fun ScannedCodeEffect(entry: NavBackStackEntry, onCode: (String) -> Unit) {
+    val handle = entry.savedStateHandle
+    LaunchedEffect(entry) {
+        val code = handle.get<String>(SCANNED_CODE)
+        if (code != null) {
+            handle.remove<String>(SCANNED_CODE)
+            onCode(code)
         }
     }
 }
@@ -265,22 +353,28 @@ private fun ComingSoon(title: String, phase: String) {
     }
 }
 
-private fun androidx.navigation.NavDestination?.matches(route: Route): Boolean {
+private fun NavDestination?.matches(route: Route): Boolean {
     val kClass: KClass<out Route> = route::class
     return this?.hierarchy?.any { it.hasRoute(kClass) } == true
 }
 
-private val androidx.navigation.NavDestination.hierarchy: Sequence<androidx.navigation.NavDestination>
+private val NavDestination.hierarchy: Sequence<NavDestination>
     get() = generateSequence(this) { it.parent }
 
-private fun androidx.navigation.NavDestination?.titleOrDefault(): String = when {
+private fun NavDestination?.titleOrDefault(): String = when {
     this == null -> "Storage Labels"
+    hasRoute(Route.Search::class) -> "Search"
     hasRoute(Route.Images::class) -> "Images"
+    hasRoute(Route.ImagePicker::class) -> "Choose a photo"
+    hasRoute(Route.CodeScanner::class) -> "Scan a label"
     hasRoute(Route.Labels::class) -> "Labels"
     hasRoute(Route.CommonLocations::class) -> "Common locations"
     hasRoute(Route.EncryptionKeys::class) -> "Encryption keys"
     hasRoute(Route.Users::class) -> "Users"
     hasRoute(Route.Preferences::class) -> "Preferences"
     hasRoute(Route.ChangePassword::class) -> "Change password"
+    hasRoute(Route.LocationUsers::class) -> "Sharing"
+    hasRoute(Route.BoxEdit::class) -> "Box"
+    hasRoute(Route.ItemEdit::class) -> "Item"
     else -> "Locations"
 }

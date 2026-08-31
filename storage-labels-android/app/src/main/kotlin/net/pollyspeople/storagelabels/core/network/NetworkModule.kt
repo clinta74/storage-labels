@@ -8,8 +8,10 @@ import kotlinx.serialization.json.Json
 import net.pollyspeople.storagelabels.BuildConfig
 import net.pollyspeople.storagelabels.data.api.AuthApi
 import net.pollyspeople.storagelabels.data.api.BoxApi
+import net.pollyspeople.storagelabels.data.api.ImageApi
 import net.pollyspeople.storagelabels.data.api.ItemApi
 import net.pollyspeople.storagelabels.data.api.LocationApi
+import net.pollyspeople.storagelabels.data.api.SearchApi
 import net.pollyspeople.storagelabels.data.api.UserApi
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -137,6 +139,14 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideItemApi(retrofit: Retrofit): ItemApi = retrofit.create(ItemApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideImageApi(retrofit: Retrofit): ImageApi = retrofit.create(ImageApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSearchApi(retrofit: Retrofit): SearchApi = retrofit.create(SearchApi::class.java)
 
     @Provides
     @Singleton

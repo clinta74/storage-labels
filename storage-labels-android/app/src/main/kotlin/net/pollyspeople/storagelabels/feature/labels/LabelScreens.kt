@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Print
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -301,6 +302,7 @@ private fun DetailRow(label: String, value: String) {
 @Composable
 fun LabelJobEditScreen(
     onSaved: (String) -> Unit,
+    onCancel: () -> Unit,
     viewModel: LabelJobEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -401,12 +403,24 @@ fun LabelJobEditScreen(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        Button(
-            onClick = { viewModel.save(onSaved) },
-            enabled = !state.saving,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (state.isNew) "Create run" else "Save changes")
+            OutlinedButton(
+                onClick = onCancel,
+                enabled = !state.saving,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Cancel")
+            }
+            Button(
+                onClick = { viewModel.save(onSaved) },
+                enabled = !state.saving,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(if (state.isNew) "Create" else "Save")
+            }
         }
     }
 }

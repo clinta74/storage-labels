@@ -39,11 +39,13 @@ import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.feature.search.InlineSearchBar
 import net.pollyspeople.storagelabels.data.dto.StorageLocation
 
 @Composable
 fun LocationsScreen(
     onOpenLocation: (Long) -> Unit,
+    onOpenBox: (locationId: Long, boxId: String) -> Unit,
     onManageUsers: (Long) -> Unit,
     onMessage: (String) -> Unit,
     viewModel: LocationsViewModel = hiltViewModel(),
@@ -53,6 +55,9 @@ fun LocationsScreen(
     var editing by remember { mutableStateOf<StorageLocation?>(null) }
     var creating by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf<StorageLocation?>(null) }
+
+    Column(Modifier.fillMaxSize()) {
+        InlineSearchBar(onOpenBox = onOpenBox)
 
     Box(Modifier.fillMaxSize()) {
         when {
@@ -95,6 +100,7 @@ fun LocationsScreen(
         ) {
             Icon(Icons.Filled.Add, contentDescription = "Add location")
         }
+    }
     }
 
     if (creating) {

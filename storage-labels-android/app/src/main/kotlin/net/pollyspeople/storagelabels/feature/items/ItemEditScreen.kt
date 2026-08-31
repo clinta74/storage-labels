@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -30,6 +31,7 @@ import net.pollyspeople.storagelabels.core.ui.LoadingBox
 @Composable
 fun ItemEditScreen(
     onSaved: (String) -> Unit,
+    onCancel: () -> Unit,
     onPickImage: (() -> Unit)? = null,
     viewModel: ItemEditViewModel = hiltViewModel(),
 ) {
@@ -110,12 +112,24 @@ fun ItemEditScreen(
             }
         }
 
-        Button(
-            onClick = { viewModel.save(onSaved) },
-            enabled = !state.saving,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (state.isNew) "Add item" else "Save changes")
+            OutlinedButton(
+                onClick = onCancel,
+                enabled = !state.saving,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Cancel")
+            }
+            Button(
+                onClick = { viewModel.save(onSaved) },
+                enabled = !state.saving,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(if (state.isNew) "Add item" else "Save")
+            }
         }
     }
 }

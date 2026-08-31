@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun ChangePasswordScreen(
     onChanged: (String) -> Unit,
+    onCancel: () -> Unit,
     viewModel: ChangePasswordViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -71,6 +73,14 @@ fun ChangePasswordScreen(
             imeAction = ImeAction.Go,
             error = state.error,
         )
+
+        OutlinedButton(
+            onClick = onCancel,
+            enabled = !state.submitting,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Cancel")
+        }
 
         Button(
             onClick = viewModel::submit,

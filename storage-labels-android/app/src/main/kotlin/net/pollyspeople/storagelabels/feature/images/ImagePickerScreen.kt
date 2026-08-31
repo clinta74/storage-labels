@@ -70,6 +70,15 @@ fun ImagePickerScreen(
     var tab by remember { mutableIntStateOf(0) }
 
     Column(Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            TextButton(onClick = onCancel) { Text("Cancel") }
+        }
+
         PrimaryTabRow(selectedTabIndex = tab) {
             Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("Your photos") })
             Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("Take a photo") })

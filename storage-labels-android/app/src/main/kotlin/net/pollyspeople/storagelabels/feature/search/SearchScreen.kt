@@ -157,7 +157,7 @@ fun SearchScreen(
     }
 
     if (scanning) {
-        ScannerDialog(
+        ScanDialog(
             onDismiss = { scanning = false },
             onCode = { code ->
                 scanning = false
@@ -207,7 +207,7 @@ private fun ResultCard(result: SearchResult, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ScannerDialog(onDismiss: () -> Unit, onCode: (String) -> Unit) {
+internal fun ScanDialog(onDismiss: () -> Unit, onCode: (String) -> Unit) {
     val context = LocalContext.current
     var hasPermission by remember {
         mutableStateOf(

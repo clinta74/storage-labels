@@ -42,11 +42,13 @@ import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.FormattedCode
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.feature.search.InlineSearchBar
 import net.pollyspeople.storagelabels.data.dto.Item
 
 @Composable
 fun BoxDetailScreen(
     onEditBox: () -> Unit,
+    onOpenBox: (locationId: Long, boxId: String) -> Unit,
     onAddItem: () -> Unit,
     onEditItem: (String) -> Unit,
     onDeleted: () -> Unit,
@@ -71,6 +73,9 @@ fun BoxDetailScreen(
         ErrorBanner(state.error ?: "This box couldn't be loaded.", onRetry = viewModel::refresh)
         return
     }
+
+    Column(Modifier.fillMaxSize()) {
+        InlineSearchBar(onOpenBox = onOpenBox)
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -169,6 +174,7 @@ fun BoxDetailScreen(
                 Icon(Icons.Filled.Add, contentDescription = "Add item")
             }
         }
+    }
     }
 
     viewing?.let { item ->

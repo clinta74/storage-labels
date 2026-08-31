@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,7 @@ import net.pollyspeople.storagelabels.core.ui.LoadingBox
 @Composable
 fun BoxEditScreen(
     onSaved: (String) -> Unit,
+    onCancel: () -> Unit,
     onScanCode: (() -> Unit)? = null,
     onPickImage: (() -> Unit)? = null,
     viewModel: BoxEditViewModel = hiltViewModel(),
@@ -130,12 +132,24 @@ fun BoxEditScreen(
             }
         }
 
-        Button(
-            onClick = { viewModel.save(onSaved) },
-            enabled = !state.saving,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (state.isNew) "Add box" else "Save changes")
+            OutlinedButton(
+                onClick = onCancel,
+                enabled = !state.saving,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("Cancel")
+            }
+            Button(
+                onClick = { viewModel.save(onSaved) },
+                enabled = !state.saving,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(if (state.isNew) "Add box" else "Save")
+            }
         }
     }
 }

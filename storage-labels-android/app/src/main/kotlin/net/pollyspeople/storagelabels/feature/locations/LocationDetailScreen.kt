@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
@@ -36,11 +37,13 @@ import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.FormattedCode
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.feature.search.InlineSearchBar
 import net.pollyspeople.storagelabels.data.dto.Box as BoxDto
 
 @Composable
 fun LocationDetailScreen(
     onOpenBox: (String) -> Unit,
+    onOpenSearchResult: (locationId: Long, boxId: String) -> Unit,
     onAddBox: () -> Unit,
     onMessage: (String) -> Unit,
     viewModel: LocationDetailViewModel = hiltViewModel(),
@@ -48,6 +51,22 @@ fun LocationDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var deleting by remember { mutableStateOf<BoxDto?>(null) }
     val canEdit = state.location?.accessLevel?.canEdit == true
+
+    Column(Modifier.fillMaxSize()) {
+        InlineSearchBar(onOpenBox = onOpenSearchResult)
+
+        // The screen has to say which location you are standing in; the app bar only has
+        // room for the section name.
+        state.location?.let { location ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp),
+            ) {
+                Text(location.name, style = MaterialTheme.typography.headlineSmall)
+                AssistChip(onClick = {}, label = { Text(location.accessLevel.name) })
+            }
+        }
 
     Box(Modifier.fillMaxSize()) {
         when {
@@ -91,6 +110,7 @@ fun LocationDetailScreen(
                 Icon(Icons.Filled.Add, contentDescription = "Add box")
             }
         }
+    }
     }
 
     deleting?.let { box ->

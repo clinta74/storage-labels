@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -92,6 +93,12 @@ fun AppShell(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination
 
+    // Drawer destinations are the roots of the app; anything reached from one is a push and
+    // gets a back arrow instead of the drawer handle, so there is always a visible way out.
+    val isRootDestination = remember(currentRoute) {
+        (PrimaryNavEntries + AccountNavEntries).any { currentRoute.matches(it.route) }
+    }
+
     val showMessage: (String) -> Unit = { message ->
         scope.launch { snackbarHostState.showSnackbar(message) }
     }
@@ -162,8 +169,17 @@ fun AppShell(
                 TopAppBar(
                     title = { Text(currentRoute.titleOrDefault()) },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Open navigation")
+                        if (isRootDestination) {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Filled.Menu, contentDescription = "Open navigation")
+                            }
+                        } else {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                )
+                            }
                         }
                     },
                 )
@@ -178,6 +194,9 @@ fun AppShell(
                     composable<Route.Locations> {
                         LocationsScreen(
                             onOpenLocation = { navController.navigate(Route.LocationDetail(it)) },
+                            onOpenBox = { locationId, boxId ->
+                                navController.navigate(Route.BoxDetail(locationId, boxId))
+                            },
                             onManageUsers = { navController.navigate(Route.LocationUsers(it)) },
                             onMessage = showMessage,
                         )
@@ -187,6 +206,9 @@ fun AppShell(
                         LocationDetailScreen(
                             onOpenBox = { boxId ->
                                 navController.navigate(Route.BoxDetail(route.locationId, boxId))
+                            },
+                            onOpenSearchResult = { locationId, boxId ->
+                                navController.navigate(Route.BoxDetail(locationId, boxId))
                             },
                             onAddBox = { navController.navigate(Route.BoxEdit(route.locationId)) },
                             onMessage = showMessage,
@@ -205,6 +227,7 @@ fun AppShell(
                                 showMessage(message)
                                 navController.popBackStack()
                             },
+                            onCancel = { navController.popBackStack() },
                             onScanCode = { navController.navigate(Route.CodeScanner) },
                             onPickImage = { navController.navigate(Route.ImagePicker) },
                             viewModel = boxViewModel,
@@ -213,6 +236,9 @@ fun AppShell(
                     composable<Route.BoxDetail> { entry ->
                         val route = entry.toRoute<Route.BoxDetail>()
                         BoxDetailScreen(
+                            onOpenBox = { locationId, boxId ->
+                                navController.navigate(Route.BoxDetail(locationId, boxId))
+                            },
                             onEditBox = {
                                 navController.navigate(Route.BoxEdit(route.locationId, route.boxId))
                             },
@@ -243,6 +269,7 @@ fun AppShell(
                                 showMessage(message)
                                 navController.popBackStack()
                             },
+                            onCancel = { navController.popBackStack() },
                             onPickImage = { navController.navigate(Route.ImagePicker) },
                             viewModel = itemViewModel,
                         )
@@ -302,6 +329,7 @@ fun AppShell(
                                 showMessage(message)
                                 navController.popBackStack()
                             },
+                            onCancel = { navController.popBackStack() },
                         )
                     }
                     composable<Route.CommonLocations> {
@@ -318,7 +346,10 @@ fun AppShell(
                     }
                     composable<Route.Preferences> { PreferencesScreen(onSaved = showMessage) }
                     composable<Route.ChangePassword> {
-                        ChangePasswordScreen(onChanged = showMessage)
+                        ChangePasswordScreen(
+                            onChanged = showMessage,
+                            onCancel = { navController.popBackStack() },
+                        )
                     }
                     composable<Route.Privacy> { PrivacyScreen() }
                     composable<Route.Terms> { TermsScreen() }
@@ -419,6 +450,8 @@ private fun NavDestination?.titleOrDefault(): String = when {
     hasRoute(Route.Privacy::class) -> "Privacy"
     hasRoute(Route.Terms::class) -> "Terms"
     hasRoute(Route.LocationUsers::class) -> "Sharing"
+    hasRoute(Route.LocationDetail::class) -> "Location"
+    hasRoute(Route.BoxDetail::class) -> "Box"
     hasRoute(Route.BoxEdit::class) -> "Box"
     hasRoute(Route.ItemEdit::class) -> "Item"
     else -> "Locations"

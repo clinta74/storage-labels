@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -173,13 +172,11 @@ private fun LocationCard(
                 .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.weight(1f)) {
-                Text(location.name, style = MaterialTheme.typography.titleMedium)
-                AssistChip(
-                    onClick = onOpen,
-                    label = { Text(location.accessLevel.name) },
-                )
-            }
+            Text(
+                location.name,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
+            )
 
             // Sharing and deleting are the owner's to do; editing needs write access.
             OverflowMenu(

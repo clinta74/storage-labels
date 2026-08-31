@@ -29,6 +29,8 @@ sealed interface Route {
     @Serializable data object Users : Route
     @Serializable data object Preferences : Route
     @Serializable data object ChangePassword : Route
+    @Serializable data object Privacy : Route
+    @Serializable data object Terms : Route
 
     @Serializable data class LocationDetail(val locationId: Long) : Route
     @Serializable data class LocationUsers(val locationId: Long) : Route
@@ -68,6 +70,8 @@ val PrimaryNavEntries = listOf(
 val AccountNavEntries = listOf(
     NavEntry("Preferences", Route.Preferences),
     NavEntry("Change password", Route.ChangePassword),
+    NavEntry("Privacy", Route.Privacy),
+    NavEntry("Terms", Route.Terms),
 )
 
 /** Filters the drawer to what this session may actually open. */

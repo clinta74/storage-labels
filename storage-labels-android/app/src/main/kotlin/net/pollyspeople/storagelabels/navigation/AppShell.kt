@@ -58,6 +58,8 @@ import net.pollyspeople.storagelabels.feature.items.ItemEditViewModel
 import net.pollyspeople.storagelabels.feature.labels.LabelJobDetailScreen
 import net.pollyspeople.storagelabels.feature.labels.LabelJobEditScreen
 import net.pollyspeople.storagelabels.feature.labels.LabelJobsScreen
+import net.pollyspeople.storagelabels.feature.legal.PrivacyScreen
+import net.pollyspeople.storagelabels.feature.legal.TermsScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationDetailScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationUsersScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationsScreen
@@ -318,6 +320,8 @@ fun AppShell(
                     composable<Route.ChangePassword> {
                         ChangePasswordScreen(onChanged = showMessage)
                     }
+                    composable<Route.Privacy> { PrivacyScreen() }
+                    composable<Route.Terms> { TermsScreen() }
                 }
             }
         }
@@ -412,6 +416,8 @@ private fun NavDestination?.titleOrDefault(): String = when {
     hasRoute(Route.Users::class) -> "Users"
     hasRoute(Route.Preferences::class) -> "Preferences"
     hasRoute(Route.ChangePassword::class) -> "Change password"
+    hasRoute(Route.Privacy::class) -> "Privacy"
+    hasRoute(Route.Terms::class) -> "Terms"
     hasRoute(Route.LocationUsers::class) -> "Sharing"
     hasRoute(Route.BoxEdit::class) -> "Box"
     hasRoute(Route.ItemEdit::class) -> "Item"

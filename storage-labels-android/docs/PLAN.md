@@ -2,7 +2,11 @@
 
 **Goal:** a native Kotlin/Jetpack Compose Android client (`storage-labels-android`) with full feature parity with `storage-labels-ui` (v7.0.0), talking to the existing `storage-labels-api` with no required backend rewrite.
 
-**Status:** Phase 0 complete; Phase 1 complete except the legal pages. Built and verified by unit tests and a clean build — but not yet run on a device: containerised build + CI, network core (dynamic server URL, bearer auth, single-flight refresh, persistent cookie jar, Keystore-encrypted credentials, error mapping), server setup, sign in, registration, session restore, session-expiry handling, preferences with live theming, change password, and the permission-gated navigation drawer. Next: Phase 2, and the privacy/terms pages. See [../README.md](../README.md) to build it.
+**Status:** Phases 0-5 are written, compiling, linting clean, and covered by 52 unit tests. Every feature in the parity checklist below has an implementation.
+
+**None of it has run on a device or emulator.** There was no hardware attached while it was built, so the entire app is unverified at runtime. The riskiest parts, in the order worth checking: sign-in and token refresh against a real server (the refresh cookie needs HTTPS), the Keystore encryption on first launch, camera permission and QR scanning, and the printed label alignment against a physical Avery 94107 sheet — which no test can confirm.
+
+See [../README.md](../README.md) to build and install it.
 
 ---
 

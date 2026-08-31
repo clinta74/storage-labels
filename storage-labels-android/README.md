@@ -8,11 +8,14 @@ The full implementation plan, parity checklist and phase breakdown live in
 
 ## Status
 
-Phase 1 all but done. Working end to end: server setup, sign in, register, session
-restore, token refresh, session-expiry handling, sign out, no-auth mode, the navigation
-drawer, preferences (including live theming) and change password. Outstanding in Phase 1:
-the privacy and terms pages. Every data screen (locations, boxes, items, images, labels,
-admin) is still a placeholder — those are Phases 2–5.
+All five build phases are written and compiling: setup and auth, locations/boxes/items,
+images and search with QR scanning, label runs with Avery 94107 printing, and the admin
+surfaces (common locations, users, encryption keys with live rotation progress).
+
+**Nothing here has run on a device or emulator yet.** It compiles, lints and passes 52 unit
+tests, but no line of it has executed against a real server. Treat the whole thing as
+unverified until someone installs it and signs in. See docs/PLAN.md for what to check
+first.
 
 ## Building
 

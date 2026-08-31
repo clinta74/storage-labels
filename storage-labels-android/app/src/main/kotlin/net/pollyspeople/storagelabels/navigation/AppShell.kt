@@ -52,6 +52,9 @@ import net.pollyspeople.storagelabels.feature.images.ImagePickerScreen
 import net.pollyspeople.storagelabels.feature.images.ImagesScreen
 import net.pollyspeople.storagelabels.feature.items.ItemEditScreen
 import net.pollyspeople.storagelabels.feature.items.ItemEditViewModel
+import net.pollyspeople.storagelabels.feature.labels.LabelJobDetailScreen
+import net.pollyspeople.storagelabels.feature.labels.LabelJobEditScreen
+import net.pollyspeople.storagelabels.feature.labels.LabelJobsScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationDetailScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationUsersScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationsScreen
@@ -273,7 +276,28 @@ fun AppShell(
                             onCancel = { navController.popBackStack() },
                         )
                     }
-                    composable<Route.Labels> { ComingSoon("Labels", "Phase 4") }
+                    composable<Route.Labels> {
+                        LabelJobsScreen(
+                            onOpenJob = { navController.navigate(Route.LabelJob(it)) },
+                            onCreateJob = { navController.navigate(Route.LabelJobEdit()) },
+                            onMessage = showMessage,
+                        )
+                    }
+                    composable<Route.LabelJob> { entry ->
+                        val route = entry.toRoute<Route.LabelJob>()
+                        LabelJobDetailScreen(
+                            onEdit = { navController.navigate(Route.LabelJobEdit(route.jobId)) },
+                            onMessage = showMessage,
+                        )
+                    }
+                    composable<Route.LabelJobEdit> {
+                        LabelJobEditScreen(
+                            onSaved = { message ->
+                                showMessage(message)
+                                navController.popBackStack()
+                            },
+                        )
+                    }
                     composable<Route.CommonLocations> { ComingSoon("Common locations", "Phase 5") }
                     composable<Route.EncryptionKeys> { ComingSoon("Encryption keys", "Phase 5") }
                     composable<Route.Users> { ComingSoon("Users", "Phase 5") }
@@ -368,6 +392,8 @@ private fun NavDestination?.titleOrDefault(): String = when {
     hasRoute(Route.ImagePicker::class) -> "Choose a photo"
     hasRoute(Route.CodeScanner::class) -> "Scan a label"
     hasRoute(Route.Labels::class) -> "Labels"
+    hasRoute(Route.LabelJob::class) -> "Label run"
+    hasRoute(Route.LabelJobEdit::class) -> "Label run"
     hasRoute(Route.CommonLocations::class) -> "Common locations"
     hasRoute(Route.EncryptionKeys::class) -> "Encryption keys"
     hasRoute(Route.Users::class) -> "Users"

@@ -18,6 +18,11 @@ sealed interface Route {
 
     /** Scans a label and hands the code back to the box form. */
     @Serializable data object CodeScanner : Route
+
+    @Serializable data class LabelJob(val jobId: String) : Route
+
+    /** [jobId] null means "create a new run". */
+    @Serializable data class LabelJobEdit(val jobId: String? = null) : Route
     @Serializable data object Labels : Route
     @Serializable data object CommonLocations : Route
     @Serializable data object EncryptionKeys : Route

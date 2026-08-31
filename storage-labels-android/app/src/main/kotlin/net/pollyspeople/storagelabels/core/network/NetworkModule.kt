@@ -10,6 +10,7 @@ import net.pollyspeople.storagelabels.data.api.AuthApi
 import net.pollyspeople.storagelabels.data.api.BoxApi
 import net.pollyspeople.storagelabels.data.api.ImageApi
 import net.pollyspeople.storagelabels.data.api.ItemApi
+import net.pollyspeople.storagelabels.data.api.LabelApi
 import net.pollyspeople.storagelabels.data.api.LocationApi
 import net.pollyspeople.storagelabels.data.api.SearchApi
 import net.pollyspeople.storagelabels.data.api.UserApi
@@ -147,6 +148,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideSearchApi(retrofit: Retrofit): SearchApi = retrofit.create(SearchApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideLabelApi(retrofit: Retrofit): LabelApi = retrofit.create(LabelApi::class.java)
 
     @Provides
     @Singleton

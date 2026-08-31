@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -24,6 +25,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -71,6 +74,7 @@ fun BoxEditScreen(
             onValueChange = viewModel::onCodeChange,
             label = { Text("Code") },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             enabled = !state.saving,
             isError = state.fieldErrors.containsKey(BoxEditViewModel.FIELD_CODE),
             supportingText = state.fieldErrors[BoxEditViewModel.FIELD_CODE]?.let { { Text(it) } },
@@ -89,6 +93,10 @@ fun BoxEditScreen(
             onValueChange = viewModel::onNameChange,
             label = { Text("Name") },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Next,
+            ),
             enabled = !state.saving,
             isError = state.fieldErrors.containsKey(BoxEditViewModel.FIELD_NAME),
             supportingText = state.fieldErrors[BoxEditViewModel.FIELD_NAME]?.let { { Text(it) } },
@@ -101,6 +109,8 @@ fun BoxEditScreen(
             label = { Text("Description") },
             enabled = !state.saving,
             minLines = 2,
+            // Multi-line, so Enter stays a newline; only the capitalisation is worth setting.
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
 

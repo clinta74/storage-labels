@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext HTTP is off by default. Self-hosted servers reached over plain HTTP
+  are opted in at runtime; see docs/PLAN.md, section 2 (server URL is per-install).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

@@ -1,0 +1,66 @@
+name: Build Android App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'storage-labels-android/**'
+      - '.github/workflows/build-android.yml'
+    tags:
+      - 'android-v*.*.*'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'storage-labels-android/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # Runners ship the Android SDK, so CI builds natively rather than through
+      # Dockerfile.build — that image exists for local builds on machines without an SDK.
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: storage-labels-android
+
+      - name: Unit tests
+        working-directory: storage-labels-android
+        run: ./gradlew test --stacktrace
+
+      - name: Lint
+        working-directory: storage-labels-android
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Assemble debug APK
+        working-directory: storage-labels-android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: storage-labels-debug-apk
+          path: storage-labels-android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: storage-labels-android/app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore

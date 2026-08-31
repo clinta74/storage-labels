@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,7 +45,9 @@ import net.pollyspeople.storagelabels.data.dto.SearchResult
 fun InlineSearchBar(
     onOpenBox: (locationId: Long, boxId: String) -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "Search boxes and items",
+    // Short enough to sit on one line at a large font scale, and "everything" is the
+    // honest scope: searching from inside a box still searches every box and item.
+    placeholder: String = "Search everything",
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -63,7 +66,11 @@ fun InlineSearchBar(
         OutlinedTextField(
             value = state.query,
             onValueChange = viewModel::onQueryChange,
-            placeholder = { Text(placeholder) },
+            // The field is single-line, but the placeholder is its own Text and will happily
+            // wrap to two lines at a large font scale, growing the bar. Keep it on one line.
+            placeholder = {
+                Text(placeholder, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            },
             singleLine = true,
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             trailingIcon = {

@@ -66,7 +66,6 @@ import net.pollyspeople.storagelabels.feature.locations.LocationUsersScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationsScreen
 import net.pollyspeople.storagelabels.feature.preferences.PreferencesScreen
 import net.pollyspeople.storagelabels.feature.search.CodeScannerScreen
-import net.pollyspeople.storagelabels.feature.search.SearchScreen
 import kotlin.reflect.KClass
 
 /**
@@ -274,13 +273,6 @@ fun AppShell(
                             viewModel = itemViewModel,
                         )
                     }
-                    composable<Route.Search> {
-                        SearchScreen(
-                            onOpenBox = { locationId, boxId ->
-                                navController.navigate(Route.BoxDetail(locationId, boxId))
-                            },
-                        )
-                    }
                     composable<Route.Images> {
                         ImagesScreen(
                             onAddPhoto = { navController.navigate(Route.ImagePicker) },
@@ -435,7 +427,6 @@ private val NavDestination.hierarchy: Sequence<NavDestination>
 
 private fun NavDestination?.titleOrDefault(): String = when {
     this == null -> "Storage Labels"
-    hasRoute(Route.Search::class) -> "Search"
     hasRoute(Route.Images::class) -> "Images"
     hasRoute(Route.ImagePicker::class) -> "Choose a photo"
     hasRoute(Route.CodeScanner::class) -> "Scan a label"

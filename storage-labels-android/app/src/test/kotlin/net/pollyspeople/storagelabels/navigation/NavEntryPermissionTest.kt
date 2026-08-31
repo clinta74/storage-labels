@@ -12,10 +12,10 @@ import org.junit.Test
 class NavEntryPermissionTest {
 
     @Test
-    fun `a standard user sees only the everyday sections`() {
+    fun `a standard user sees only the three everyday sections`() {
         val visible = PrimaryNavEntries.visibleTo(emptyList()).map { it.label }
 
-        assertEquals(listOf("Search", "Locations", "Images", "Labels"), visible)
+        assertEquals(listOf("Locations", "Images", "Labels"), visible)
     }
 
     @Test
@@ -29,7 +29,7 @@ class NavEntryPermissionTest {
         val visible = PrimaryNavEntries.visibleTo(auditor).map { it.label }
 
         assertEquals(
-            listOf("Search", "Locations", "Images", "Labels", "Common locations", "Encryption keys"),
+            listOf("Locations", "Images", "Labels", "Common locations", "Encryption keys"),
             visible,
         )
     }

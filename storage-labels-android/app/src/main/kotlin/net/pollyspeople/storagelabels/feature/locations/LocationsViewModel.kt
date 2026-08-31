@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.pollyspeople.storagelabels.core.inventory.LocationRepository
 import net.pollyspeople.storagelabels.core.result.ApiResult
+import net.pollyspeople.storagelabels.core.result.apiCall
+import net.pollyspeople.storagelabels.data.api.CommonLocationApi
 import net.pollyspeople.storagelabels.core.ui.userMessage
 import net.pollyspeople.storagelabels.data.dto.StorageLocation
 import javax.inject.Inject
@@ -20,18 +22,35 @@ data class LocationsState(
     val error: String? = null,
     val saving: Boolean = false,
     val message: String? = null,
+    /** Shared place names offered as suggestions when naming a location. */
+    val commonLocationNames: List<String> = emptyList(),
 )
 
 @HiltViewModel
 class LocationsViewModel @Inject constructor(
     private val locations: LocationRepository,
+    private val commonLocationApi: CommonLocationApi,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LocationsState())
     val state: StateFlow<LocationsState> = _state.asStateFlow()
 
+    /**
+     * Common locations are suggestions, not a requirement — if the call fails (or the
+     * deployment has none) naming a location still works, it just offers nothing.
+     */
+    private fun loadCommonLocations() {
+        viewModelScope.launch {
+            val result = apiCall { commonLocationApi.getCommonLocations() }
+            if (result is ApiResult.Success) {
+                _state.update { it.copy(commonLocationNames = result.value.map { c -> c.name }) }
+            }
+        }
+    }
+
     /** Quiet once something is on screen, so returning to the list doesn't flash a spinner. */
     fun refresh() {
+        loadCommonLocations()
         _state.update { it.copy(loading = it.locations.isEmpty(), error = null) }
         viewModelScope.launch {
             when (val result = locations.list()) {

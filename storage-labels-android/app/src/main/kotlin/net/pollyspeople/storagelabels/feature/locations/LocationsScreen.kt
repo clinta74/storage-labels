@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -117,6 +120,7 @@ fun LocationsScreen(
             initialName = "",
             confirmLabel = "Create",
             busy = state.saving,
+            suggestions = state.commonLocationNames,
             onConfirm = { name ->
                 viewModel.create(name) { onMessage(it) }
                 creating = false
@@ -131,6 +135,7 @@ fun LocationsScreen(
             initialName = location.name,
             confirmLabel = "Save",
             busy = state.saving,
+            suggestions = state.commonLocationNames,
             onConfirm = { name ->
                 viewModel.rename(location.locationId, name) { onMessage(it) }
                 editing = null
@@ -199,23 +204,55 @@ private fun NameDialog(
     initialName: String,
     confirmLabel: String,
     busy: Boolean,
+    suggestions: List<String>,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf(initialName) }
 
+    // Common locations are offered, never imposed: the field stays free text, and the list
+    // narrows as you type, matching the web app's autocomplete.
+    val matches = remember(name, suggestions) {
+        suggestions
+            .filter { it.contains(name.trim(), ignoreCase = true) && !it.equals(name.trim(), true) }
+            .take(6)
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Name") },
-                singleLine = true,
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    singleLine = true,
+                    enabled = !busy,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                if (matches.isNotEmpty()) {
+                    Text(
+                        "Common locations",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    Column(Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
+                        matches.forEach { suggestion ->
+                            Text(
+                                suggestion,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(enabled = !busy) { name = suggestion }
+                                    .padding(vertical = 10.dp),
+                            )
+                        }
+                    }
+                }
+            }
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank() && !busy) {

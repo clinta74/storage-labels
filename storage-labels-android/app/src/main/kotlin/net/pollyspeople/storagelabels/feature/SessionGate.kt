@@ -4,16 +4,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -22,9 +24,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.auth.SessionState
 import net.pollyspeople.storagelabels.core.permissions.LocalPermissions
 import net.pollyspeople.storagelabels.core.ui.userMessage
-import net.pollyspeople.storagelabels.data.dto.AuthMode
 import net.pollyspeople.storagelabels.feature.auth.LoginScreen
+import net.pollyspeople.storagelabels.feature.auth.RegisterScreen
 import net.pollyspeople.storagelabels.feature.server.ServerSetupScreen
+import net.pollyspeople.storagelabels.navigation.AppShell
 
 /**
  * Decides which of the app's top-level states the user is in, the way the web client's
@@ -37,43 +40,48 @@ fun SessionGate(
 ) {
     val session by viewModel.state.collectAsStateWithLifecycle()
 
+    // Sign-in and registration are the only screens outside the shell, so they swap here
+    // rather than through the navigation graph, which only exists once signed in.
+    var showRegister by remember { mutableStateOf(false) }
+
     Box(modifier = modifier.fillMaxSize()) {
-    when (val current = session) {
-        SessionState.Loading -> LoadingScreen()
+        when (val current = session) {
+            SessionState.Loading -> LoadingScreen()
 
-        SessionState.NoServer -> ServerSetupScreen()
+            SessionState.NoServer -> ServerSetupScreen()
 
-        is SessionState.ServerUnreachable -> ServerUnreachableScreen(
-            address = current.baseUrl,
-            message = current.error.userMessage(),
-            onRetry = viewModel::retry,
-            onChangeServer = viewModel::changeServer,
-        )
+            is SessionState.ServerUnreachable -> ServerUnreachableScreen(
+                address = current.baseUrl,
+                message = current.error.userMessage(),
+                onRetry = viewModel::retry,
+                onChangeServer = viewModel::changeServer,
+            )
 
-        is SessionState.SignedOut -> LoginScreen(
-            serverAddress = viewModel.serverAddress(),
-            allowRegistration = current.config.allowRegistration,
-            notice = current.notice,
-            onRegisterClick = { /* Registration screen lands with the rest of Phase 1. */ },
-        )
-
-        is SessionState.SignedIn -> CompositionLocalProvider(
-            LocalPermissions provides current.permissions,
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                if (current.authMode == AuthMode.None) {
-                    NoAuthBanner()
+            is SessionState.SignedOut -> {
+                if (showRegister && current.config.allowRegistration) {
+                    RegisterScreen(onBackToSignIn = { showRegister = false })
+                } else {
+                    LoginScreen(
+                        serverAddress = viewModel.serverAddress(),
+                        allowRegistration = current.config.allowRegistration,
+                        notice = current.notice,
+                        onRegisterClick = { showRegister = true },
+                    )
                 }
-                HomePlaceholder(
-                    name = current.user.fullName?.takeIf(String::isNotBlank)
+            }
+
+            is SessionState.SignedIn -> CompositionLocalProvider(
+                LocalPermissions provides current.permissions,
+            ) {
+                AppShell(
+                    accountName = current.user.fullName?.takeIf(String::isNotBlank)
                         ?: current.user.username.takeIf(String::isNotBlank)
-                        ?: "there",
+                        ?: current.user.email,
+                    authMode = current.authMode,
                     onSignOut = viewModel::signOut,
-                    canSignOut = current.authMode == AuthMode.Local,
                 )
             }
         }
-    }
     }
 }
 
@@ -81,22 +89,6 @@ fun SessionGate(
 private fun LoadingScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator()
-    }
-}
-
-/** The web UI shows this warning whenever the API runs without authentication. */
-@Composable
-private fun NoAuthBanner() {
-    Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Text(
-            "Running without authentication — everyone has full access.",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
     }
 }
 
@@ -116,29 +108,12 @@ private fun ServerUnreachableScreen(
     ) {
         Text("Can't reach the server", style = MaterialTheme.typography.headlineSmall)
         Text(address, style = MaterialTheme.typography.bodySmall)
-        Text(message, style = MaterialTheme.typography.bodyMedium)
-        Button(onClick = onRetry) { Text("Try again") }
-        Button(onClick = onChangeServer) { Text("Change server") }
-    }
-}
-
-@Composable
-private fun HomePlaceholder(name: String, onSignOut: () -> Unit, canSignOut: Boolean) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text("Signed in as $name", style = MaterialTheme.typography.headlineSmall)
         Text(
-            "Locations, boxes and items arrive in Phase 2.",
+            message,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (canSignOut) {
-            Button(onClick = onSignOut) { Text("Sign out") }
-        }
+        Button(onClick = onRetry) { Text("Try again") }
+        TextButton(onClick = onChangeServer) { Text("Change server") }
     }
 }

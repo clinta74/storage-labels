@@ -8,9 +8,11 @@ The full implementation plan, parity checklist and phase breakdown live in
 
 ## Status
 
-Phases 0–1 in progress. Working end to end: server setup, sign in, session restore,
-token refresh, sign out, and no-auth mode. Not yet built: registration, change password,
-the app shell (drawer, preferences, legal pages) and every data screen.
+Phase 1 all but done. Working end to end: server setup, sign in, register, session
+restore, token refresh, session-expiry handling, sign out, no-auth mode, the navigation
+drawer, preferences (including live theming) and change password. Outstanding in Phase 1:
+the privacy and terms pages. Every data screen (locations, boxes, items, images, labels,
+admin) is still a placeholder — those are Phases 2–5.
 
 ## Building
 

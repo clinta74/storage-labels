@@ -1,0 +1,48 @@
+package net.pollyspeople.storagelabels.navigation
+
+import kotlinx.serialization.Serializable
+import net.pollyspeople.storagelabels.core.permissions.Permissions
+
+/**
+ * Type-safe routes, named after the web app's URLs so the two stay recognisably the same
+ * product. Destinations for Phase 2+ exist here already because the drawer needs to show
+ * the same entries the web navigation bar shows.
+ */
+sealed interface Route {
+    @Serializable data object Locations : Route
+    @Serializable data object Images : Route
+    @Serializable data object Labels : Route
+    @Serializable data object CommonLocations : Route
+    @Serializable data object EncryptionKeys : Route
+    @Serializable data object Users : Route
+    @Serializable data object Preferences : Route
+    @Serializable data object ChangePassword : Route
+}
+
+/**
+ * A drawer entry. [permission] mirrors the web navigation bar: entries the account can't use
+ * are not shown at all.
+ */
+data class NavEntry(
+    val label: String,
+    val route: Route,
+    val permission: String? = null,
+)
+
+val PrimaryNavEntries = listOf(
+    NavEntry("Locations", Route.Locations),
+    NavEntry("Images", Route.Images),
+    NavEntry("Labels", Route.Labels),
+    NavEntry("Common locations", Route.CommonLocations, Permissions.READ_COMMON_LOCATIONS),
+    NavEntry("Encryption keys", Route.EncryptionKeys, Permissions.READ_ENCRYPTION_KEYS),
+    NavEntry("Users", Route.Users, Permissions.WRITE_USER),
+)
+
+val AccountNavEntries = listOf(
+    NavEntry("Preferences", Route.Preferences),
+    NavEntry("Change password", Route.ChangePassword),
+)
+
+/** Filters the drawer to what this session may actually open. */
+fun List<NavEntry>.visibleTo(permissions: List<String>): List<NavEntry> =
+    filter { entry -> entry.permission == null || entry.permission in permissions }

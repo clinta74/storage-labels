@@ -13,6 +13,7 @@ import net.pollyspeople.storagelabels.core.result.ApiError
 import net.pollyspeople.storagelabels.core.result.ApiResult
 import net.pollyspeople.storagelabels.core.result.apiCall
 import net.pollyspeople.storagelabels.core.settings.ServerSettings
+import net.pollyspeople.storagelabels.core.user.UserRepository
 import net.pollyspeople.storagelabels.data.api.AuthApi
 import net.pollyspeople.storagelabels.data.dto.AuthConfigResponse
 import net.pollyspeople.storagelabels.data.dto.AuthMode
@@ -53,6 +54,8 @@ class AuthRepository @Inject constructor(
     private val cookieJar: PersistentCookieJar,
     private val serverSettings: ServerSettings,
     private val serverUrlProvider: ServerUrlProvider,
+    private val userRepository: UserRepository,
+    private val sessionEvents: SessionEvents,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -65,6 +68,24 @@ class AuthRepository @Inject constructor(
                 serverUrlProvider.update(config.baseUrl)
                 if (config.isConfigured) bootstrap() else _state.value = SessionState.NoServer
             }
+        }
+        scope.launch {
+            sessionEvents.expired.collect {
+                signedOut("Your session expired. Sign in again.")
+            }
+        }
+    }
+
+    /** Moves to the sign-in screen, keeping the server configured. */
+    private suspend fun signedOut(notice: String?) {
+        clearLocalSession()
+        val config = apiCall { authApi.getConfig() }
+        _state.value = when (config) {
+            is ApiResult.Success -> SessionState.SignedOut(config.value, notice)
+            is ApiResult.Failure -> SessionState.ServerUnreachable(
+                baseUrl = serverUrlProvider.current().orEmpty(),
+                error = config.error,
+            )
         }
     }
 
@@ -100,12 +121,19 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    /** Sets the signed-in state and pulls the preferences that drive the theme. */
+    private suspend fun enterSignedIn(user: UserInfoResponse): SessionState.SignedIn {
+        val state = signedIn(user)
+        userRepository.load()
+        return state
+    }
+
     private suspend fun restoreSession(): SessionState.SignedIn? {
         if (tokenStore.accessToken.isNullOrBlank()) return null
 
         // A 401 here is handled by the authenticator, which refreshes and replays once.
         return when (val me = apiCall { authApi.getCurrentUser() }) {
-            is ApiResult.Success -> signedIn(me.value)
+            is ApiResult.Success -> enterSignedIn(me.value)
             is ApiResult.Failure -> {
                 if (me.error is ApiError.Unauthorized) clearLocalSession()
                 null
@@ -118,7 +146,7 @@ class AuthRepository @Inject constructor(
             is ApiResult.Failure -> result
             is ApiResult.Success -> {
                 tokenStore.accessToken = result.value.token
-                _state.value = signedIn(result.value.user)
+                _state.value = enterSignedIn(result.value.user)
                 ApiResult.Success(Unit)
             }
         }
@@ -136,7 +164,7 @@ class AuthRepository @Inject constructor(
             // The web client signs in after registering; the API already returns a session.
             is ApiResult.Success -> {
                 tokenStore.accessToken = result.value.token
-                _state.value = signedIn(result.value.user)
+                _state.value = enterSignedIn(result.value.user)
                 ApiResult.Success(Unit)
             }
         }
@@ -144,16 +172,7 @@ class AuthRepository @Inject constructor(
 
     suspend fun logout(notice: String? = null) {
         apiCall { authApi.logout() }
-        clearLocalSession()
-
-        val config = apiCall { authApi.getConfig() }
-        _state.value = when (config) {
-            is ApiResult.Success -> SessionState.SignedOut(config.value, notice)
-            is ApiResult.Failure -> SessionState.ServerUnreachable(
-                baseUrl = serverUrlProvider.current().orEmpty(),
-                error = config.error,
-            )
-        }
+        signedOut(notice)
     }
 
     suspend fun setServer(baseUrl: String, allowCleartext: Boolean) {
@@ -179,6 +198,7 @@ class AuthRepository @Inject constructor(
     private fun clearLocalSession() {
         tokenStore.clear()
         cookieJar.clear()
+        userRepository.reset()
     }
 
     private fun signedIn(user: UserInfoResponse): SessionState.SignedIn {

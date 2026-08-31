@@ -3,6 +3,7 @@ package net.pollyspeople.storagelabels.core.network
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import net.pollyspeople.storagelabels.core.auth.SessionEvents
 import net.pollyspeople.storagelabels.core.auth.TokenStore
 import net.pollyspeople.storagelabels.data.api.AuthApi
 import javax.inject.Inject
@@ -22,6 +23,7 @@ class RefreshCoordinator @Inject constructor(
     private val tokenStore: TokenStore,
     @Named("refresh") private val authApi: AuthApi,
     private val cookieJar: PersistentCookieJar,
+    private val sessionEvents: SessionEvents,
 ) {
     private val mutex = Mutex()
 
@@ -45,9 +47,11 @@ class RefreshCoordinator @Inject constructor(
                 },
                 onFailure = {
                     // Refresh cookie rejected or absent: the session is over. Clearing here
-                    // means the next UI read sees a signed-out session.
+                    // means the next UI read sees a signed-out session, and the event moves
+                    // the UI to the sign-in screen with an explanation.
                     tokenStore.clear()
                     cookieJar.clear()
+                    sessionEvents.notifyExpired()
                     null
                 },
             )

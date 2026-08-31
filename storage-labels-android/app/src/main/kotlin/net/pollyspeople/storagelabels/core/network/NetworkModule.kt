@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import net.pollyspeople.storagelabels.BuildConfig
 import net.pollyspeople.storagelabels.data.api.AuthApi
+import net.pollyspeople.storagelabels.data.api.UserApi
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -97,6 +98,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi = retrofit.create(UserApi::class.java)
 
     @Provides
     @Singleton

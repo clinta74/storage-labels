@@ -44,6 +44,9 @@ import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import net.pollyspeople.storagelabels.core.permissions.LocalPermissions
 import net.pollyspeople.storagelabels.data.dto.AuthMode
+import net.pollyspeople.storagelabels.feature.admin.CommonLocationsScreen
+import net.pollyspeople.storagelabels.feature.admin.EncryptionKeysScreen
+import net.pollyspeople.storagelabels.feature.admin.UserManagementScreen
 import net.pollyspeople.storagelabels.feature.auth.ChangePasswordScreen
 import net.pollyspeople.storagelabels.feature.boxes.BoxDetailScreen
 import net.pollyspeople.storagelabels.feature.boxes.BoxEditScreen
@@ -72,6 +75,7 @@ import kotlin.reflect.KClass
 @Composable
 fun AppShell(
     accountName: String,
+    accountEmail: String,
     authMode: AuthMode,
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
@@ -298,9 +302,18 @@ fun AppShell(
                             },
                         )
                     }
-                    composable<Route.CommonLocations> { ComingSoon("Common locations", "Phase 5") }
-                    composable<Route.EncryptionKeys> { ComingSoon("Encryption keys", "Phase 5") }
-                    composable<Route.Users> { ComingSoon("Users", "Phase 5") }
+                    composable<Route.CommonLocations> {
+                        CommonLocationsScreen(onMessage = showMessage)
+                    }
+                    composable<Route.EncryptionKeys> {
+                        EncryptionKeysScreen(onMessage = showMessage)
+                    }
+                    composable<Route.Users> {
+                        UserManagementScreen(
+                            currentUserEmail = accountEmail,
+                            onMessage = showMessage,
+                        )
+                    }
                     composable<Route.Preferences> { PreferencesScreen(onSaved = showMessage) }
                     composable<Route.ChangePassword> {
                         ChangePasswordScreen(onChanged = showMessage)

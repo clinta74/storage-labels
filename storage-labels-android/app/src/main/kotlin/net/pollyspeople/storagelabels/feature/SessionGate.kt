@@ -77,6 +77,7 @@ fun SessionGate(
                     accountName = current.user.fullName?.takeIf(String::isNotBlank)
                         ?: current.user.username.takeIf(String::isNotBlank)
                         ?: current.user.email,
+                    accountEmail = current.user.email,
                     authMode = current.authMode,
                     onSignOut = viewModel::signOut,
                 )

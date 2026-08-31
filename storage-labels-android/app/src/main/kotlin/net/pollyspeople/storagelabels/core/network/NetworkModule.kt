@@ -6,7 +6,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import net.pollyspeople.storagelabels.BuildConfig
+import net.pollyspeople.storagelabels.data.api.AdminUserApi
 import net.pollyspeople.storagelabels.data.api.AuthApi
+import net.pollyspeople.storagelabels.data.api.CommonLocationApi
+import net.pollyspeople.storagelabels.data.api.EncryptionKeyApi
 import net.pollyspeople.storagelabels.data.api.BoxApi
 import net.pollyspeople.storagelabels.data.api.ImageApi
 import net.pollyspeople.storagelabels.data.api.ItemApi
@@ -152,6 +155,21 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideLabelApi(retrofit: Retrofit): LabelApi = retrofit.create(LabelApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCommonLocationApi(retrofit: Retrofit): CommonLocationApi =
+        retrofit.create(CommonLocationApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAdminUserApi(retrofit: Retrofit): AdminUserApi =
+        retrofit.create(AdminUserApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideEncryptionKeyApi(retrofit: Retrofit): EncryptionKeyApi =
+        retrofit.create(EncryptionKeyApi::class.java)
 
     @Provides
     @Singleton

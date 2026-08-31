@@ -38,7 +38,12 @@ Gradle's caches, `app/build` and `.gradle` live in named volumes rather than on 
 mount. That is partly speed — the Windows↔Linux filesystem boundary otherwise dominates
 build time — and partly correctness: Gradle memory-maps files under `.gradle`, which fails
 intermittently with `java.io.IOException: Input/output error` over the mount.
-`docker volume rm storage-labels-android_gradle-cache` for a clean slate.
+`./gradlew clean` fails against this layout — Gradle can't delete a mounted directory.
+For a clean slate, drop the volumes instead:
+
+```bash
+docker volume rm storage-labels-android_android-build                  storage-labels-android_gradle-project-cache                  storage-labels-android_gradle-cache
+```
 
 ### With a local SDK
 

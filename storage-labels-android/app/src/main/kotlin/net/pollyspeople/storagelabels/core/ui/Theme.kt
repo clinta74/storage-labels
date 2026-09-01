@@ -35,11 +35,14 @@ private val DarkColors = darkColorScheme(
  * The web UI stores theme as a server-side user preference ("light" / "dark"), so the app
  * takes [darkTheme] from that preference once the user is loaded and falls back to the
  * system setting before then.
+ *
+ * [dynamicColor] is off by default: wallpaper colours would replace the palette below on
+ * every Android 12+ device, and Storage Labels shares its look with the web app.
  */
 @Composable
 fun StorageLabelsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {

@@ -16,6 +16,7 @@ import net.pollyspeople.storagelabels.core.ui.userMessage
 import net.pollyspeople.storagelabels.core.user.UserRepository
 import net.pollyspeople.storagelabels.data.api.LabelApi
 import net.pollyspeople.storagelabels.data.dto.CreateLabelPrintJobRequest
+import net.pollyspeople.storagelabels.data.dto.LabelCodeItem
 import net.pollyspeople.storagelabels.data.dto.LabelFormat
 import net.pollyspeople.storagelabels.data.dto.LabelIncrementAlgorithm
 import net.pollyspeople.storagelabels.data.dto.LabelPage
@@ -37,6 +38,8 @@ class LabelsViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(LabelsState())
     val state: StateFlow<LabelsState> = _state.asStateFlow()
+
+    fun clearError() = _state.update { it.copy(error = null) }
 
     fun refresh() {
         _state.update { it.copy(loading = it.jobs.isEmpty(), error = null) }
@@ -135,7 +138,7 @@ class LabelJobDetailViewModel @Inject constructor(
             if (code.isBlank() || number == null) {
                 null
             } else {
-                net.pollyspeople.storagelabels.data.dto.LabelCodeItem(code, number)
+                LabelCodeItem(code, number)
             }
         }
         if (labels.isNotEmpty()) {

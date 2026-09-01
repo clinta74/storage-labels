@@ -38,6 +38,7 @@ import net.pollyspeople.storagelabels.core.permissions.LocalPermissions
 import net.pollyspeople.storagelabels.core.permissions.Permissions
 import net.pollyspeople.storagelabels.core.permissions.hasPermission
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
+import net.pollyspeople.storagelabels.core.ui.ActionErrorEffect
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
@@ -55,6 +56,13 @@ fun CommonLocationsScreen(
     // Loads on first show and again whenever the screen comes back to the front, so a
     // box or item added on a pushed screen is there when you return.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+
+    ActionErrorEffect(
+        error = state.error,
+        bannerVisible = state.locations.isEmpty(),
+        onMessage = onMessage,
+        onClear = viewModel::clearError,
+    )
     val canWrite = LocalPermissions.current.hasPermission(Permissions.WRITE_COMMON_LOCATIONS)
 
     var adding by remember { mutableStateOf(false) }
@@ -65,7 +73,7 @@ fun CommonLocationsScreen(
             state.loading -> LoadingBox()
 
             state.error != null && state.locations.isEmpty() ->
-                ErrorBanner(state.error!!, onRetry = viewModel::refresh)
+                ErrorBanner(state.error.orEmpty(), onRetry = viewModel::refresh)
 
             state.locations.isEmpty() -> EmptyState(
                 title = "No common locations",

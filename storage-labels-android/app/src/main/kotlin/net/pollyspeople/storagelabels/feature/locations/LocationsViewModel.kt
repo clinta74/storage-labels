@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.pollyspeople.storagelabels.core.inventory.LocationRepository
+import net.pollyspeople.storagelabels.core.result.ApiError
 import net.pollyspeople.storagelabels.core.result.ApiResult
 import net.pollyspeople.storagelabels.core.result.apiCall
 import net.pollyspeople.storagelabels.data.api.CommonLocationApi
@@ -105,8 +106,16 @@ class LocationsViewModel @Inject constructor(
                     onDone("Deleted ${location.name}.")
                     refresh()
                 }
-                is ApiResult.Failure -> _state.update {
-                    it.copy(error = result.error.userMessage())
+                // The API answers a non-forced delete of a location that still holds boxes
+                // with a validation problem whose title says nothing useful. Say what to do.
+                is ApiResult.Failure -> {
+                    val message = if (!force && result.error is ApiError.Validation) {
+                        "${location.name} still holds boxes. Tick \"Also delete the boxes it " +
+                            "still holds\" to remove it anyway."
+                    } else {
+                        result.error.userMessage()
+                    }
+                    _state.update { it.copy(error = message) }
                 }
             }
         }

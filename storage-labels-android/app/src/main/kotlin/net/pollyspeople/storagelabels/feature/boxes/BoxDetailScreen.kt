@@ -87,42 +87,135 @@ fun BoxDetailScreen(
     Column(Modifier.fillMaxSize()) {
         InlineSearchBar(onOpenBox = onOpenBox)
 
-    Box(Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.weight(1f)) {
-                        Text(box.name, style = MaterialTheme.typography.headlineSmall)
-                        FormattedCode(
-                            code = box.code,
-                            pattern = state.codeColorPattern,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        if (!box.description.isNullOrBlank()) {
-                            Text(box.description, style = MaterialTheme.typography.bodyMedium)
+        Box(Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                item {
+                    Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.weight(1f)) {
+                            Text(box.name, style = MaterialTheme.typography.headlineSmall)
+                            FormattedCode(
+                                code = box.code,
+                                pattern = state.codeColorPattern,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            if (!box.description.isNullOrBlank()) {
+                                Text(box.description, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+
+                        if (state.canEdit) {
+                            OverflowMenu(
+                                contentDescription = "Actions for this box",
+                                actions = listOf(
+                                    MenuAction("Edit", onEditBox, Icons.Filled.Edit),
+                                    MenuAction(
+                                        "Move to another location",
+                                        {
+                                            viewModel.loadMoveTargets()
+                                            moving = true
+                                        },
+                                        Icons.AutoMirrored.Filled.DriveFileMove,
+                                    ),
+                                    MenuAction(
+                                        "Delete box",
+                                        { deletingBox = true },
+                                        Icons.Filled.Delete,
+                                        destructive = true,
+                                    ),
+                                ),
+                            )
                         }
                     }
+                }
 
+                if (!box.photoUrl.isNullOrBlank()) {
+                    item {
+                        AuthenticatedImage(
+                            url = box.photoUrl,
+                            contentDescription = "Photo of ${box.name}",
+                            showImages = state.showImages,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp),
+                        )
+                    }
+                }
+
+                item { HorizontalDivider() }
+
+                item {
+                    Text(
+                        "Contents (${state.items.size})",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+
+                if (state.items.isEmpty()) {
+                    item {
+                        EmptyState(
+                            title = "Nothing listed yet",
+                            message = "Add what's inside so you can find it by searching later.",
+                            actionLabel = if (state.canEdit) "Add an item" else null,
+                            onAction = if (state.canEdit) onAddItem else null,
+                            modifier = Modifier.height(200.dp),
+                        )
+                    }
+                } else {
+                    items(state.items, key = { it.itemId }) { item ->
+                        ItemRow(
+                            item = item,
+                            canEdit = state.canEdit,
+                            showImages = state.showImages,
+                            onOpen = { viewing = item },
+                            onEdit = { onEditItem(item.itemId) },
+                            onDelete = { itemToDelete = item },
+                        )
+                    }
+                }
+            }
+
+            if (state.canEdit) {
+                FloatingActionButton(
+                    onClick = onAddItem,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add item")
+                }
+            }
+        }
+    }
+
+    viewing?.let { item ->
+        AlertDialog(
+            onDismissRequest = { viewing = null },
+            // The same actions the row offers, so opening an item isn't a dead end.
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(item.name, modifier = Modifier.weight(1f))
                     if (state.canEdit) {
                         OverflowMenu(
-                            contentDescription = "Actions for this box",
+                            contentDescription = "Actions for ${item.name}",
                             actions = listOf(
-                                MenuAction("Edit", onEditBox, Icons.Filled.Edit),
                                 MenuAction(
-                                    "Move to another location",
+                                    "Edit",
                                     {
-                                        viewModel.loadMoveTargets()
-                                        moving = true
+                                        viewing = null
+                                        onEditItem(item.itemId)
                                     },
-                                    Icons.AutoMirrored.Filled.DriveFileMove,
+                                    Icons.Filled.Edit,
                                 ),
                                 MenuAction(
-                                    "Delete box",
-                                    { deletingBox = true },
+                                    "Delete",
+                                    {
+                                        viewing = null
+                                        itemToDelete = item
+                                    },
                                     Icons.Filled.Delete,
                                     destructive = true,
                                 ),
@@ -130,71 +223,7 @@ fun BoxDetailScreen(
                         )
                     }
                 }
-            }
-
-            if (!box.photoUrl.isNullOrBlank()) {
-                item {
-                    AuthenticatedImage(
-                        url = box.photoUrl,
-                        contentDescription = "Photo of ${box.name}",
-                        showImages = state.showImages,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp),
-                    )
-                }
-            }
-
-            item { HorizontalDivider() }
-
-            item {
-                Text(
-                    "Contents (${state.items.size})",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-
-            if (state.items.isEmpty()) {
-                item {
-                    EmptyState(
-                        title = "Nothing listed yet",
-                        message = "Add what's inside so you can find it by searching later.",
-                        actionLabel = if (state.canEdit) "Add an item" else null,
-                        onAction = if (state.canEdit) onAddItem else null,
-                        modifier = Modifier.height(200.dp),
-                    )
-                }
-            } else {
-                items(state.items, key = { it.itemId }) { item ->
-                    ItemRow(
-                        item = item,
-                        canEdit = state.canEdit,
-                        showImages = state.showImages,
-                        onOpen = { viewing = item },
-                        onEdit = { onEditItem(item.itemId) },
-                        onDelete = { itemToDelete = item },
-                    )
-                }
-            }
-        }
-
-        if (state.canEdit) {
-            FloatingActionButton(
-                onClick = onAddItem,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add item")
-            }
-        }
-    }
-    }
-
-    viewing?.let { item ->
-        AlertDialog(
-            onDismissRequest = { viewing = null },
-            title = { Text(item.name) },
+            },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(item.description?.takeIf(String::isNotBlank) ?: "No description.")

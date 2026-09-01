@@ -3,6 +3,8 @@ package net.pollyspeople.storagelabels.core.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,9 +13,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,12 +61,58 @@ fun EmptyState(
     }
 }
 
+/**
+ * The one way this app shows a failure. [contentPadding] goes to zero inside a form, which
+ * has already spaced its own children.
+ */
+/**
+ * A failure that stops a screen loading fills it with an [ErrorBanner]. A failed *action* --
+ * a delete, a rename -- happens while the list is still on screen, where that banner never
+ * shows, so it would otherwise fail silently. Say it in the snackbar instead.
+ */
 @Composable
-fun ErrorBanner(message: String, modifier: Modifier = Modifier, onRetry: (() -> Unit)? = null) {
+fun ActionErrorEffect(
+    error: String?,
+    bannerVisible: Boolean,
+    onMessage: (String) -> Unit,
+    onClear: () -> Unit,
+) {
+    LaunchedEffect(error, bannerVisible) {
+        if (error != null && !bannerVisible) {
+            onMessage(error)
+            onClear()
+        }
+    }
+}
+
+/** States a fact next to a heading. It looks like a chip, but nothing taps it. */
+@Composable
+fun ReadOnlyChip(text: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+    }
+}
+
+@Composable
+fun ErrorBanner(
+    message: String,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    onRetry: (() -> Unit)? = null,
+) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(contentPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
@@ -77,9 +127,12 @@ fun ErrorBanner(message: String, modifier: Modifier = Modifier, onRetry: (() -> 
 }
 
 /**
- * Confirms a destructive action. When [forceLabel] is given the confirm button stays disabled
- * until the box is ticked — the web app gates deleting a location or box that still has
- * contents the same way, so nothing is destroyed on a single mistaken tap.
+ * Confirms a destructive action. [forceLabel] adds a checkbox, and by default the confirm
+ * button stays disabled until it is ticked — that is how the web app gates deleting
+ * something that still has contents, so nothing goes on a single mistaken tap.
+ *
+ * Pass [forceRequired] false where the caller cannot know whether the tick is needed: the
+ * checkbox is then an option rather than a gate, and the server decides.
  */
 @Composable
 fun ConfirmDeleteDialog(
@@ -87,6 +140,7 @@ fun ConfirmDeleteDialog(
     message: String,
     confirmLabel: String = "Delete",
     forceLabel: String? = null,
+    forceRequired: Boolean = true,
     onConfirm: (force: Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -99,9 +153,7 @@ fun ConfirmDeleteDialog(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(message)
                 if (forceLabel != null) {
-                    androidx.compose.foundation.layout.Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = force, onCheckedChange = { force = it })
                         Text(forceLabel, style = MaterialTheme.typography.bodyMedium)
                     }
@@ -111,7 +163,7 @@ fun ConfirmDeleteDialog(
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(force) },
-                enabled = forceLabel == null || force,
+                enabled = forceLabel == null || !forceRequired || force,
             ) {
                 Text(confirmLabel, color = MaterialTheme.colorScheme.error)
             }

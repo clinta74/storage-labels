@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.labels.LabelPrinter
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
+import net.pollyspeople.storagelabels.core.ui.ActionErrorEffect
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.FormattedCode
@@ -77,12 +78,19 @@ fun LabelJobsScreen(
     // box or item added on a pushed screen is there when you return.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
+    ActionErrorEffect(
+        error = state.error,
+        bannerVisible = state.jobs.isEmpty(),
+        onMessage = onMessage,
+        onClear = viewModel::clearError,
+    )
+
     Box(Modifier.fillMaxSize()) {
         when {
             state.loading -> LoadingBox()
 
             state.error != null && state.jobs.isEmpty() ->
-                ErrorBanner(state.error!!, onRetry = viewModel::refresh)
+                ErrorBanner(state.error.orEmpty(), onRetry = viewModel::refresh)
 
             state.jobs.isEmpty() -> EmptyState(
                 title = "No label runs yet",
@@ -347,7 +355,7 @@ fun LabelJobEditScreen(
         )
 
         state.error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            ErrorBanner(it, contentPadding = PaddingValues(0.dp))
         }
 
         OutlinedTextField(

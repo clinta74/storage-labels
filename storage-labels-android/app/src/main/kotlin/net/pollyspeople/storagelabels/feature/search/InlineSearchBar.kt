@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.data.dto.SearchResult
 
 /**
@@ -107,12 +108,7 @@ fun InlineSearchBar(
                         CircularProgressIndicator()
                     }
 
-                    state.error != null -> Text(
-                        state.error!!,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp),
-                    )
+                    state.error != null -> ErrorBanner(state.error.orEmpty())
 
                     state.results.isEmpty() -> Text(
                         "Nothing matched \"${state.query}\".",

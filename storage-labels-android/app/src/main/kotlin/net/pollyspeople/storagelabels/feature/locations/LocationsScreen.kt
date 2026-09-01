@@ -2,6 +2,7 @@ package net.pollyspeople.storagelabels.feature.locations
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
+import net.pollyspeople.storagelabels.core.ui.ActionErrorEffect
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
@@ -65,6 +67,13 @@ fun LocationsScreen(
     // box or item added on a pushed screen is there when you return.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
+    ActionErrorEffect(
+        error = state.error,
+        bannerVisible = state.locations.isEmpty(),
+        onMessage = onMessage,
+        onClear = viewModel::clearError,
+    )
+
     var editing by remember { mutableStateOf<StorageLocation?>(null) }
     var creating by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf<StorageLocation?>(null) }
@@ -77,7 +86,7 @@ fun LocationsScreen(
             state.loading -> LoadingBox()
 
             state.error != null && state.locations.isEmpty() ->
-                ErrorBanner(state.error!!, onRetry = viewModel::refresh)
+                ErrorBanner(state.error.orEmpty(), onRetry = viewModel::refresh)
 
             state.locations.isEmpty() -> EmptyState(
                 title = "No locations yet",
@@ -88,7 +97,7 @@ fun LocationsScreen(
 
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                contentPadding = PaddingValues(
                     start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -150,7 +159,10 @@ fun LocationsScreen(
         ConfirmDeleteDialog(
             title = "Delete ${location.name}?",
             message = "Deleting a location removes it for everyone it's shared with.",
+            // The list doesn't know whether this location holds anything, so the tick is
+            // offered rather than demanded; the server rejects a delete that needs it.
             forceLabel = "Also delete the boxes it still holds",
+            forceRequired = false,
             onConfirm = { force ->
                 viewModel.delete(location, force) { onMessage(it) }
                 deleting = null

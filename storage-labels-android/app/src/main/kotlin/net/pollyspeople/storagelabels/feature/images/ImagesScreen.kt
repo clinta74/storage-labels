@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +35,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.ui.AuthenticatedImage
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
+import net.pollyspeople.storagelabels.core.ui.ActionErrorEffect
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
@@ -52,6 +54,13 @@ fun ImagesScreen(
     // Loads on first show and again whenever the screen comes back to the front, so a
     // box or item added on a pushed screen is there when you return.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+
+    ActionErrorEffect(
+        error = state.error,
+        bannerVisible = state.images.isEmpty(),
+        onMessage = onMessage,
+        onClear = viewModel::clearError,
+    )
     var deleting by remember { mutableStateOf<ImageMetadata?>(null) }
 
     Box(Modifier.fillMaxSize()) {
@@ -59,7 +68,7 @@ fun ImagesScreen(
             state.loading -> LoadingBox()
 
             state.error != null && state.images.isEmpty() ->
-                ErrorBanner(state.error!!, onRetry = viewModel::refresh)
+                ErrorBanner(state.error.orEmpty(), onRetry = viewModel::refresh)
 
             state.images.isEmpty() -> EmptyState(
                 title = "No photos yet",
@@ -132,7 +141,7 @@ private fun ImageCard(
                     .fillMaxWidth()
                     .aspectRatio(1f),
             )
-            androidx.compose.foundation.layout.Row(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 8.dp),

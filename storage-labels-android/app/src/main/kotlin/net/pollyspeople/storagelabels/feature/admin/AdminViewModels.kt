@@ -43,6 +43,8 @@ class CommonLocationsViewModel @Inject constructor(
     private val _state = MutableStateFlow(CommonLocationsState())
     val state: StateFlow<CommonLocationsState> = _state.asStateFlow()
 
+    fun clearError() = _state.update { it.copy(error = null) }
+
     fun refresh() {
         _state.update { it.copy(loading = it.locations.isEmpty(), error = null) }
         viewModelScope.launch {
@@ -325,7 +327,6 @@ class EncryptionKeysViewModel @Inject constructor(
 
     override fun onCleared() {
         watchJob?.cancel()
-        super.onCleared()
     }
 
     fun clearError() = _state.update { it.copy(error = null) }

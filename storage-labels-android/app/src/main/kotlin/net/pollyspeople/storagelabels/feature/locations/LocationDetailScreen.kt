@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
@@ -34,10 +33,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import net.pollyspeople.storagelabels.core.ui.ActionErrorEffect
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.FormattedCode
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.ReadOnlyChip
 import net.pollyspeople.storagelabels.core.ui.RowThumbnail
 import net.pollyspeople.storagelabels.feature.search.InlineSearchBar
 import net.pollyspeople.storagelabels.data.dto.Box as BoxDto
@@ -55,6 +56,13 @@ fun LocationDetailScreen(
     // Loads on first show and again whenever the screen comes back to the front, so a
     // box or item added on a pushed screen is there when you return.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+
+    ActionErrorEffect(
+        error = state.error,
+        bannerVisible = state.boxes.isEmpty(),
+        onMessage = onMessage,
+        onClear = viewModel::clearError,
+    )
     val canEdit = state.location?.accessLevel?.canEdit == true
 
     Column(Modifier.fillMaxSize()) {
@@ -69,52 +77,52 @@ fun LocationDetailScreen(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp),
             ) {
                 Text(location.name, style = MaterialTheme.typography.headlineSmall)
-                AssistChip(onClick = {}, label = { Text(location.accessLevel.name) })
+                ReadOnlyChip(location.accessLevel.name)
             }
         }
 
-    Box(Modifier.fillMaxSize()) {
-        when {
-            state.loading -> LoadingBox()
+        Box(Modifier.fillMaxSize()) {
+            when {
+                state.loading -> LoadingBox()
 
-            state.error != null && state.boxes.isEmpty() ->
-                ErrorBanner(state.error!!, onRetry = viewModel::refresh)
+                state.error != null && state.boxes.isEmpty() ->
+                    ErrorBanner(state.error.orEmpty(), onRetry = viewModel::refresh)
 
-            state.boxes.isEmpty() -> EmptyState(
-                title = "No boxes here yet",
-                message = "Add a box, give it a code, and start listing what's inside.",
-                actionLabel = if (canEdit) "Add a box" else null,
-                onAction = if (canEdit) onAddBox else null,
-            )
+                state.boxes.isEmpty() -> EmptyState(
+                    title = "No boxes here yet",
+                    message = "Add a box, give it a code, and start listing what's inside.",
+                    actionLabel = if (canEdit) "Add a box" else null,
+                    onAction = if (canEdit) onAddBox else null,
+                )
 
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(state.boxes, key = { it.boxId }) { box ->
-                    BoxCard(
-                        box = box,
-                        itemCount = state.itemCounts[box.boxId],
-                        codeColorPattern = state.codeColorPattern,
-                        showImages = state.showImages,
-                        onOpen = { onOpenBox(box.boxId) },
-                    )
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(state.boxes, key = { it.boxId }) { box ->
+                        BoxCard(
+                            box = box,
+                            itemCount = state.itemCounts[box.boxId],
+                            codeColorPattern = state.codeColorPattern,
+                            showImages = state.showImages,
+                            onOpen = { onOpenBox(box.boxId) },
+                        )
+                    }
+                }
+            }
+
+            if (canEdit) {
+                FloatingActionButton(
+                    onClick = onAddBox,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add box")
                 }
             }
         }
-
-        if (canEdit) {
-            FloatingActionButton(
-                onClick = onAddBox,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add box")
-            }
-        }
-    }
     }
 }
 

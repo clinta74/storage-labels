@@ -55,6 +55,11 @@ internal partial class BoxEndpoints
             .AsNoTracking()
             .FirstAsync(b => b.BoxId == boxId, cancellationToken);
 
-        return TypedResults.Ok(new BoxResponse(updatedBox));
+        var itemCount = await dbContext.Items
+            .AsNoTracking()
+            .Where(i => i.BoxId == boxId)
+            .CountAsync(cancellationToken);
+
+        return TypedResults.Ok(new BoxResponse(updatedBox, itemCount));
     }
 }

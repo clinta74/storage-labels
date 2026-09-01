@@ -25,6 +25,11 @@ internal partial class BoxEndpoints
             return TypedResults.NotFound($"Box with id {boxId} was not found.");
         }
 
-        return TypedResults.Ok(new BoxResponse(box));
+        var itemCount = await dbContext.Items
+            .AsNoTracking()
+            .Where(i => i.BoxId == boxId)
+            .CountAsync(cancellationToken);
+
+        return TypedResults.Ok(new BoxResponse(box, itemCount));
     }
 }

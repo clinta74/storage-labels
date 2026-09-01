@@ -12,11 +12,12 @@ public record BoxResponse(
     string? ImageUrl,
     Guid? ImageMetadataId,
     long LocationId,
+    int ItemCount,
     DateTimeOffset Created,
     DateTimeOffset Updated,
     DateTimeOffset LastAccessed)
 {
-    public BoxResponse(BoxModel box) : this(
+    public BoxResponse(BoxModel box, int itemCount) : this(
         box.BoxId,
         box.Code,
         box.Name,
@@ -24,6 +25,7 @@ public record BoxResponse(
         box.ImageUrl,
         box.ImageMetadataId,
         box.LocationId,
+        itemCount,
         box.Created,
         box.Updated,
         box.LastAccessed)

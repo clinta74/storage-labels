@@ -3,8 +3,11 @@ package net.pollyspeople.storagelabels.feature
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -46,18 +49,20 @@ fun SessionGate(
 
     Box(modifier = modifier.fillMaxSize()) {
         when (val current = session) {
-            SessionState.Loading -> LoadingScreen()
+            SessionState.Loading -> OutsideShell { LoadingScreen() }
 
-            SessionState.NoServer -> ServerSetupScreen()
+            SessionState.NoServer -> OutsideShell { ServerSetupScreen() }
 
-            is SessionState.ServerUnreachable -> ServerUnreachableScreen(
-                address = current.baseUrl,
-                message = current.error.userMessage(),
-                onRetry = viewModel::retry,
-                onChangeServer = viewModel::changeServer,
-            )
+            is SessionState.ServerUnreachable -> OutsideShell {
+                ServerUnreachableScreen(
+                    address = current.baseUrl,
+                    message = current.error.userMessage(),
+                    onRetry = viewModel::retry,
+                    onChangeServer = viewModel::changeServer,
+                )
+            }
 
-            is SessionState.SignedOut -> {
+            is SessionState.SignedOut -> OutsideShell {
                 if (showRegister && current.config.allowRegistration) {
                     RegisterScreen(onBackToSignIn = { showRegister = false })
                 } else {
@@ -83,6 +88,21 @@ fun SessionGate(
                 )
             }
         }
+    }
+}
+
+/**
+ * Sign-in, registration and server setup have no app bar of their own, so they clear the
+ * status and navigation bars here. Inside the shell that is the Scaffold's job.
+ */
+@Composable
+private fun OutsideShell(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing),
+    ) {
+        content()
     }
 }
 

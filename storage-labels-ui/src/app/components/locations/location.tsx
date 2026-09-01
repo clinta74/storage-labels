@@ -43,7 +43,6 @@ export const Location: React.FC = () => {
     const { Api } = useApi();
     const { location } = useLocation();
     const [boxes, setBoxes] = useState<Box[]>([]);
-    const [boxItemCounts, setBoxItemCounts] = useState<Record<string, number>>({});
     const [boxToDelete, setBoxToDelete] = useState<Box | null>(null);
     const [boxItemCount, setBoxItemCount] = useState<number>(0);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -57,22 +56,9 @@ export const Location: React.FC = () => {
         const locationId = Number(params.locationId);
 
         if (locationId) {
+            // The box list carries its own item counts, so no request per box.
             Api.Box.getBoxes(locationId)
-                .then(({ data }) => {
-                    setBoxes(data);
-                    
-                    // Fetch item counts for all boxes
-                    data.forEach(box => {
-                        Api.Item.getItemsByBoxId(box.boxId)
-                            .then(({ data: items }) => {
-                                setBoxItemCounts(prev => ({
-                                    ...prev,
-                                    [box.boxId]: items.length
-                                }));
-                            })
-                            .catch(error => console.error('Error fetching item count:', error));
-                    });
-                });
+                .then(({ data }) => setBoxes(data));
         }
     }, [params]);
 
@@ -222,7 +208,7 @@ export const Location: React.FC = () => {
                                             <ListItemButton component={Link} to={`box/${box.boxId}`}>
                                                 <ListItemAvatar>
                                                     <Badge 
-                                                        badgeContent={boxItemCounts[box.boxId] || 0} 
+                                                        badgeContent={box.itemCount} 
                                                         color="primary"
                                                         max={999}
                                                     >

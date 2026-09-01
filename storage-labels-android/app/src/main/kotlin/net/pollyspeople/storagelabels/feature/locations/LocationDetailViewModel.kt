@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.pollyspeople.storagelabels.core.inventory.BoxRepository
-import net.pollyspeople.storagelabels.core.inventory.ItemRepository
 import net.pollyspeople.storagelabels.core.inventory.LocationRepository
 import net.pollyspeople.storagelabels.core.result.ApiResult
 import net.pollyspeople.storagelabels.core.ui.userMessage
@@ -27,7 +25,6 @@ import javax.inject.Inject
 data class LocationDetailState(
     val location: StorageLocation? = null,
     val boxes: List<Box> = emptyList(),
-    val itemCounts: Map<String, Int> = emptyMap(),
     val codeColorPattern: String = "",
     val showImages: Boolean = true,
     val loading: Boolean = true,
@@ -39,7 +36,6 @@ class LocationDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val locations: LocationRepository,
     private val boxes: BoxRepository,
-    private val items: ItemRepository,
     userRepository: UserRepository,
 ) : ViewModel() {
 
@@ -87,27 +83,6 @@ class LocationDetailViewModel @Inject constructor(
                     loading = false,
                 )
             }
-
-            loadItemCounts(loadedBoxes)
-        }
-    }
-
-    /**
-     * The API exposes no per-box item count, so the web app fetches each box's items to show
-     * a badge. Same here, but in parallel and after the list has already rendered — a count
-     * that fails to load simply doesn't appear.
-     */
-    private suspend fun loadItemCounts(boxes: List<Box>) {
-        val counts = coroutineScope {
-            boxes.map { box ->
-                async { box.boxId to (items.listByBox(box.boxId) as? ApiResult.Success)?.value?.size }
-            }.awaitAll()
-        }
-
-        _state.update { current ->
-            current.copy(
-                itemCounts = counts.mapNotNull { (id, count) -> count?.let { id to it } }.toMap(),
-            )
         }
     }
 

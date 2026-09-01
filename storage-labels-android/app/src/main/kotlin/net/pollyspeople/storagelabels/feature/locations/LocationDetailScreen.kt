@@ -103,7 +103,7 @@ fun LocationDetailScreen(
                     items(state.boxes, key = { it.boxId }) { box ->
                         BoxCard(
                             box = box,
-                            itemCount = state.itemCounts[box.boxId],
+                            itemCount = box.itemCount,
                             codeColorPattern = state.codeColorPattern,
                             showImages = state.showImages,
                             onOpen = { onOpenBox(box.boxId) },
@@ -129,7 +129,7 @@ fun LocationDetailScreen(
 @Composable
 private fun BoxCard(
     box: BoxDto,
-    itemCount: Int?,
+    itemCount: Int,
     codeColorPattern: String,
     showImages: Boolean,
     onOpen: () -> Unit,
@@ -145,7 +145,7 @@ private fun BoxCard(
             // The web app anchors the count to the avatar, and hides it at zero.
             BadgedBox(
                 badge = {
-                    if (itemCount != null && itemCount > 0) {
+                    if (itemCount > 0) {
                         Badge(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary,

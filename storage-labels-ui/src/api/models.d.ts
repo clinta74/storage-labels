@@ -54,6 +54,7 @@ interface Box {
         imageUrl: string;
         imageMetadataId?: string;
         locationId: number;
+        itemCount: number;
         created: string;
         updated: string;
         lastAccessed: string;

@@ -43,6 +43,8 @@ data class Box(
     val imageUrl: String? = null,
     val imageMetadataId: String? = null,
     val locationId: Long,
+    /** The API counts these server-side; older servers omit the field and it reads zero. */
+    val itemCount: Int = 0,
     val created: String? = null,
     val updated: String? = null,
     val lastAccessed: String? = null,

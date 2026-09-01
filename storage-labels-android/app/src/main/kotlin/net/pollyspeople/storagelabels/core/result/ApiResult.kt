@@ -2,6 +2,7 @@ package net.pollyspeople.storagelabels.core.result
 
 import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
+import retrofit2.Response
 import java.io.IOException
 
 /**
@@ -38,7 +39,16 @@ sealed interface ApiError {
 
 suspend fun <T> apiCall(block: suspend () -> T): ApiResult<T> =
     try {
-        ApiResult.Success(block())
+        val value = block()
+        // Retrofit throws only when the method declares a body type. A method returning
+        // Response<T> -- which every delete and every no-content call here does -- hands the
+        // failure back as an ordinary value, so an unchecked 4xx would read as success and
+        // the app would report "Deleted" for something the server refused to delete.
+        if (value is Response<*> && !value.isSuccessful) {
+            ApiResult.Failure(value.toApiError())
+        } else {
+            ApiResult.Success(value)
+        }
     } catch (cancellation: CancellationException) {
         throw cancellation
     } catch (io: IOException) {
@@ -49,18 +59,25 @@ suspend fun <T> apiCall(block: suspend () -> T): ApiResult<T> =
         ApiResult.Failure(ApiError.Unknown(other))
     }
 
-private fun HttpException.toApiError(): ApiError {
-    val body = runCatching { response()?.errorBody()?.string() }.getOrNull()
-    return when (code()) {
-        401 -> ApiError.Unauthorized
-        403 -> ApiError.Forbidden
-        404 -> ApiError.NotFound
-        429 -> ApiError.RateLimited(
-            response()?.headers()?.get("Retry-After")?.toLongOrNull(),
-        )
-        400, 422 -> ApiError.Validation(extractMessage(body) ?: "The request was rejected.")
-        else -> ApiError.Server(code(), extractMessage(body))
-    }
+private fun HttpException.toApiError(): ApiError = errorFor(
+    code = code(),
+    body = runCatching { response()?.errorBody()?.string() }.getOrNull(),
+    retryAfter = response()?.headers()?.get("Retry-After")?.toLongOrNull(),
+)
+
+private fun Response<*>.toApiError(): ApiError = errorFor(
+    code = code(),
+    body = runCatching { errorBody()?.string() }.getOrNull(),
+    retryAfter = headers()["Retry-After"]?.toLongOrNull(),
+)
+
+private fun errorFor(code: Int, body: String?, retryAfter: Long?): ApiError = when (code) {
+    401 -> ApiError.Unauthorized
+    403 -> ApiError.Forbidden
+    404 -> ApiError.NotFound
+    429 -> ApiError.RateLimited(retryAfter)
+    400, 422 -> ApiError.Validation(extractMessage(body) ?: "The request was rejected.")
+    else -> ApiError.Server(code, extractMessage(body))
 }
 
 /**

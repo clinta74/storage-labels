@@ -15,7 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
 
 /**
@@ -25,6 +27,9 @@ import coil3.compose.SubcomposeAsyncImage
  *
  * [showImages] carries the user's preference: when it's off the app draws a placeholder and
  * downloads nothing, which is the entire point of the setting.
+ *
+ * [showProgress] costs a subcomposition per image, which is why list thumbnails turn it off:
+ * they are small enough that the crossfade alone reads as loading.
  */
 @Composable
 fun AuthenticatedImage(
@@ -33,6 +38,7 @@ fun AuthenticatedImage(
     showImages: Boolean,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
+    showProgress: Boolean = true,
 ) {
     if (!showImages) {
         Placeholder(modifier, Icons.Filled.Image, "Images are off")
@@ -40,6 +46,16 @@ fun AuthenticatedImage(
     }
     if (url.isNullOrBlank()) {
         Placeholder(modifier, Icons.Filled.Image, "No photo")
+        return
+    }
+
+    if (!showProgress) {
+        AsyncImage(
+            model = url,
+            contentDescription = contentDescription,
+            contentScale = contentScale,
+            modifier = modifier,
+        )
         return
     }
 
@@ -62,7 +78,7 @@ fun AuthenticatedImage(
 @Composable
 private fun Placeholder(
     modifier: Modifier,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
 ) {
     Surface(

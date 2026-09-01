@@ -64,8 +64,12 @@ class LocationDetailViewModel @Inject constructor(
     fun refresh() {
         _state.update { it.copy(loading = it.boxes.isEmpty(), error = null) }
         viewModelScope.launch {
-            val locationResult = locations.get(locationId)
-            val boxesResult = boxes.listByLocation(locationId)
+            // Independent reads, so one wall-clock wait rather than two.
+            val (locationResult, boxesResult) = coroutineScope {
+                val location = async { locations.get(locationId) }
+                val boxList = async { boxes.listByLocation(locationId) }
+                location.await() to boxList.await()
+            }
 
             val error = (locationResult as? ApiResult.Failure)?.error
                 ?: (boxesResult as? ApiResult.Failure)?.error

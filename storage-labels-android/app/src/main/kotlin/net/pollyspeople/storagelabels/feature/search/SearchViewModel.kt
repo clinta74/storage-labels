@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.pollyspeople.storagelabels.core.result.ApiResult
@@ -41,6 +42,9 @@ class SearchViewModel @Inject constructor(
 
     private val queries = MutableStateFlow("")
 
+    /** Held so a new query cancels the one in flight instead of racing it. */
+    private var searchJob: Job? = null
+
     init {
         viewModelScope.launch {
             // The web app searches as you type; debouncing keeps that feel without a request
@@ -60,6 +64,7 @@ class SearchViewModel @Inject constructor(
     }
 
     fun clear() {
+        searchJob?.cancel()
         _state.value = SearchState()
         queries.value = ""
     }
@@ -69,11 +74,12 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun runSearch(query: String, page: Int) {
+        searchJob?.cancel()
         _state.update {
             if (page == 1) it.copy(searching = true, error = null) else it.copy(loadingMore = true)
         }
 
-        viewModelScope.launch {
+        searchJob = viewModelScope.launch {
             when (val result = search.search(query, page)) {
                 is ApiResult.Success -> _state.update { current ->
                     val combined = if (page == 1) {

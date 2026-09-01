@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -26,7 +27,7 @@ fun RowThumbnail(
     showImages: Boolean,
     fallbackIcon: ImageVector,
     modifier: Modifier = Modifier,
-    size: androidx.compose.ui.unit.Dp = 48.dp,
+    size: Dp = 48.dp,
 ) {
     val shape = RoundedCornerShape(8.dp)
 
@@ -35,6 +36,7 @@ fun RowThumbnail(
             url = imageUrl,
             contentDescription = contentDescription,
             showImages = true,
+            showProgress = false,
             modifier = modifier
                 .size(size)
                 .clip(shape),

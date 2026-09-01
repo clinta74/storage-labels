@@ -45,6 +45,7 @@ import net.pollyspeople.storagelabels.core.ui.LoadingBox
 import net.pollyspeople.storagelabels.core.ui.MenuAction
 import net.pollyspeople.storagelabels.core.ui.OverflowMenu
 import net.pollyspeople.storagelabels.data.dto.EncryptionKey
+import net.pollyspeople.storagelabels.data.dto.EncryptionKeyStats
 import net.pollyspeople.storagelabels.data.dto.EncryptionKeyStatus
 
 @Composable
@@ -248,7 +249,7 @@ fun EncryptionKeysScreen(
 @Composable
 private fun KeyCard(
     key: EncryptionKey,
-    stats: net.pollyspeople.storagelabels.data.dto.EncryptionKeyStats?,
+    stats: EncryptionKeyStats?,
     canWrite: Boolean,
     onActivate: () -> Unit,
     onRetire: () -> Unit,

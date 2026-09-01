@@ -1,5 +1,6 @@
 package net.pollyspeople.storagelabels.core.network
 
+import androidx.core.content.edit
 import net.pollyspeople.storagelabels.core.auth.TokenStore
 import okhttp3.Cookie
 import okhttp3.CookieJar
@@ -58,7 +59,7 @@ class PersistentCookieJar @Inject constructor(
     @Synchronized
     fun clear() {
         cache.clear()
-        prefs.edit().remove(KEY_COOKIES).apply()
+        prefs.edit { remove(KEY_COOKIES) }
     }
 
     private fun keyOf(cookie: Cookie): String = cookie.domain + "|" + cookie.path + "|" + cookie.name
@@ -68,7 +69,7 @@ class PersistentCookieJar @Inject constructor(
         val serialized = cache.values
             .mapNotNull { cookie -> store.protect(cookie.toString() + SEPARATOR + cookie.domain) }
             .toSet()
-        prefs.edit().putStringSet(KEY_COOKIES, serialized).apply()
+        prefs.edit { putStringSet(KEY_COOKIES, serialized) }
     }
 
     private fun loadFromDisk() {

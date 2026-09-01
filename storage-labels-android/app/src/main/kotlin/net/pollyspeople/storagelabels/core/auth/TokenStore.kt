@@ -2,6 +2,7 @@ package net.pollyspeople.storagelabels.core.auth
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,13 +30,13 @@ class TokenStore @Inject constructor(
         get() = prefs.getString(KEY_ACCESS_TOKEN, null)?.let(crypto::decrypt)
         set(value) {
             val encrypted = value?.let(crypto::encrypt)
-            prefs.edit().apply {
+            prefs.edit {
                 if (encrypted == null) remove(KEY_ACCESS_TOKEN) else putString(KEY_ACCESS_TOKEN, encrypted)
-            }.apply()
+            }
         }
 
     fun clear() {
-        prefs.edit().remove(KEY_ACCESS_TOKEN).apply()
+        prefs.edit { remove(KEY_ACCESS_TOKEN) }
     }
 
     /** Encrypts a value for callers sharing this store, such as the cookie jar. */

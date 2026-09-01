@@ -65,7 +65,6 @@ import net.pollyspeople.storagelabels.feature.locations.LocationDetailScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationUsersScreen
 import net.pollyspeople.storagelabels.feature.locations.LocationsScreen
 import net.pollyspeople.storagelabels.feature.preferences.PreferencesScreen
-import net.pollyspeople.storagelabels.feature.search.CodeScannerScreen
 import kotlin.reflect.KClass
 
 /**
@@ -219,7 +218,6 @@ fun AppShell(
                     composable<Route.BoxEdit> { entry ->
                         val boxViewModel: BoxEditViewModel = hiltViewModel()
                         PickedImageEffect(entry) { url, id -> boxViewModel.onImageSelected(url, id) }
-                        ScannedCodeEffect(entry) { code -> boxViewModel.onCodeChange(code) }
 
                         BoxEditScreen(
                             onSaved = { message ->
@@ -227,7 +225,6 @@ fun AppShell(
                                 navController.popBackStack()
                             },
                             onCancel = { navController.popBackStack() },
-                            onScanCode = { navController.navigate(Route.CodeScanner) },
                             onPickImage = { navController.navigate(Route.ImagePicker) },
                             viewModel = boxViewModel,
                         )
@@ -290,17 +287,6 @@ fun AppShell(
                             onCancel = { navController.popBackStack() },
                         )
                     }
-                    composable<Route.CodeScanner> {
-                        CodeScannerScreen(
-                            onCode = { code ->
-                                navController.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set(SCANNED_CODE, code)
-                                navController.popBackStack()
-                            },
-                            onCancel = { navController.popBackStack() },
-                        )
-                    }
                     composable<Route.Labels> {
                         LabelJobsScreen(
                             onOpenJob = { navController.navigate(Route.LabelJob(it)) },
@@ -352,7 +338,6 @@ fun AppShell(
 }
 
 internal const val PICKED_IMAGE = "picked_image"
-internal const val SCANNED_CODE = "scanned_code"
 
 /**
  * Results from a pushed screen come back through the caller's saved state, which survives
@@ -367,18 +352,6 @@ private fun PickedImageEffect(entry: NavBackStackEntry, onPicked: (String, Strin
         if (picked != null && picked.size == 2) {
             handle.remove<List<String>>(PICKED_IMAGE)
             onPicked(picked[0], picked[1])
-        }
-    }
-}
-
-@Composable
-private fun ScannedCodeEffect(entry: NavBackStackEntry, onCode: (String) -> Unit) {
-    val handle = entry.savedStateHandle
-    LaunchedEffect(entry) {
-        val code = handle.get<String>(SCANNED_CODE)
-        if (code != null) {
-            handle.remove<String>(SCANNED_CODE)
-            onCode(code)
         }
     }
 }
@@ -429,7 +402,6 @@ private fun NavDestination?.titleOrDefault(): String = when {
     this == null -> "Storage Labels"
     hasRoute(Route.Images::class) -> "Images"
     hasRoute(Route.ImagePicker::class) -> "Choose a photo"
-    hasRoute(Route.CodeScanner::class) -> "Scan a label"
     hasRoute(Route.Labels::class) -> "Labels"
     hasRoute(Route.LabelJob::class) -> "Label run"
     hasRoute(Route.LabelJobEdit::class) -> "Label run"

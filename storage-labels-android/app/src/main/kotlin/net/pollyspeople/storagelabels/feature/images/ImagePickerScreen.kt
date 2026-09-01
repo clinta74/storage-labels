@@ -1,7 +1,6 @@
 package net.pollyspeople.storagelabels.feature.images
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -40,22 +40,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.io.File
 import kotlinx.coroutines.launch
 import net.pollyspeople.storagelabels.core.camera.CameraPreview
+import net.pollyspeople.storagelabels.core.camera.rememberCameraPermission
 import net.pollyspeople.storagelabels.core.camera.rememberCameraController
 import net.pollyspeople.storagelabels.core.ui.AuthenticatedImage
 import net.pollyspeople.storagelabels.core.ui.EmptyState
+import net.pollyspeople.storagelabels.core.ui.ErrorBanner
+import net.pollyspeople.storagelabels.data.dto.ImageMetadata
 
 /**
  * Picking a photo for a box or item: either one already uploaded, or a new one from the
@@ -110,7 +114,7 @@ fun ImagePickerScreen(
 @Composable
 private fun ExistingImages(
     state: ImagesState,
-    onSelect: (net.pollyspeople.storagelabels.data.dto.ImageMetadata) -> Unit,
+    onSelect: (ImageMetadata) -> Unit,
 ) {
     if (state.images.isEmpty()) {
         if (state.loading) {
@@ -128,7 +132,7 @@ private fun ExistingImages(
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 120.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+        contentPadding = PaddingValues(12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxSize(),
@@ -151,28 +155,19 @@ private fun ExistingImages(
 @Composable
 private fun CaptureTab(
     uploading: Boolean,
-    onCaptured: (java.io.File) -> Unit,
-    onPickedFromGallery: (android.net.Uri, String) -> Unit,
+    onCaptured: (File) -> Unit,
+    onPickedFromGallery: (Uri, String) -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val controller = rememberCameraController()
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
 
-    var hasPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED,
-        )
-    }
+    val camera = rememberCameraPermission()
     var lensFacing by remember { mutableIntStateOf(CameraSelector.LENS_FACING_BACK) }
     var torchOn by remember { mutableStateOf(false) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted -> hasPermission = granted }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia(),
@@ -180,13 +175,9 @@ private fun CaptureTab(
         if (uri != null) onPickedFromGallery(uri, "picked-${System.currentTimeMillis()}.jpg")
     }
 
-    LaunchedEffect(Unit) {
-        if (!hasPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
-    }
-
-    LaunchedEffect(hasPermission, previewView, lensFacing) {
+    LaunchedEffect(camera.granted, previewView, lensFacing) {
         val view = previewView
-        if (hasPermission && view != null) {
+        if (camera.granted && view != null) {
             runCatching { controller.bind(lifecycleOwner, view, lensFacing) }
                 .onFailure { error = "Couldn't start the camera." }
         }
@@ -198,12 +189,12 @@ private fun CaptureTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (!hasPermission) {
+        if (!camera.granted) {
             EmptyState(
                 title = "Camera access needed",
-                message = "Allow the camera to photograph a box, or pick an existing picture instead.",
-                actionLabel = "Allow camera",
-                onAction = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                message = camera.message + " Or pick an existing picture instead.",
+                actionLabel = camera.actionLabel,
+                onAction = camera.request,
                 modifier = Modifier.height(240.dp),
             )
         } else {
@@ -277,7 +268,7 @@ private fun CaptureTab(
         }
 
         error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            ErrorBanner(it, contentPadding = PaddingValues(0.dp))
         }
     }
 }

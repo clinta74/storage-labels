@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +25,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -31,17 +35,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.pollyspeople.storagelabels.core.ui.AuthenticatedImage
+import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.feature.search.ScanDialog
 
 @Composable
 fun BoxEditScreen(
     onSaved: (String) -> Unit,
     onCancel: () -> Unit,
-    onScanCode: (() -> Unit)? = null,
     onPickImage: (() -> Unit)? = null,
     viewModel: BoxEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var scanning by remember { mutableStateOf(false) }
 
     if (state.loading) {
         LoadingBox()
@@ -61,12 +67,8 @@ fun BoxEditScreen(
             style = MaterialTheme.typography.headlineSmall,
         )
 
-        if (state.error != null) {
-            Text(
-                state.error!!,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
+        state.error?.let {
+            ErrorBanner(it, contentPadding = PaddingValues(0.dp))
         }
 
         OutlinedTextField(
@@ -78,11 +80,9 @@ fun BoxEditScreen(
             enabled = !state.saving,
             isError = state.fieldErrors.containsKey(BoxEditViewModel.FIELD_CODE),
             supportingText = state.fieldErrors[BoxEditViewModel.FIELD_CODE]?.let { { Text(it) } },
-            trailingIcon = onScanCode?.let {
-                {
-                    IconButton(onClick = it, enabled = !state.saving) {
-                        Icon(Icons.Filled.QrCodeScanner, contentDescription = "Scan a label")
-                    }
+            trailingIcon = {
+                IconButton(onClick = { scanning = true }, enabled = !state.saving) {
+                    Icon(Icons.Filled.QrCodeScanner, contentDescription = "Scan a label")
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -161,5 +161,15 @@ fun BoxEditScreen(
                 Text(if (state.isNew) "Add box" else "Save")
             }
         }
+    }
+
+    if (scanning) {
+        ScanDialog(
+            onDismiss = { scanning = false },
+            onCode = { code ->
+                scanning = false
+                viewModel.onCodeChange(code)
+            },
+        )
     }
 }

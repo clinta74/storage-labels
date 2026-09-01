@@ -1,52 +1,30 @@
 package net.pollyspeople.storagelabels.feature.search
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import net.pollyspeople.storagelabels.core.camera.QrScannerView
+import net.pollyspeople.storagelabels.core.camera.rememberCameraPermission
 
 /**
- * Scan a label from wherever you are searching. Camera permission is requested when the
- * dialog opens rather than up front, so the app only asks at the moment it needs it.
+ * Scanning always happens here, over whatever you were doing -- from the search bar or from
+ * a box's code field. Camera permission is asked for when the dialog opens rather than up
+ * front, so the app only asks at the moment it needs to.
  */
 @Composable
 internal fun ScanDialog(onDismiss: () -> Unit, onCode: (String) -> Unit) {
-    val context = LocalContext.current
-    var hasPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED,
-        )
-    }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted -> hasPermission = granted }
-
-    LaunchedEffect(Unit) {
-        if (!hasPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
-    }
+    val camera = rememberCameraPermission()
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Scan a label") },
         text = {
-            if (hasPermission) {
+            if (camera.granted) {
                 QrScannerView(
                     onCode = onCode,
                     modifier = Modifier
@@ -54,9 +32,20 @@ internal fun ScanDialog(onDismiss: () -> Unit, onCode: (String) -> Unit) {
                         .height(320.dp),
                 )
             } else {
-                Text("Allow camera access to scan the QR code on a label.")
+                Text(camera.message)
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = {
+            if (camera.granted) {
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+            } else {
+                TextButton(onClick = camera.request) { Text(camera.actionLabel) }
+            }
+        },
+        dismissButton = if (camera.granted) {
+            null
+        } else {
+            { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        },
     )
 }

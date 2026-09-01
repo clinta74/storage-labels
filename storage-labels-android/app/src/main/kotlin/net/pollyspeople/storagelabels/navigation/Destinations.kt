@@ -15,9 +15,6 @@ sealed interface Route {
     /** Picks a photo and hands it back to the box or item form that opened it. */
     @Serializable data object ImagePicker : Route
 
-    /** Scans a label and hands the code back to the box form. */
-    @Serializable data object CodeScanner : Route
-
     @Serializable data class LabelJob(val jobId: String) : Route
 
     /** [jobId] null means "create a new run". */

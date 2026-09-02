@@ -36,6 +36,21 @@ object NetworkModule {
      */
     private const val PLACEHOLDER_BASE_URL = "http://server.invalid/"
 
+    /**
+     * A self-hosted server is usually a few milliseconds away on the same network, so ten
+     * seconds is already generous. The old thirty meant a server that swallows packets --
+     * switched off, or the phone on the wrong network -- left the app sitting on a spinner
+     * for half a minute with nothing to say.
+     */
+    private const val CONNECT_TIMEOUT_SECONDS = 10L
+
+    /**
+     * A hard ceiling on a whole call: connect, write, read and any retry in between. Without
+     * it the timeouts above are per-attempt, and OkHttp retrying a second address doubles
+     * them. Only the calls that carry photos are exempt.
+     */
+    private const val AUTH_CALL_TIMEOUT_SECONDS = 20L
+
     @Provides
     @Singleton
     fun provideJson(): Json = Json {
@@ -52,11 +67,18 @@ object NetworkModule {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
         }
 
-    /** Client used for the refresh call itself: no authenticator, so a 401 cannot recurse. */
+    /**
+     * Every /auth call goes through here: sign in, register, the config probe, the session
+     * restore, refresh and sign out. None of them carry a payload worth waiting on, and all
+     * of them are the ones a person is sitting and watching, so they get a hard ceiling.
+     *
+     * No authenticator either, which is what a refresh needs -- a 401 on the refresh call
+     * itself must not start another refresh.
+     */
     @Provides
     @Singleton
-    @Named("refresh")
-    fun provideRefreshClient(
+    @Named("auth")
+    fun provideAuthClient(
         hostSelection: HostSelectionInterceptor,
         cookieJar: PersistentCookieJar,
         logging: HttpLoggingInterceptor,
@@ -64,8 +86,10 @@ object NetworkModule {
         .cookieJar(cookieJar)
         .addInterceptor(hostSelection)
         .addInterceptor(logging)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .callTimeout(AUTH_CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .build()
 
     @Provides
@@ -82,8 +106,10 @@ object NetworkModule {
         .addInterceptor(auth)
         .addInterceptor(logging)
         .authenticator(authenticator)
-        .connectTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         // Image uploads and key rotations can be slow; the web client allows four minutes.
+        // Reaching the server is still bounded above, so a dead host fails in seconds and
+        // only a server that answers gets to take its time.
         .readTimeout(240, TimeUnit.SECONDS)
         .writeTimeout(240, TimeUnit.SECONDS)
         .build()
@@ -110,8 +136,9 @@ object NetworkModule {
         .cookieJar(cookieJar)
         .addInterceptor(auth)
         .authenticator(authenticator)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .callTimeout(60, TimeUnit.SECONDS)
         .build()
 
     @Provides
@@ -120,13 +147,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    @Named("refresh")
-    fun provideRefreshRetrofit(@Named("refresh") client: OkHttpClient, json: Json): Retrofit =
+    @Named("auth")
+    fun provideAuthRetrofit(@Named("auth") client: OkHttpClient, json: Json): Retrofit =
         retrofit(client, json)
 
     @Provides
     @Singleton
-    fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
+    fun provideAuthApi(@Named("auth") retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
 
     @Provides
     @Singleton
@@ -174,6 +202,6 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("refresh")
-    fun provideRefreshAuthApi(@Named("refresh") retrofit: Retrofit): AuthApi =
+    fun provideRefreshAuthApi(@Named("auth") retrofit: Retrofit): AuthApi =
         retrofit.create(AuthApi::class.java)
 }

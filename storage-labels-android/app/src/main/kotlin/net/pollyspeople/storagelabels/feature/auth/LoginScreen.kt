@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -97,7 +98,9 @@ fun LoginScreen(
         ) {
             if (state.submitting) {
                 CircularProgressIndicator(
-                    modifier = Modifier.width(18.dp),
+                    // width() alone leaves the default ~40dp height, which squashes the ring
+                    // into an ellipse and pushes it out of the button's centre line.
+                    modifier = Modifier.size(18.dp),
                     strokeWidth = 2.dp,
                     color = MaterialTheme.colorScheme.onPrimary,
                 )

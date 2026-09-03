@@ -24,8 +24,8 @@ class TokenAuthenticator @Inject constructor(
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-        // Auth endpoints own their own 401s (bad credentials, dead refresh cookie).
-        if (response.request.url.isAuthEndpoint()) return null
+        // Signing in, out and refreshing own their own 401s.
+        if (response.request.url.isSessionEndpoint()) return null
 
         // Only ever retry once; OkHttp calls back with the whole chain of prior responses.
         if (response.priorResponseCount() >= 1) return null

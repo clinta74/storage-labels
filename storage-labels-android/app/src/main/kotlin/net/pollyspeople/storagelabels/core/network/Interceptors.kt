@@ -77,6 +77,29 @@ class AuthInterceptor @Inject constructor(
     }
 }
 
-/** True for the endpoints that must never trigger a refresh attempt of their own. */
-internal fun HttpUrl.isAuthEndpoint(): Boolean =
-    pathSegments.contains("auth")
+/**
+ * The calls that establish or end a session. A 401 from one of these is the answer -- bad
+ * credentials, a dead refresh cookie -- so refreshing and replaying would be nonsense.
+ *
+ * Everything else under /auth is an ordinary authenticated call. `auth/me` especially: it is
+ * how a stored session is restored at launch, and treating it as exempt meant an expired
+ * access token signed the person out instead of being refreshed from the cookie sitting on
+ * disk. Nothing here is what stops a refresh recursing -- the refresh call uses a client with
+ * no authenticator, and a replay happens at most once.
+ */
+internal fun HttpUrl.isSessionEndpoint(): Boolean {
+    val auth = pathSegments.indexOf("auth")
+    if (auth < 0) return false
+    return pathSegments.getOrNull(auth + 1) in SESSION_PATHS
+}
+
+private val SESSION_PATHS = setOf(
+    "login",
+    "register",
+    "refresh",
+    "logout",
+    "config",
+    "forgot-password",
+    "reset-password",
+    "confirm-email",
+)

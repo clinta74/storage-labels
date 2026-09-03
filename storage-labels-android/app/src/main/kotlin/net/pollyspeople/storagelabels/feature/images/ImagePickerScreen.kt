@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -195,7 +196,7 @@ private fun CaptureTab(
                 message = camera.message + " Or pick an existing picture instead.",
                 actionLabel = camera.actionLabel,
                 onAction = camera.request,
-                modifier = Modifier.height(240.dp),
+                modifier = Modifier.heightIn(min = 240.dp),
             )
         } else {
             Box(

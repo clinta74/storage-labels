@@ -1,5 +1,7 @@
 name: Build Android App
 
+# Every push and PR that touches the app. Publishing a version lives in
+# release-android.yml, which runs off an android-v* tag.
 on:
   push:
     branches:
@@ -7,8 +9,6 @@ on:
     paths:
       - 'storage-labels-android/**'
       - '.github/workflows/build-android.yml'
-    tags:
-      - 'android-v*.*.*'
   pull_request:
     branches:
       - main

@@ -65,6 +65,71 @@ inside the container at all — it needs `/dev/kvm`, which Docker Desktop and
 Rancher Desktop do not expose on Windows. Run it natively via Android Studio if
 you want one.
 
+## Releasing
+
+Versions come from git tags, as they do for the UI and API — see
+[VERSIONING.md](../VERSIONING.md). The app's tags are prefixed `android-v`:
+
+```bash
+git tag android-v0.2.0
+git push origin android-v0.2.0
+```
+
+That runs [release-android.yml](../.github/workflows/release-android.yml), which builds a
+signed APK and AAB and attaches them to a GitHub Release. Unlike the UI and API, nothing
+publishes automatically on a push to main: an installed app version is user-visible, so
+bumping it is a deliberate act. Pushes and PRs still build, test and lint through
+[build-android.yml](../.github/workflows/build-android.yml).
+
+`versionName` is the tag; `versionCode` is derived from it as
+`major * 10000 + minor * 100 + patch` (`0.2.0` → `200`). Android requires that number to
+increase with every build a device might install over the last, and never to repeat, so it
+is computed from the version rather than from a build counter — the APK's version is
+readable straight out of its code. The scheme holds only while minor and patch stay under
+100; the workflow fails the build rather than publishing a version that would break it.
+
+Both values default to the ones in [app/build.gradle.kts](app/build.gradle.kts) and are
+overridden by `-PappVersionName` / `-PappVersionCode`, so local builds need no setup.
+
+### Signing key
+
+An unsigned APK will not install, so a tagged release needs a key. It lives in repository
+secrets, never in the repo. To create one:
+
+```bash
+keytool -genkeypair -v -keystore storage-labels-release.jks \
+  -alias storage-labels -keyalg RSA -keysize 2048 -validity 10000
+base64 -w0 storage-labels-release.jks    # certutil -encode on Windows
+```
+
+Keep the `.jks` file and its passwords somewhere safe — losing them means no future build
+can update an installed app, since Android identifies an app by its signature. Then add
+four repository secrets:
+
+| Secret | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | the base64 above, one line |
+| `ANDROID_KEYSTORE_PASSWORD` | keystore password |
+| `ANDROID_KEY_ALIAS` | `storage-labels` |
+| `ANDROID_KEY_PASSWORD` | key password (the same one unless you set it apart) |
+
+Until those exist, a tag push fails with an explicit message, and the workflow's manual
+"Run workflow" button produces a debug-signed APK instead — installable for testing, under
+the `.debug` application id.
+
+Building a signed release locally works the same way, through the environment:
+
+```bash
+docker compose run --rm \
+  -e ANDROID_KEYSTORE_FILE=/workspace/storage-labels-release.jks \
+  -e ANDROID_KEYSTORE_PASSWORD=... -e ANDROID_KEY_ALIAS=storage-labels \
+  -e ANDROID_KEY_PASSWORD=... \
+  android ./gradlew assembleRelease -PappVersionName=0.2.0 -PappVersionCode=200
+```
+
+With those variables unset the build still succeeds; AGP just names the output
+`app-release-unsigned.apk`, and Android will refuse to install it. `*.jks` is gitignored.
+
 ## Toolchain
 
 | | |

@@ -1,3 +1,23 @@
+// Version and signing come from outside the file so a release is reproducible from a tag
+// alone. Absent -- every local build -- the defaults below apply and nothing needs setting up.
+val appVersionName = providers.gradleProperty("appVersionName").getOrElse("0.1.0")
+val appVersionCode = providers.gradleProperty("appVersionCode").map(String::toInt).getOrElse(1)
+
+// The keystore never lives in the repo. CI decodes it from a secret and points these at it;
+// with any of them missing there is simply no release signing config, and `assembleRelease`
+// produces an unsigned APK that will not install. Debug builds are unaffected -- they use the
+// SDK's own debug key.
+val releaseKeystore = providers.environmentVariable("ANDROID_KEYSTORE_FILE").orNull
+val releaseStorePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").orNull
+val canSignRelease = listOf(
+    releaseKeystore,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() }
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -14,10 +34,21 @@ android {
         applicationId = "net.pollyspeople.storagelabels"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (canSignRelease) {
+            create("release") {
+                storeFile = file(releaseKeystore!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -25,6 +56,9 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Null when the environment carries no key: the build still runs, the APK is
+            // just unsigned. The release workflow refuses to publish one of those.
+            signingConfig = signingConfigs.findByName("release")
         }
         debug {
             applicationIdSuffix = ".debug"

@@ -1,0 +1,191 @@
+name: Release Android App
+
+# Separate from build-android.yml on purpose. That workflow filters on `paths`, and a path
+# filter is evaluated for tag pushes too -- a release tag landing on a commit that did not
+# touch storage-labels-android/ would be silently skipped. This one has no path filter, so a
+# tag always publishes. It also keeps `contents: write` and the signing secrets away from the
+# per-PR build.
+#
+# Publishing is deliberate here rather than automatic on every push to main, which is what
+# the UI and API workflows do. A Docker tag nobody reads can churn; an installable app
+# version is user-visible and should be bumped on purpose.
+on:
+  push:
+    tags:
+      - 'android-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version for a one-off build, e.g. 0.2.0 (no tag or release is created)'
+        required: false
+        default: ''
+
+jobs:
+  release:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create the release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Needs the branches and tags to verify and to derive a version
+
+      - name: Verify tag is from main branch
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG_COMMIT=$(git rev-list -n 1 ${{ github.ref }})
+          if ! git merge-base --is-ancestor $TAG_COMMIT origin/main; then
+            echo "Error: Tag ${{ github.ref_name }} is not on the main branch"
+            exit 1
+          fi
+          echo "Tag ${{ github.ref_name }} verified to be from main branch"
+
+      - name: Resolve version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.ref }}" == refs/tags/android-v* ]]; then
+            VERSION_NAME="${{ github.ref_name }}"
+            VERSION_NAME="${VERSION_NAME#android-v}"
+            echo "Publishing tag ${{ github.ref_name }}"
+          elif [ -n "$INPUT_VERSION" ]; then
+            VERSION_NAME="${INPUT_VERSION#android-v}"
+            VERSION_NAME="${VERSION_NAME#v}"
+            echo "Manual build of requested version $VERSION_NAME"
+          else
+            # No version asked for: continue from the newest release, as the UI and API
+            # workflows do, so a one-off build still sorts after the last published one.
+            LATEST_TAG=$(git tag -l "android-v*" --sort=-v:refname | head -n 1)
+            LATEST_TAG=${LATEST_TAG:-android-v0.0.0}
+            IFS='.' read -ra PARTS <<< "${LATEST_TAG#android-v}"
+            VERSION_NAME="${PARTS[0]:-0}.${PARTS[1]:-0}.$(( ${PARTS[2]:-0} + 1 ))"
+            echo "Manual build; continuing from $LATEST_TAG as $VERSION_NAME"
+          fi
+
+          if [[ ! "$VERSION_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version '$VERSION_NAME' is not MAJOR.MINOR.PATCH"
+            exit 1
+          fi
+
+          IFS='.' read -ra PARTS <<< "$VERSION_NAME"
+          MAJOR=${PARTS[0]}
+          MINOR=${PARTS[1]}
+          PATCH=${PARTS[2]}
+
+          # versionCode must increase with every published build and can never be reused, so
+          # it is derived from the version rather than from a run counter. That holds only
+          # while minor and patch stay below 100; past that the arithmetic would let a newer
+          # version produce a lower code, and Android would refuse the update.
+          if [ "$MINOR" -gt 99 ] || [ "$PATCH" -gt 99 ]; then
+            echo "::error::Version $VERSION_NAME breaks the versionCode scheme (minor and patch must be < 100). Bump the major or minor instead."
+            exit 1
+          fi
+          VERSION_CODE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
+
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "TAG=android-v$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Version $VERSION_NAME (versionCode $VERSION_CODE)"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: storage-labels-android
+
+      - name: Unit tests
+        working-directory: storage-labels-android
+        run: ./gradlew test --stacktrace
+
+      - name: Prepare signing key
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "signed=false" >> $GITHUB_OUTPUT
+            echo "No ANDROID_KEYSTORE_BASE64 secret is set; falling back to a debug build."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "signed=true" >> $GITHUB_OUTPUT
+          echo "Release keystore decoded."
+
+      - name: Require a signing key to publish
+        if: steps.signing.outputs.signed != 'true' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          echo "::error::${{ github.ref_name }} cannot be published: no ANDROID_KEYSTORE_BASE64 secret. An unsigned APK will not install, so nothing useful could be attached to the release. See storage-labels-android/README.md for how to create the key and add the secrets."
+          exit 1
+
+      - name: Build signed release
+        if: steps.signing.outputs.signed == 'true'
+        working-directory: storage-labels-android
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: >
+          ./gradlew assembleRelease bundleRelease --stacktrace
+          -PappVersionName=${{ steps.version.outputs.VERSION_NAME }}
+          -PappVersionCode=${{ steps.version.outputs.VERSION_CODE }}
+
+      # Only reachable from workflow_dispatch: a tagged run has already failed above. The
+      # debug APK is signed with the SDK's debug key, so it installs -- alongside a release
+      # build rather than over it, since debug carries the .debug application id.
+      - name: Build debug fallback
+        if: steps.signing.outputs.signed != 'true'
+        working-directory: storage-labels-android
+        run: >
+          ./gradlew assembleDebug --stacktrace
+          -PappVersionName=${{ steps.version.outputs.VERSION_NAME }}
+          -PappVersionCode=${{ steps.version.outputs.VERSION_CODE }}
+
+      - name: Collect artifacts
+        working-directory: storage-labels-android
+        run: |
+          set -euo pipefail
+          VERSION=${{ steps.version.outputs.VERSION_NAME }}
+          mkdir -p release-artifacts
+
+          if [ "${{ steps.signing.outputs.signed }}" == "true" ]; then
+            cp app/build/outputs/apk/release/app-release.apk "release-artifacts/storage-labels-$VERSION.apk"
+            cp app/build/outputs/bundle/release/app-release.aab "release-artifacts/storage-labels-$VERSION.aab"
+          else
+            cp app/build/outputs/apk/debug/app-debug.apk "release-artifacts/storage-labels-$VERSION-debug.apk"
+          fi
+
+          ls -l release-artifacts
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: storage-labels-android-${{ steps.version.outputs.VERSION_NAME }}
+          path: storage-labels-android/release-artifacts/*
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.version.outputs.TAG }}
+          name: Android Release ${{ steps.version.outputs.TAG }}
+          artifacts: storage-labels-android/release-artifacts/*
+          generateReleaseNotes: true
+          # The UI and API releases both claim "latest"; the app should not join that fight.
+          makeLatest: false
+          body: |
+            Android app ${{ steps.version.outputs.VERSION_NAME }} (versionCode ${{ steps.version.outputs.VERSION_CODE }}).
+
+            `storage-labels-<version>.apk` installs directly on a device; the `.aab` is for Play Console uploads.

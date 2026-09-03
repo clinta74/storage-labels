@@ -9,3 +9,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Release signing keys and built release artifacts stay local.
+*.jks
+*.keystore
+/release-artifacts/

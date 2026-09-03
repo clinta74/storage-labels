@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -161,7 +162,10 @@ fun BoxDetailScreen(
                             message = "Add what's inside so you can find it by searching later.",
                             actionLabel = if (state.canEdit) "Add an item" else null,
                             onAction = if (state.canEdit) onAddItem else null,
-                            modifier = Modifier.height(200.dp),
+                            // A minimum, not a fixed height: at large font scales a
+                            // fixed one leaves the Column no room for the button, which
+                            // then measures at zero height and loses its label.
+                            modifier = Modifier.heightIn(min = 200.dp),
                         )
                     }
                 } else {

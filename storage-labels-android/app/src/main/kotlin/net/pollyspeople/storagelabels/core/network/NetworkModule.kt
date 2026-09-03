@@ -69,23 +69,30 @@ object NetworkModule {
 
     /**
      * Every /auth call goes through here: sign in, register, the config probe, the session
-     * restore, refresh and sign out. None of them carry a payload worth waiting on, and all
-     * of them are the ones a person is sitting and watching, so they get a hard ceiling.
+     * restore, change password and sign out. None of them carry a payload worth waiting on,
+     * and all of them are the ones a person is sitting and watching, so they get a hard
+     * ceiling the default client cannot use -- it has to allow four minutes for an upload.
      *
-     * No authenticator either, which is what a refresh needs -- a 401 on the refresh call
-     * itself must not start another refresh.
+     * It still needs the bearer token and the authenticator. `auth/me` and `change-password`
+     * are authenticated calls like any other: without the token they answer 401 every time,
+     * which is what stopped a stored session from ever being restored. Refreshing cannot
+     * recurse from here -- the refresh call has its own client, below.
      */
     @Provides
     @Singleton
     @Named("auth")
     fun provideAuthClient(
         hostSelection: HostSelectionInterceptor,
+        auth: AuthInterceptor,
+        authenticator: TokenAuthenticator,
         cookieJar: PersistentCookieJar,
         logging: HttpLoggingInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         .cookieJar(cookieJar)
         .addInterceptor(hostSelection)
+        .addInterceptor(auth)
         .addInterceptor(logging)
+        .authenticator(authenticator)
         .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .writeTimeout(15, TimeUnit.SECONDS)
@@ -199,9 +206,37 @@ object NetworkModule {
     fun provideEncryptionKeyApi(retrofit: Retrofit): EncryptionKeyApi =
         retrofit.create(EncryptionKeyApi::class.java)
 
+    /**
+     * The refresh call and nothing else. No authenticator, so a 401 here cannot start another
+     * refresh; no bearer either, because the refresh cookie is the credential and the token
+     * being replaced is by definition the expired one.
+     */
     @Provides
     @Singleton
     @Named("refresh")
-    fun provideRefreshAuthApi(@Named("auth") retrofit: Retrofit): AuthApi =
+    fun provideRefreshClient(
+        hostSelection: HostSelectionInterceptor,
+        cookieJar: PersistentCookieJar,
+        logging: HttpLoggingInterceptor,
+    ): OkHttpClient = OkHttpClient.Builder()
+        .cookieJar(cookieJar)
+        .addInterceptor(hostSelection)
+        .addInterceptor(logging)
+        .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .callTimeout(AUTH_CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .build()
+
+    @Provides
+    @Singleton
+    @Named("refresh")
+    fun provideRefreshRetrofit(@Named("refresh") client: OkHttpClient, json: Json): Retrofit =
+        retrofit(client, json)
+
+    @Provides
+    @Singleton
+    @Named("refresh")
+    fun provideRefreshAuthApi(@Named("refresh") retrofit: Retrofit): AuthApi =
         retrofit.create(AuthApi::class.java)
 }

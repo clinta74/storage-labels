@@ -97,10 +97,24 @@ An unsigned APK will not install, so a tagged release needs a key. It lives in r
 secrets, never in the repo. To create one:
 
 ```bash
-keytool -genkeypair -v -keystore storage-labels-release.jks \
+keytool -genkeypair -v -keystore keystores/storage-labels.jks \
   -alias storage-labels -keyalg RSA -keysize 2048 -validity 10000
-base64 -w0 storage-labels-release.jks    # certutil -encode on Windows
 ```
+
+`ANDROID_KEYSTORE_BASE64` holds that file base64-encoded as a single unbroken line. On
+Windows, encode it straight into the secret so the key never lands anywhere else. Do not
+reach for `certutil -encode`: it wraps its output in PEM headers and column breaks that the
+workflow's `base64 -d` cannot read.
+
+```powershell
+gh secret set ANDROID_KEYSTORE_BASE64 --body ([Convert]::ToBase64String(
+  [IO.File]::ReadAllBytes("storage-labels-android\keystores\storage-labels.jks")))
+gh secret set ANDROID_KEYSTORE_PASSWORD   # prompts, without echoing
+gh secret set ANDROID_KEY_ALIAS
+gh secret set ANDROID_KEY_PASSWORD
+```
+
+Anywhere else, `base64 -w0 keystores/storage-labels.jks` gives the same single line.
 
 Keep the `.jks` file and its passwords somewhere safe — losing them means no future build
 can update an installed app, since Android identifies an app by its signature. Then add
@@ -108,7 +122,7 @@ four repository secrets:
 
 | Secret | Value |
 |---|---|
-| `ANDROID_KEYSTORE_BASE64` | the base64 above, one line |
+| `ANDROID_KEYSTORE_BASE64` | the keystore, base64, one line |
 | `ANDROID_KEYSTORE_PASSWORD` | keystore password |
 | `ANDROID_KEY_ALIAS` | `storage-labels` |
 | `ANDROID_KEY_PASSWORD` | key password (the same one unless you set it apart) |
@@ -121,7 +135,7 @@ Building a signed release locally works the same way, through the environment:
 
 ```bash
 docker compose run --rm \
-  -e ANDROID_KEYSTORE_FILE=/workspace/storage-labels-release.jks \
+  -e ANDROID_KEYSTORE_FILE=/workspace/keystores/storage-labels.jks \
   -e ANDROID_KEYSTORE_PASSWORD=... -e ANDROID_KEY_ALIAS=storage-labels \
   -e ANDROID_KEY_PASSWORD=... \
   android ./gradlew assembleRelease -PappVersionName=0.2.0 -PappVersionCode=200

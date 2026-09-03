@@ -19,14 +19,19 @@ This project uses automatic semantic versioning for Docker images:
 ## Git Tags
 
 ### UI Tags
-- Format: `v1.2.3`
-- Example: `v0.0.1`, `v0.0.2`, `v1.0.0`
+- Format: `ui-v1.2.3`
+- Example: `ui-v0.0.1`, `ui-v0.0.2`, `ui-v1.0.0`
+- Tags before `ui-v5.0.0` used a bare `v1.2.3` and are kept for history only
 
-### API Tags  
+### API Tags
 - Format: `api-v1.2.3`
 - Example: `api-v0.0.1`, `api-v0.0.2`, `api-v1.0.0`
 
-This allows independent versioning of UI and API components.
+### Android Tags
+- Format: `android-v1.2.3`
+- Example: `android-v0.2.0`, `android-v1.0.0`
+
+This allows independent versioning of the UI, API and Android app.
 
 ## How It Works
 
@@ -43,6 +48,31 @@ Every time GitHub Actions runs for the UI or API:
    - `stable` (for main branch builds)
    - Git commit SHA (e.g., `sha-abc1234`)
 6. Creates a GitHub Release
+
+### The Android App Is Different
+
+The app does not auto-increment, because a version installed on someone's phone is
+user-visible in a way a Docker tag is not. Nothing is published until you push a tag:
+
+```bash
+git tag android-v0.2.0
+git push origin android-v0.2.0
+```
+
+That builds a signed APK and AAB and attaches them to a GitHub Release. Pushes to main
+still run the app's tests, lint and a debug build — they just don't publish.
+
+Android also needs a second number. `versionName` is the tag (`0.2.0`); `versionCode` is
+an integer derived from it as `major * 10000 + minor * 100 + patch` (`0.2.0` → `200`).
+Android requires that number to increase with every build a device installs over the last
+and never to repeat, so it is computed from the version rather than a build counter, which
+keeps an APK's version readable straight out of its code. Minor and patch must stay below
+100 or the arithmetic stops being monotonic; the workflow fails the build if they don't.
+
+Publishing needs a signing key in repository secrets — see
+[storage-labels-android/README.md](storage-labels-android/README.md#signing-key). Without
+it a tag push fails with an explicit message rather than publishing an APK that cannot be
+installed.
 
 ### Tag Meanings
 
@@ -78,6 +108,12 @@ git push origin v1.0.0
 git tag api-v1.0.0
 git push origin api-v1.0.0
 # Next auto build will be api-v1.0.1
+```
+
+**For Android** (every version is a manual bump — there is no auto build):
+```bash
+git tag android-v1.0.0
+git push origin android-v1.0.0
 ```
 
 ### GitHub Actions

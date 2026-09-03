@@ -62,7 +62,7 @@ internal partial class BoxEndpoints
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return TypedResults.Created((string?)null, new BoxResponse(box.Entity));
+        return TypedResults.Created((string?)null, new BoxResponse(box.Entity, itemCount: 0));
     }
 
     private sealed class CreateBoxValidator : AbstractValidator<BoxRequest>

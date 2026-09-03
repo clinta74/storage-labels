@@ -13,6 +13,16 @@ internal partial class BoxEndpoints
     {
         var userId = context.GetUserId();
 
+        // Every box's item count in one grouped query, ahead of the stream. Counting inside
+        // the loop below would be a query per box, which is the round trip this field exists
+        // to remove; a box with nothing in it simply has no row here and counts zero.
+        var itemCounts = await dbContext.Items
+            .AsNoTracking()
+            .Where(i => i.Box.LocationId == locationId)
+            .GroupBy(i => i.BoxId)
+            .Select(group => new { BoxId = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(row => row.BoxId, row => row.Count, cancellationToken);
+
         var boxes = dbContext.Boxes
             .AsNoTracking()
             .Where(b => b.LocationId == locationId)
@@ -22,7 +32,7 @@ internal partial class BoxEndpoints
         await foreach (var box in boxes)
         {
             if (cancellationToken.IsCancellationRequested) break;
-            yield return new BoxResponse(box);
+            yield return new BoxResponse(box, itemCounts.GetValueOrDefault(box.BoxId));
         }
     }
 }

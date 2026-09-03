@@ -1,0 +1,42 @@
+# Android build toolchain — everything needed to compile, test and package the app.
+# Deliberately no emulator: it needs /dev/kvm, which Docker Desktop / Rancher Desktop
+# do not expose on Windows. Run the emulator natively, or use a physical device.
+#
+#   docker compose run --rm android ./gradlew assembleDebug
+#
+FROM eclipse-temurin:21-jdk
+
+ARG CMDLINE_TOOLS_BUILD=16111833
+ARG ANDROID_PLATFORM=37.0
+ARG BUILD_TOOLS=37.0.0
+
+ENV ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_ROOT=/opt/android-sdk \
+    GRADLE_USER_HOME=/gradle-cache \
+    DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends unzip curl git ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+# cmdline-tools must live at $ANDROID_HOME/cmdline-tools/latest for sdkmanager to resolve.
+RUN mkdir -p "$ANDROID_HOME/cmdline-tools" \
+ && curl -fsSL -o /tmp/tools.zip \
+      "https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_BUILD}_latest.zip" \
+ && unzip -q /tmp/tools.zip -d "$ANDROID_HOME/cmdline-tools" \
+ && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
+ && rm /tmp/tools.zip
+
+ENV PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+RUN yes | sdkmanager --licenses > /dev/null \
+ && sdkmanager --install \
+      "platform-tools" \
+      "platforms;android-${ANDROID_PLATFORM}" \
+      "build-tools;${BUILD_TOOLS}" \
+ && rm -rf "$ANDROID_HOME/.temp" /root/.android
+
+WORKDIR /workspace
+
+# Gradle itself is supplied by the project's wrapper, not baked into the image.
+CMD ["./gradlew", "assembleDebug"]

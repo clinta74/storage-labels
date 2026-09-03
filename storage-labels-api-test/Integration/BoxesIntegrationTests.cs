@@ -228,4 +228,54 @@ public class BoxesIntegrationTests(IntegrationDatabaseFixture fixture)
 
         deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task GetBoxesByLocation_CountsItemsPerBox()
+    {
+        var (userId, locationId) = await SeedTestUserWithLocationAsync();
+        var client = CreateAuthenticatedClient(userId);
+
+        var full = await client.PostAsJsonAsync(
+            "/api/box/",
+            new BoxRequest("COUNT-FULL", "Holds two", locationId, null, null, null));
+        var fullBox = await full.Content.ReadFromJsonAsync<BoxResponse>();
+
+        var empty = await client.PostAsJsonAsync(
+            "/api/box/",
+            new BoxRequest("COUNT-EMPTY", "Holds nothing", locationId, null, null, null));
+        var emptyBox = await empty.Content.ReadFromJsonAsync<BoxResponse>();
+
+        await client.PostAsJsonAsync("/api/item/", new ItemRequest(fullBox!.BoxId, "First", null, null, null));
+        await client.PostAsJsonAsync("/api/item/", new ItemRequest(fullBox.BoxId, "Second", null, null, null));
+
+        var response = await client.GetAsync($"/api/box/location/{locationId}/");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var boxes = await response.Content.ReadFromJsonAsync<List<BoxResponse>>();
+        boxes.ShouldNotBeNull();
+        boxes.Single(b => b.BoxId == fullBox.BoxId).ItemCount.ShouldBe(2);
+        // A box with nothing in it has no row in the grouped count, and must still read zero.
+        boxes.Single(b => b.BoxId == emptyBox!.BoxId).ItemCount.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task GetBoxById_CountsItems()
+    {
+        var (userId, locationId) = await SeedTestUserWithLocationAsync();
+        var client = CreateAuthenticatedClient(userId);
+
+        var created = await client.PostAsJsonAsync(
+            "/api/box/",
+            new BoxRequest("COUNT-ONE", "Holds one", locationId, null, null, null));
+        var box = await created.Content.ReadFromJsonAsync<BoxResponse>();
+        box!.ItemCount.ShouldBe(0);
+
+        await client.PostAsJsonAsync("/api/item/", new ItemRequest(box.BoxId, "Only", null, null, null));
+
+        var response = await client.GetAsync($"/api/box/{box.BoxId}");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var fetched = await response.Content.ReadFromJsonAsync<BoxResponse>();
+        fetched!.ItemCount.ShouldBe(1);
+    }
 }

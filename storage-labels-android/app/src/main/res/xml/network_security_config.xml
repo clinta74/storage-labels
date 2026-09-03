@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext is permitted at the platform level because the server address is supplied by the
+  user at runtime, and plenty of self-hosted installs live on a LAN over plain HTTP. There is
+  no way to enumerate those hosts here, and the platform flag cannot be toggled at runtime.
+
+  The real gate is in the app: ServerSetupViewModel refuses an http:// address unless the
+  person explicitly turns on "Allow plain HTTP", and that screen says why it matters — the
+  API's refresh cookie is marked Secure, so a session won't survive over plain HTTP.
+
+  An https:// address still gets the platform's full certificate validation; nothing here
+  weakens TLS.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

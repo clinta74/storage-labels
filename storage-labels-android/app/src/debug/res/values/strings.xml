@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A debug build installs alongside a release one, under its own application id and with its
+  own data. Sharing a name made the two indistinguishable in the launcher and in App info,
+  where reading the wrong version number sends you looking for a bug that isn't there.
+-->
+<resources>
+    <string name="app_name">Storage Labels (debug)</string>
+</resources>

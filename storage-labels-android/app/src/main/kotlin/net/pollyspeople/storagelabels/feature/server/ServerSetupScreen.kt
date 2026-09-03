@@ -28,10 +28,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import net.pollyspeople.storagelabels.core.network.rememberLocalNetworkPermission
 
 @Composable
 fun ServerSetupScreen(viewModel: ServerSetupViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val localNetwork = rememberLocalNetworkPermission()
 
     Column(
         modifier = Modifier
@@ -85,7 +87,9 @@ fun ServerSetupScreen(viewModel: ServerSetupViewModel = hiltViewModel()) {
         }
 
         Button(
-            onClick = viewModel::connect,
+            // Asked here rather than at launch: this is the first moment the app has any
+            // reason to touch the network, and the request reads as part of connecting.
+            onClick = { localNetwork.ensure(viewModel::connect) },
             enabled = state.address.isNotBlank() && !state.checking,
             modifier = Modifier.fillMaxWidth(),
         ) {

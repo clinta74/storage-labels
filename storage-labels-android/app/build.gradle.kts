@@ -62,6 +62,9 @@ android {
         }
         debug {
             applicationIdSuffix = ".debug"
+            // Local builds carry the fallback version above, which is not any release. Say so
+            // in the version itself, and in the app's name (app/src/debug/res).
+            versionNameSuffix = "-debug"
         }
     }
 

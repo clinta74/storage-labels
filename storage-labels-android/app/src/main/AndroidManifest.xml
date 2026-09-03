@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+      Android 17 drops connections to private addresses without this. A self-hosted server
+      usually lives on exactly such an address, and the platform gives no hint when it blocks
+      one: the app just sees a connect timeout. Requested at runtime on the setup screen.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />

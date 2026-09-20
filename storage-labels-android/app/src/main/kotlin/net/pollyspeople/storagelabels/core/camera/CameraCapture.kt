@@ -5,9 +5,11 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +29,8 @@ class CameraController(private val context: Context) {
 
     private var imageCapture: ImageCapture? = null
     private var camera: androidx.camera.core.Camera? = null
+    private var provider: ProcessCameraProvider? = null
+    private var bound: List<UseCase> = emptyList()
 
     var lensFacing: Int = CameraSelector.LENS_FACING_BACK
         private set
@@ -52,6 +56,22 @@ class CameraController(private val context: Context) {
             capture,
         )
         imageCapture = capture
+        this.provider = provider
+        bound = listOf(preview, capture)
+    }
+
+    /**
+     * Hands the camera back. The binding is to the screen's lifecycle, which outlives this
+     * controller, so leaving the picker has to say so explicitly — [rememberCameraController]
+     * does it on the caller's behalf. Only what this controller bound is released, so a
+     * scanner running elsewhere keeps its own.
+     */
+    fun unbind() {
+        if (bound.isNotEmpty()) provider?.unbind(*bound.toTypedArray())
+        bound = emptyList()
+        provider = null
+        imageCapture = null
+        camera = null
     }
 
     fun setTorch(enabled: Boolean) {
@@ -95,7 +115,9 @@ class CameraController(private val context: Context) {
 @Composable
 fun rememberCameraController(): CameraController {
     val context = LocalContext.current
-    return remember(context) { CameraController(context) }
+    val controller = remember(context) { CameraController(context) }
+    DisposableEffect(controller) { onDispose { controller.unbind() } }
+    return controller
 }
 
 @Composable

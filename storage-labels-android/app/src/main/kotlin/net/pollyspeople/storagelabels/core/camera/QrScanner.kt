@@ -29,6 +29,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Live QR scanning, replacing the web app's browser scanner. Only QR codes are looked for —
  * that's what Storage Labels prints — and the first hit wins: [onCode] fires once, then the
  * analyzer stops, so a scan can't fire twice while the screen is closing.
+ *
+ * The camera is bound to the hosting lifecycle, which outlives this view — the scanner opens
+ * in a dialog over a screen that stays put. So going away has to hand the camera back by
+ * hand: nothing else will, and a camera left bound keeps the lens busy and the privacy
+ * indicator lit for as long as the screen behind is open.
  */
 @Composable
 fun QrScannerView(
@@ -47,55 +52,59 @@ fun QrScannerView(
                 .build(),
         )
     }
+    val previewView = remember {
+        PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER }
+    }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(previewView, lifecycleOwner) {
+        val preview = Preview.Builder().build().apply {
+            surfaceProvider = previewView.surfaceProvider
+        }
+        val analysis = ImageAnalysis.Builder()
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+
+        analysis.setAnalyzer(executor) { proxy ->
+            processFrame(proxy, scanner, delivered) { code ->
+                ContextCompat.getMainExecutor(context).execute { currentOnCode(code) }
+            }
+        }
+
+        // The provider arrives a beat later, by which time a dialog dismissed immediately
+        // may already be gone. Binding then would start a camera with no one left to unbind
+        // it, so the callback checks before it acts and records the provider for [onDispose].
+        var provider: ProcessCameraProvider? = null
+        var disposed = false
+        val providerFuture = ProcessCameraProvider.getInstance(context)
+        providerFuture.addListener({
+            if (disposed) return@addListener
+            runCatching {
+                val ready = providerFuture.get()
+                ready.unbindAll()
+                ready.bindToLifecycle(
+                    lifecycleOwner,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    preview,
+                    analysis,
+                )
+                provider = ready
+            }
+        }, ContextCompat.getMainExecutor(context))
+
         onDispose {
+            disposed = true
+            // Order matters. Stop frames at the source, and mark the scan spent so anything
+            // already queued on the executor returns without touching the scanner, before
+            // the two of them are closed underneath it.
+            delivered.set(true)
+            analysis.clearAnalyzer()
+            provider?.unbind(preview, analysis)
             executor.shutdown()
             scanner.close()
         }
     }
 
-    AndroidView(
-        modifier = modifier,
-        factory = { viewContext ->
-            val previewView = PreviewView(viewContext).apply {
-                scaleType = PreviewView.ScaleType.FILL_CENTER
-            }
-
-            val providerFuture = ProcessCameraProvider.getInstance(viewContext)
-            providerFuture.addListener({
-                val provider = providerFuture.get()
-
-                val preview = Preview.Builder().build().apply {
-                    surfaceProvider = previewView.surfaceProvider
-                }
-
-                val analysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-
-                analysis.setAnalyzer(executor) { proxy ->
-                    processFrame(proxy, scanner, delivered) { code ->
-                        ContextCompat.getMainExecutor(viewContext).execute {
-                            currentOnCode(code)
-                        }
-                    }
-                }
-
-                runCatching {
-                    provider.unbindAll()
-                    provider.bindToLifecycle(
-                        lifecycleOwner,
-                        CameraSelector.DEFAULT_BACK_CAMERA,
-                        preview,
-                        analysis,
-                    )
-                }
-            }, ContextCompat.getMainExecutor(viewContext))
-
-            previewView
-        },
-    )
+    AndroidView(modifier = modifier, factory = { previewView })
 }
 
 @SuppressLint("UnsafeOptInUsageError")

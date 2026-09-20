@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -139,9 +140,14 @@ fun BoxDetailScreen(
                             url = box.photoUrl,
                             contentDescription = "Photo of ${box.name}",
                             showImages = state.showImages,
+                            // The whole photo, not a slice of it. A fixed height far wider
+                            // than a phone picture either crops most of one away or strands
+                            // it in the middle, so the frame follows the picture instead and
+                            // only the extremes are pinned.
+                            contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(220.dp),
+                                .heightIn(min = 220.dp, max = 360.dp),
                         )
                     }
                 }
@@ -236,6 +242,7 @@ fun BoxDetailScreen(
                             url = item.photoUrl,
                             contentDescription = "Photo of ${item.name}",
                             showImages = state.showImages,
+                            contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(180.dp),

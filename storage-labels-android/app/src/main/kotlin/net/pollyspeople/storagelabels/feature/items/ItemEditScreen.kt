@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -24,6 +24,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -96,9 +97,13 @@ fun ItemEditScreen(
                 url = state.imageUrl,
                 contentDescription = "Selected photo",
                 showImages = state.showImages,
+                // You are checking which photo you picked, so show all of it, at a size
+                // worth looking at: the frame takes the picture's own shape between bounds
+                // rather than cropping a portrait one down to a band.
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp),
+                    .heightIn(min = 180.dp, max = 320.dp),
             )
         }
 

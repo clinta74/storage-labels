@@ -24,15 +24,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import net.pollyspeople.storagelabels.core.ui.AuthenticatedImage
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
 import net.pollyspeople.storagelabels.core.ui.LoadingBox
+import net.pollyspeople.storagelabels.core.ui.ZoomableAuthenticatedImage
 
 @Composable
 fun ItemEditScreen(
@@ -93,14 +92,13 @@ fun ItemEditScreen(
         )
 
         if (!state.imageUrl.isNullOrBlank()) {
-            AuthenticatedImage(
+            ZoomableAuthenticatedImage(
                 url = state.imageUrl,
                 contentDescription = "Selected photo",
                 showImages = state.showImages,
                 // You are checking which photo you picked, so show all of it, at a size
                 // worth looking at: the frame takes the picture's own shape between bounds
-                // rather than cropping a portrait one down to a band.
-                contentScale = ContentScale.Fit,
+                // rather than cropping a portrait one down to a band. Tap for a closer look.
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 180.dp, max = 320.dp),

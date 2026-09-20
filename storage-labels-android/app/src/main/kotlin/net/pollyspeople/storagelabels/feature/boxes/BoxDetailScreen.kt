@@ -35,13 +35,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import net.pollyspeople.storagelabels.core.ui.AuthenticatedImage
 import net.pollyspeople.storagelabels.core.ui.ConfirmDeleteDialog
 import net.pollyspeople.storagelabels.core.ui.EmptyState
 import net.pollyspeople.storagelabels.core.ui.ErrorBanner
@@ -50,6 +48,7 @@ import net.pollyspeople.storagelabels.core.ui.LoadingBox
 import net.pollyspeople.storagelabels.core.ui.RowThumbnail
 import net.pollyspeople.storagelabels.core.ui.MenuAction
 import net.pollyspeople.storagelabels.core.ui.OverflowMenu
+import net.pollyspeople.storagelabels.core.ui.ZoomableAuthenticatedImage
 import net.pollyspeople.storagelabels.feature.search.InlineSearchBar
 import net.pollyspeople.storagelabels.data.dto.Item
 
@@ -136,15 +135,14 @@ fun BoxDetailScreen(
 
                 if (!box.photoUrl.isNullOrBlank()) {
                     item {
-                        AuthenticatedImage(
+                        ZoomableAuthenticatedImage(
                             url = box.photoUrl,
                             contentDescription = "Photo of ${box.name}",
                             showImages = state.showImages,
                             // The whole photo, not a slice of it. A fixed height far wider
                             // than a phone picture either crops most of one away or strands
                             // it in the middle, so the frame follows the picture instead and
-                            // only the extremes are pinned.
-                            contentScale = ContentScale.Fit,
+                            // only the extremes are pinned. Tap for a closer look.
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = 220.dp, max = 360.dp),
@@ -238,11 +236,10 @@ fun BoxDetailScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(item.description?.takeIf(String::isNotBlank) ?: "No description.")
                     if (!item.photoUrl.isNullOrBlank()) {
-                        AuthenticatedImage(
+                        ZoomableAuthenticatedImage(
                             url = item.photoUrl,
                             contentDescription = "Photo of ${item.name}",
                             showImages = state.showImages,
-                            contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(180.dp),

@@ -27,19 +27,14 @@ export const Images: React.FC = () => {
     const snackbar = useSnackbar();
     
     const [images, setImages] = useState<ImageMetadataResponse[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState<ImageMetadataResponse | null>(null);
     const [forceDelete, setForceDelete] = useState(false);
     const [captureDialogOpen, setCaptureDialogOpen] = useState(false);
 
-    useEffect(() => {
-        loadImages();
-    }, []);
-
     const loadImages = () => {
-        setLoading(true);
         Api.Image.getUserImages()
             .then(({ data }) => {
                 setImages(data);
@@ -47,6 +42,10 @@ export const Images: React.FC = () => {
             .catch((error) => alert.addError(error))
             .finally(() => setLoading(false));
     };
+
+    useEffect(() => {
+        loadImages();
+    }, []);
 
     const handleImageCapture = async (file: File) => {
         setUploading(true);

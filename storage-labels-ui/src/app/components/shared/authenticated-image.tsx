@@ -13,70 +13,67 @@ interface AuthenticatedImageProps extends React.ImgHTMLAttributes<HTMLImageEleme
 export const AuthenticatedImage: React.FC<AuthenticatedImageProps> = ({ src, alt, style, ...props }) => {
     const { Api } = useApi();
     const { user } = useUser();
-    const [imageUrl, setImageUrl] = useState<string>('');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
+    // The object URL is stored with the src it was fetched for, so loading is derived rather than set from the effect.
+    // A null url means the fetch failed.
+    const [loaded, setLoaded] = useState<{ src: string; url: string | null }>();
 
     // Default to true if undefined or null
     const showImages = user?.preferences?.showImages !== false;
 
+    const loading = !!src && showImages && loaded?.src !== src;
+    const imageUrl = loaded?.src === src ? loaded.url : null;
+    const error = !imageUrl;
+
     useEffect(() => {
         if (!src || !showImages) {
-            setLoading(false);
             return;
         }
 
-        let objectUrl: string;
+        let objectUrl: string | undefined;
+        let cancelled = false;
 
-        const fetchImage = async () => {
-            try {
-                setLoading(true);
-                setError(false);
-                
-                // Get the access token
-                const token = await Api.getAccessToken();
-                
-                // Construct full URL if src is relative
-                const fullUrl = src.startsWith('http') 
-                    ? src 
-                    : `${CONFIG.API_URL}${src.startsWith('/') ? src : '/' + src}`;
-                
-                // Fetch the image with authentication
-                const response = await fetch(fullUrl, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
+        // Construct full URL if src is relative
+        const fullUrl = src.startsWith('http')
+            ? src
+            : `${CONFIG.API_URL}${src.startsWith('/') ? src : '/' + src}`;
 
+        Api.getAccessToken()
+            // Fetch the image with authentication
+            .then(token => fetch(fullUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            }))
+            .then(response => {
                 if (!response.ok) {
                     // Handle 404 silently as it just means the image doesn't exist on disk
-                    if (response.status === 404) {
-                        setError(true);
-                        return;
+                    if (response.status !== 404) {
+                        console.error(`Failed to fetch image: ${response.status} ${response.statusText}`);
                     }
-                    console.error(`Failed to fetch image: ${response.status} ${response.statusText}`);
-                    setError(true);
-                    return;
+                    return null;
                 }
-
-                const blob = await response.blob();
-                objectUrl = URL.createObjectURL(blob);
-                setImageUrl(objectUrl);
-            } catch (err) {
+                return response.blob();
+            })
+            .then(blob => {
+                if (cancelled) return;
+                if (blob) {
+                    objectUrl = URL.createObjectURL(blob);
+                }
+                setLoaded({ src, url: objectUrl ?? null });
+            })
+            .catch(err => {
+                if (cancelled) return;
                 console.error('AuthenticatedImage: Error loading image:', err);
-                setError(true);
-            } finally {
-                setLoading(false);
-            }
-        };
+                setLoaded({ src, url: null });
+            });
 
-        fetchImage();
-
-        // Cleanup: revoke object URL when component unmounts or src changes
+        // Cleanup: revoke object URL when component unmounts or src changes, and forget it so it's never rendered revoked
         return () => {
+            cancelled = true;
             if (objectUrl) {
                 URL.revokeObjectURL(objectUrl);
             }
+            setLoaded(undefined);
         };
     }, [src, Api, showImages]);
 

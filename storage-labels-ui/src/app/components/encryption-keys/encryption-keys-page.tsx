@@ -66,29 +66,29 @@ export const EncryptionKeysPage: React.FC = () => {
     const [migrateBatchSize, setMigrateBatchSize] = useState<number>(100);
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
-    const loadKeys = async () => {
-        try {
-            setLoading(true);
-            const keysData = await Api.EncryptionKey.getEncryptionKeys();
-            setKeys(keysData);
-
-            // Load stats for each key
-            const stats: Record<number, EncryptionKeyStats> = {};
-            for (const key of keysData) {
-                try {
-                    const stat = await Api.EncryptionKey.getEncryptionKeyStats(key.kid);
-                    stats[key.kid] = stat;
-                } catch (err) {
-                    console.error(`Failed to load stats for key ${key.kid}`, err);
-                }
+    const fetchKeyStats = async (keysData: EncryptionKey[]) => {
+        const stats: Record<number, EncryptionKeyStats> = {};
+        for (const key of keysData) {
+            try {
+                const stat = await Api.EncryptionKey.getEncryptionKeyStats(key.kid);
+                stats[key.kid] = stat;
+            } catch (err) {
+                console.error(`Failed to load stats for key ${key.kid}`, err);
             }
-            setKeyStats(stats);
-        } catch (error) {
-            console.error('Failed to load encryption keys', error);
-        } finally {
-            setLoading(false);
         }
+        return stats;
     };
+
+    // State is only set in promise callbacks so the mount effect doesn't trigger a cascading render
+    const loadKeys = () =>
+        Api.EncryptionKey.getEncryptionKeys()
+            .then(keysData => {
+                setKeys(keysData);
+                return fetchKeyStats(keysData);
+            })
+            .then(setKeyStats)
+            .catch(error => console.error('Failed to load encryption keys', error))
+            .finally(() => setLoading(false));
 
     useEffect(() => {
         loadKeys();

@@ -18,12 +18,12 @@ export const UserPermissionContext = createContext<UserPermissionContext | null>
 
 export const UserPermissionProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated, getAccessToken, authMode, user } = useAuth();
-    const [permissions, setPermissions] = useState<string[]>([]);
+    const [tokenPermissions, setPermissions] = useState<string[]>([]);
+    // In NoAuth mode, grant all permissions (will be handled server-side)
+    const permissions = authMode === 'None' ? [] : tokenPermissions;
 
     useEffect(() => {
         if (authMode === 'None') {
-            // In NoAuth mode, grant all permissions (will be handled server-side)
-            setPermissions([]);
             return;
         }
 

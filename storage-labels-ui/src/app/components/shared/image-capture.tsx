@@ -31,6 +31,9 @@ interface ImageCaptureProps {
 type CaptureMode = 'camera' | 'file';
 type CameraFacing = 'user' | 'environment';
 
+// Kept outside the component: the compiler can't tell an async handler from render and flags Date.now() as impure
+const captureFileName = () => `capture-${Date.now()}.jpg`;
+
 export const ImageCapture: React.FC<ImageCaptureProps> = ({
     open,
     onClose,
@@ -48,79 +51,91 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    // The live stream, readable from any render's closure (effect cleanups see a stale `stream` state)
+    const streamRef = useRef<MediaStream | null>(null);
 
-    useEffect(() => {
-        if (open && mode === 'camera') {
-            startCamera();
-            checkMultipleCameras();
-        }
-        return () => {
-            stopCamera();
+    const checkMultipleCameras = () =>
+        navigator.mediaDevices.enumerateDevices()
+            .then(devices => {
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                setHasMultipleCameras(videoDevices.length > 1);
+            })
+            .catch(err => console.error('Error checking cameras:', err));
+
+    // isActive lets the caller abandon a request that resolves after the camera is no longer wanted
+    const startCamera = (isActive: () => boolean = () => true) => {
+        const constraints: MediaStreamConstraints = {
+            video: {
+                facingMode: cameraFacing,
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+            },
+            audio: false,
         };
-    }, [open, mode, cameraFacing]);
 
-    const checkMultipleCameras = async () => {
-        try {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            setHasMultipleCameras(videoDevices.length > 1);
-        } catch (err) {
-            console.error('Error checking cameras:', err);
-        }
-    };
+        return navigator.mediaDevices.getUserMedia(constraints)
+            .then(mediaStream => {
+                if (!isActive()) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                    return;
+                }
 
-    const startCamera = async () => {
-        try {
-            setError(null);
-            const constraints: MediaStreamConstraints = {
-                video: {
-                    facingMode: cameraFacing,
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 },
-                },
-                audio: false,
-            };
+                streamRef.current = mediaStream;
+                setStream(mediaStream);
+                setError(null);
 
-            const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-            setStream(mediaStream);
+                if (videoRef.current) {
+                    videoRef.current.srcObject = mediaStream;
+                }
 
-            if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-            }
+                // Check if torch is supported
+                const videoTrack = mediaStream.getVideoTracks()[0];
+                const capabilities = videoTrack.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
+                const torchAvailable = capabilities && 'torch' in capabilities;
+                setTorchSupported(torchAvailable);
 
-            // Check if torch is supported
-            const videoTrack = mediaStream.getVideoTracks()[0];
-            const capabilities = videoTrack.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
-            const torchAvailable = capabilities && 'torch' in capabilities;
-            setTorchSupported(torchAvailable);
-            
-            // Reset torch state when camera changes
-            setTorchOn(false);
-        } catch (err: unknown) {
-            console.error('Error accessing camera:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to access camera';
-            setError(errorMessage);
-        }
+                // Reset torch state when camera changes
+                setTorchOn(false);
+            })
+            .catch((err: unknown) => {
+                if (!isActive()) return;
+                console.error('Error accessing camera:', err);
+                const errorMessage = err instanceof Error ? err.message : 'Failed to access camera';
+                setError(errorMessage);
+            });
     };
 
     const stopCamera = () => {
-        if (stream) {
+        const current = streamRef.current;
+        if (current) {
             // Turn off torch before stopping
-            if (torchOn) {
-                const videoTrack = stream.getVideoTracks()[0];
-                if (videoTrack) {
-                    videoTrack.applyConstraints({
-                        // @ts-expect-error - torch is not in the standard types yet
-                        advanced: [{ torch: false }]
-                    }).catch(err => console.error('Error turning off torch:', err));
-                }
+            const videoTrack = current.getVideoTracks()[0];
+            const settings = videoTrack?.getSettings() as (MediaTrackSettings & { torch?: boolean }) | undefined;
+            if (settings?.torch) {
+                videoTrack.applyConstraints({
+                    // @ts-expect-error - torch is not in the standard types yet
+                    advanced: [{ torch: false }]
+                }).catch(err => console.error('Error turning off torch:', err));
             }
-            stream.getTracks().forEach(track => track.stop());
+            current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
             setStream(null);
         }
         setTorchOn(false);
         setTorchSupported(false);
     };
+
+    useEffect(() => {
+        if (!open || mode !== 'camera') return;
+
+        let active = true;
+        startCamera(() => active);
+        checkMultipleCameras();
+        return () => {
+            active = false;
+            stopCamera();
+        };
+    }, [open, mode, cameraFacing]);
 
     const toggleTorch = async () => {
         if (!stream || !torchSupported) return;
@@ -173,7 +188,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
         // Convert data URL to File
         const response = await fetch(capturedImage);
         const blob = await response.blob();
-        const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        const file = new File([blob], captureFileName(), { type: 'image/jpeg' });
 
         onCapture(file);
         handleClose();

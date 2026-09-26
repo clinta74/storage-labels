@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     Container,
     Paper,
@@ -25,17 +25,13 @@ export const Preferences: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
-    const [preferences, setPreferences] = useState<UserPreferences>({
+    // Shows the saved preferences (which may load after mount) until the form is edited
+    const [editedPreferences, setPreferences] = useState<UserPreferences | null>(null);
+    const preferences = editedPreferences ?? user?.preferences ?? {
         theme: 'light',
         showImages: true,
         codeColorPattern: '',
-    });
-
-    useEffect(() => {
-        if (user?.preferences) {
-            setPreferences(user.preferences);
-        }
-    }, [user]);
+    };
 
     const handleSave = async () => {
         try {

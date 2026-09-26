@@ -48,21 +48,20 @@ export const UserManagement: React.FC = () => {
     });
     const [newPassword, setNewPassword] = useState('');
 
-    const loadUsers = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const { data } = await Api.User.getAllUsers();
-            setUsers(data);
-        } catch (err: unknown) {
-            const error = err as { response?: { data?: { message?: string } } };
-            const errorMessage = error.response?.data?.message || 'Failed to load users';
-            setError(errorMessage);
-            alert.addError(errorMessage);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // State is only set in promise callbacks so the mount effect doesn't trigger a cascading render
+    const loadUsers = () =>
+        Api.User.getAllUsers()
+            .then(({ data }) => {
+                setUsers(data);
+                setError(null);
+            })
+            .catch((err: unknown) => {
+                const error = err as { response?: { data?: { message?: string } } };
+                const errorMessage = error.response?.data?.message || 'Failed to load users';
+                setError(errorMessage);
+                alert.addError(errorMessage);
+            })
+            .finally(() => setLoading(false));
 
     useEffect(() => {
         loadUsers();

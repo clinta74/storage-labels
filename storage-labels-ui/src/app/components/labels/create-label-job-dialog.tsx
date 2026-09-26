@@ -32,16 +32,11 @@ export const CreateLabelJobDialog: React.FC<CreateLabelJobDialogProps> = ({ open
     const [algorithmPrefix, setAlgorithmPrefix] = useState('');
     const [algorithmSuffixLength, setAlgorithmSuffixLength] = useState(4);
     const [startIndex, setStartIndex] = useState(0);
-    const [codeColorPattern, setCodeColorPattern] = useState(user?.preferences?.codeColorPattern ?? '');
+    // Follows the user's preference until edited; resetForm clears the edit so the next open starts from the preference
+    const [editedCodeColorPattern, setCodeColorPattern] = useState<string | null>(null);
+    const codeColorPattern = editedCodeColorPattern ?? user?.preferences?.codeColorPattern ?? '';
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
-
-    // Sync codeColorPattern from user preferences when dialog opens
-    React.useEffect(() => {
-        if (open) {
-            setCodeColorPattern(user?.preferences?.codeColorPattern ?? '');
-        }
-    }, [open, user]);
 
     const validate = (): boolean => {
         const next: Record<string, string> = {};
@@ -82,6 +77,7 @@ export const CreateLabelJobDialog: React.FC<CreateLabelJobDialogProps> = ({ open
         setAlgorithmPrefix('');
         setAlgorithmSuffixLength(4);
         setStartIndex(0);
+        setCodeColorPattern(null);
         setErrors({});
     };
 

@@ -21,7 +21,7 @@ The **storage-labels** project is a full-stack application suite designed to str
 
 ## Architecture
 
-- **Backend**: .NET 9.0, Mediator, Ardalis.Result, Entity Framework Core, PostgreSQL, RESTful endpoints, System.IO.Abstractions for testable file operations, ASP.NET Core Identity
+- **Backend**: .NET 10.0, Mediator, Ardalis.Result, Entity Framework Core, PostgreSQL, RESTful endpoints, System.IO.Abstractions for testable file operations, ASP.NET Core Identity
 - **Frontend**: React 18, Parcel, Material-UI v7, @yudiel/react-qr-scanner, React Context API
 - **Database**: PostgreSQL 17 (as of v2.0.0)
 - **Testing**: xUnit, Shouldly, Moq, System.IO.Abstractions.TestingHelpers for unit tests; WebApplicationFactory + Respawn + PostgreSQL for integration tests; ESLint for code quality

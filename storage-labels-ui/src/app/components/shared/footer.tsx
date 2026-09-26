@@ -8,12 +8,8 @@ export const Footer: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleToggle = () => {
-        console.log('Footer toggle clicked, current state:', isOpen);
         setIsOpen(!isOpen);
-        console.log('Setting state to:', !isOpen);
     };
-
-    console.log('Footer render, isOpen:', isOpen);
 
     return (
         <Box

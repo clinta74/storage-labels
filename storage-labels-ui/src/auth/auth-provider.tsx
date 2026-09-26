@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
                     }
                 }
             } catch (error) {
-                console.log('Failed to initialize auth:', error);
+                console.error('Failed to initialize auth:', error);
             } finally {
                 setIsLoading(false);
             }

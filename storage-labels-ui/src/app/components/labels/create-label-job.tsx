@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Box,
     Button,
@@ -28,13 +28,11 @@ export const CreateLabelJobPage: React.FC = () => {
     const [algorithmPrefix, setAlgorithmPrefix] = useState('');
     const [algorithmSuffixLength, setAlgorithmSuffixLength] = useState(4);
     const [startIndex, setStartIndex] = useState(0);
-    const [codeColorPattern, setCodeColorPattern] = useState(user?.preferences?.codeColorPattern ?? '');
+    // Follows the user's preference (which may load after mount) until edited here
+    const [editedCodeColorPattern, setCodeColorPattern] = useState<string | null>(null);
+    const codeColorPattern = editedCodeColorPattern ?? user?.preferences?.codeColorPattern ?? '';
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
-
-    useEffect(() => {
-        setCodeColorPattern(user?.preferences?.codeColorPattern ?? '');
-    }, [user]);
 
     const validate = (): boolean => {
         const next: Record<string, string> = {};

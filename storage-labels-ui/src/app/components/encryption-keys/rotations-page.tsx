@@ -68,46 +68,35 @@ export const RotationsPage: React.FC = () => {
 
     const activeKeys = keys.filter(key => key.status === 'Active');
 
-    const loadRotations = async () => {
-        try {
-            setLoading(true);
-            const rotationsData = await Api.EncryptionKey.getRotations();
-            setRotations(rotationsData);
-        } catch (error) {
-            console.error('Failed to load rotations', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Loaders only set state in promise callbacks so calling them from effects doesn't trigger cascading renders
+    const loadRotations = () =>
+        Api.EncryptionKey.getRotations()
+            .then(setRotations)
+            .catch(error => console.error('Failed to load rotations', error))
+            .finally(() => setLoading(false));
 
-    const loadKeys = async () => {
-        try {
-            const keysData = await Api.EncryptionKey.getEncryptionKeys();
-            setKeys(keysData);
-            
-            // Set default values for the form
-            const activeKeysData = keysData.filter(key => key.status === 'Active');
-            if (activeKeysData.length > 0) {
-                const defaultActive = activeKeysData.reduce((min, key) => key.kid < min.kid ? key : min, activeKeysData[0]);
-                setToKeyId(defaultActive.kid);
-                
-                // Set fromKeyId to the first non-active key if available, otherwise the first key
-                const nonActiveKey = keysData.find(key => key.status !== 'Active');
-                setFromKeyId(nonActiveKey ? nonActiveKey.kid : keysData[0]?.kid || 0);
-            }
-        } catch (error) {
-            console.error('Failed to load encryption keys', error);
-        }
-    };
+    const loadKeys = () =>
+        Api.EncryptionKey.getEncryptionKeys()
+            .then(keysData => {
+                setKeys(keysData);
 
-    const loadRotationProgress = async (rotationId: string) => {
-        try {
-            const progress = await Api.EncryptionKey.getRotationProgress(rotationId);
-            setRotationProgress(progress);
-        } catch (error) {
-            console.error('Failed to load rotation progress', error);
-        }
-    };
+                // Set default values for the form
+                const activeKeysData = keysData.filter(key => key.status === 'Active');
+                if (activeKeysData.length > 0) {
+                    const defaultActive = activeKeysData.reduce((min, key) => key.kid < min.kid ? key : min, activeKeysData[0]);
+                    setToKeyId(defaultActive.kid);
+
+                    // Set fromKeyId to the first non-active key if available, otherwise the first key
+                    const nonActiveKey = keysData.find(key => key.status !== 'Active');
+                    setFromKeyId(nonActiveKey ? nonActiveKey.kid : keysData[0]?.kid || 0);
+                }
+            })
+            .catch(error => console.error('Failed to load encryption keys', error));
+
+    const loadRotationProgress = (rotationId: string) =>
+        Api.EncryptionKey.getRotationProgress(rotationId)
+            .then(setRotationProgress)
+            .catch(error => console.error('Failed to load rotation progress', error));
 
     useEffect(() => {
         loadRotations();

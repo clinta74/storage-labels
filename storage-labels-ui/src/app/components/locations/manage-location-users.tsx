@@ -46,6 +46,14 @@ export const ManageLocationUsers: React.FC = () => {
     const [emailError, setEmailError] = useState('');
     const [userNotFoundDialogOpen, setUserNotFoundDialogOpen] = useState(false);
 
+    const loadLocationUsers = (locationId: number) => {
+        Api.Location.getLocationUsers(locationId)
+            .then(({ data }) => {
+                setUsers(data);
+            })
+            .catch((error) => alert.addError(error));
+    };
+
     useEffect(() => {
         const locationId = Number(params.locationId);
         if (locationId) {
@@ -54,18 +62,10 @@ export const ManageLocationUsers: React.FC = () => {
                     setLocation(data);
                 })
                 .catch((error) => alert.addError(error));
-            
+
             loadLocationUsers(locationId);
         }
     }, [params]);
-
-    const loadLocationUsers = (locationId: number) => {
-        Api.Location.getLocationUsers(locationId)
-            .then(({ data }) => {
-                setUsers(data);
-            })
-            .catch((error) => alert.addError(error));
-    };
 
     const handleAddUser = () => {
         if (!newUserEmail || !location) return;

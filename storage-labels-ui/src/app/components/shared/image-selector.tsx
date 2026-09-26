@@ -37,7 +37,7 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
     const { Api } = useApi();
     const alert = useAlertMessage();
     const [images, setImages] = useState<ImageMetadataResponse[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [selectedImageUrl, setSelectedImageUrl] = useState<string>(currentImageUrl || '');
     const [selectedImageId, setSelectedImageId] = useState<string>('');
@@ -45,18 +45,13 @@ export const ImageSelector: React.FC<ImageSelectorProps> = ({
     const [captureDialogOpen, setCaptureDialogOpen] = useState(false);
 
     useEffect(() => {
-        loadImages();
-    }, []);
-
-    const loadImages = () => {
-        setLoading(true);
         Api.Image.getUserImages()
             .then(({ data }) => {
                 setImages(data);
             })
             .catch((error) => alert.addError(error))
             .finally(() => setLoading(false));
-    };
+    }, []);
 
     const handleImageCapture = async (file: File) => {
         setUploading(true);

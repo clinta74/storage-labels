@@ -26,7 +26,7 @@ export default [
                 argsIgnorePattern: '^_',
                 varsIgnorePattern: '^_'
             }],
-            'react-hooks/rules-of-hooks': 'error',
+            ...reactHooks.configs.recommended.rules,
             'react-hooks/exhaustive-deps': 'off',
             'react/prop-types': 'off',
         },

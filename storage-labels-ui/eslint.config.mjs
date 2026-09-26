@@ -33,7 +33,7 @@ export default [
         settings: {
             react: {
                 pragma: 'React',
-                version: 'detect',
+                version: '19.3', // eslint-plugin-react's 'detect' calls context.getFilename(), removed in ESLint 10; keep in step with the react dependency
             },
         },
     },
